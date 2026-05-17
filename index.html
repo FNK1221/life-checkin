@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>人生经历打卡</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --warm-bg: #fdf6ee;
+    --card-bg: #ffffff;
+    --primary: #e8947a;
+    --primary-dark: #d4795f;
+    --accent: #f5cba7;
+    --text: #4a3728;
+    --text-light: #8b7355;
+    --border: #f0d9c5;
+    --success: #7cc47f;
+    --danger: #e88080;
+    --shadow: 0 2px 12px rgba(180, 140, 100, 0.12);
+    --radius: 16px;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--warm-bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #f5d5c5 0%, #e8947a 100%);
+    padding: 20px 16px 24px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(180, 120, 80, 0.2);
+  }
+  .header h1 {
+    font-size: 22px;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+  }
+  .progress-bar-wrap {
+    background: rgba(255,255,255,0.35);
+    border-radius: 20px;
+    height: 14px;
+    overflow: hidden;
+    margin: 0 auto;
+    max-width: 320px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fff5ee, #fff);
+    border-radius: 20px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+  .progress-text {
+    font-size: 13px;
+    color: rgba(255,255,255,0.95);
+    margin-top: 6px;
+    font-weight: 500;
+  }
+  
+  /* Chapter */
+  .chapter {
+    margin: 12px 12px 0;
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .chapter-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background 0.2s;
+  }
+  .chapter-header:active { background: #fef6f0; }
+  .chapter-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .chapter-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .chapter-count {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-right: 8px;
+  }
+  .chapter-arrow {
+    font-size: 12px;
+    color: var(--text-light);
+    transition: transform 0.3s;
+  }
+  .chapter.open .chapter-arrow { transform: rotate(180deg); }
+  .chapter-items {
+    display: none;
+    padding: 0 12px 12px;
+  }
+  .chapter.open .chapter-items { display: block; }
+  
+  /* Event Item */
+  .event-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 10px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    transition: background 0.2s;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .event-item:active { background: #fef6f0; }
+  .event-check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    transition: all 0.3s;
+    font-size: 14px;
+  }
+  .event-item.checked .event-check {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  .event-info { flex: 1; min-width: 0; }
+  .event-name {
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+  .event-item.checked .event-name {
+    color: var(--text-light);
+    text-decoration: line-through;
+    text-decoration-color: var(--border);
+  }
+  .event-meta {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .event-meta .photo-icon { font-size: 13px; }
+  
+  /* Modal Overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 0 0 0;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 24px 20px 32px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+  .modal-event-name {
+    font-size: 15px;
+    color: var(--primary-dark);
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #fef6f0;
+    border-radius: 10px;
+  }
+  
+  /* Form */
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .form-label {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    color: var(--text);
+    background: #fefcf9;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--primary); }
+  
+  /* Photo Upload */
+  .photo-upload {
+    width: 100%;
+    min-height: 120px;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    position: relative;
+  }
+  .photo-upload:active { background: #fef6f0; }
+  .photo-upload.has-photo { border-style: solid; }
+  .photo-upload-icon { font-size: 32px; opacity: 0.4; }
+  .photo-upload-text { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+  .photo-preview {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: none;
+  }
+  .photo-upload.has-photo .photo-preview { display: block; }
+  .photo-upload.has-photo .photo-upload-icon,
+  .photo-upload.has-photo .photo-upload-text { display: none; }
+  .photo-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-upload.has-photo .photo-remove { display: flex; }
+  
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn:active { opacity: 0.75; }
+  .btn-cancel {
+    background: #f5f0eb;
+    color: var(--text-light);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #e8947a, #d4795f);
+    color: #fff;
+  }
+  .btn-danger {
+    background: #f5f0eb;
+    color: var(--danger);
+  }
+  
+  /* Bottom Bar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 8px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .bottom-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .bottom-btn:active { background: #fef6f0; }
+  .bottom-btn .icon { font-size: 20px; margin-bottom: 2px; }
+  .bottom-btn.active { color: var(--primary-dark); }
+  
+  /* Timeline View */
+  .timeline-view {
+    display: none;
+    padding: 12px;
+  }
+  .timeline-view.show { display: block; }
+  .main-list { display: block; }
+  .main-list.hidden { display: none; }
+  
+  .timeline-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px;
+  }
+  .timeline-date {
+    flex-shrink: 0;
+    width: 52px;
+    text-align: center;
+    background: #fef6f0;
+    border-radius: 10px;
+    padding: 8px 4px;
+  }
+  .timeline-date .day { font-size: 22px; font-weight: 700; color: var(--primary-dark); }
+  .timeline-date .month { font-size: 11px; color: var(--text-light); }
+  .timeline-info { flex: 1; min-width: 0; }
+  .timeline-chapter { font-size: 11px; color: var(--primary); margin-bottom: 3px; }
+  .timeline-name { font-size: 14px; line-height: 1.4; }
+  .timeline-photo {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+  .timeline-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  
+  /* Stats View */
+  .stats-view {
+    display: none;
+    padding: 12px;
+  }
+  .stats-view.show { display: block; }
+  .stats-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .stats-number {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .stats-label { font-size: 13px; color: var(--text-light); margin-top: 6px; }
+  .stats-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 120px;
+    margin-top: 16px;
+    padding: 0 4px;
+  }
+  .stats-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .stats-bar {
+    width: 100%;
+    max-width: 32px;
+    background: linear-gradient(0deg, var(--primary), var(--accent));
+    border-radius: 6px 6px 0 0;
+    min-height: 4px;
+    transition: height 0.5s ease;
+  }
+  .stats-bar-label {
+    font-size: 10px;
+    color: var(--text-light);
+    margin-top: 4px;
+    text-align: center;
+  }
+  
+  /* Data Management */
+  .data-section {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    margin: 12px;
+  }
+  .data-section h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  .data-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: #fefcf9;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .data-btn:active { background: #fef6f0; }
+  .data-btn.primary {
+    background: linear-gradient(135deg, #e8947a, #d4795f);
+    color: #fff;
+    border-color: transparent;
+  }
+  
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 0; }
+  
+  /* Photo viewer modal */
+  .photo-viewer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .photo-viewer.show { display: flex; }
+  .photo-viewer img {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 8px;
+    object-fit: contain;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>🌅 人生经历打卡</h1>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-text" id="progressText">已点亮 0 / 96 个经历</div>
+</div>
+
+<!-- Main List View -->
+<div class="main-list" id="mainList"></div>
+
+<!-- Timeline View -->
+<div class="timeline-view" id="timelineView"></div>
+
+<!-- Stats View -->
+<div class="stats-view" id="statsView"></div>
+
+<!-- Bottom Bar -->
+<div class="bottom-bar">
+  <button class="bottom-btn active" onclick="switchTab('list')" id="tabList">
+    <span class="icon">📋</span>清单
+  </button>
+  <button class="bottom-btn" onclick="switchTab('timeline')" id="tabTimeline">
+    <span class="icon">📅</span>时光轴
+  </button>
+  <button class="bottom-btn" onclick="switchTab('stats')" id="tabStats">
+    <span class="icon">📊</span>统计
+  </button>
+  <button class="bottom-btn" onclick="showDataPanel()" id="tabData">
+    <span class="icon">⚙️</span>数据
+  </button>
+</div>
+
+<!-- Check-in Modal -->
+<div class="modal-overlay" id="checkinModal">
+  <div class="modal">
+    <div class="modal-title">✅ 打卡记录</div>
+    <div class="modal-event-name" id="modalEventName"></div>
+    <div class="form-group">
+      <label class="form-label">打卡日期</label>
+      <input type="date" class="form-input" id="checkinDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">记录照片（可选）</label>
+      <div class="photo-upload" id="photoUpload" onclick="document.getElementById('photoInput').click()">
+        <span class="photo-upload-icon">📷</span>
+        <span class="photo-upload-text">点击上传照片</span>
+        <img class="photo-preview" id="photoPreview">
+        <button class="photo-remove" onclick="removePhoto(event)">✕</button>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">心情备注（可选）</label>
+      <input type="text" class="form-input" id="checkinNote" placeholder="写点什么吧…" maxlength="100">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitCheckin()">完成打卡</button>
+    </div>
+    <div class="btn-row" id="deleteBtnRow" style="display:none">
+      <button class="btn btn-danger" onclick="deleteCheckin()">删除此打卡</button>
+    </div>
+  </div>
+</div>
+
+<!-- Photo Viewer -->
+<div class="photo-viewer" id="photoViewer" onclick="closePhotoViewer()">
+  <img id="photoViewerImg">
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Data Panel (inline) -->
+<div class="modal-overlay" id="dataModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ 数据管理</div>
+    <p style="font-size:13px;color:var(--text-light);text-align:center;margin-bottom:18px;">
+      数据仅保存在本设备，导出备份后可换设备导入恢复
+    </p>
+    <button class="data-btn primary" onclick="exportData()">📤 导出数据（JSON文件）</button>
+    <button class="data-btn" onclick="document.getElementById('importInput').click()">📥 导入数据（JSON文件）</button>
+    <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="data-btn" style="color:var(--danger);border-color:var(--danger);" onclick="confirmClearData()">🗑️ 清除所有数据</button>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn btn-cancel" onclick="closeDataPanel()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== DATA ==========
+const CHAPTERS = [
+  {
+    icon: "🍼",
+    title: "成长时光",
+    subtitle: "那些第一次，最珍贵",
+    events: [
+      "第一次叫爸爸妈妈",
+      "第一天上幼儿园，哭着不想进校门",
+      "第一次换牙，牙齿掉下来的那一刻",
+      "第一次独自睡觉，半夜偷偷哭",
+      "第一天上小学，背着大书包很神气",
+      "第一次戴红领巾，站在队旗下宣誓",
+      "第一次被老师当众表扬，开心了好几天",
+      "第一次考试不及格，不敢拿回家给爸妈签字",
+      "第一次和好朋友吵架，以为再也不理对方了",
+      "第一天上初中，面对新环境很紧张",
+      "第一次被校园霸凌/排挤，那种孤独感",
+      "第一次住校/寄宿，想家想到哭",
+      "18岁成人礼，觉得自己终于长大了",
+      "高中毕业，和同学抱在一起哭"
+    ]
+  },
+  {
+    icon: "🎓",
+    title: "求学与选择",
+    subtitle: "青春的迷茫和成长",
+    events: [
+      "高考最后一科交卷，走出考场的那一刻",
+      "收到大学录取通知书",
+      "第一次独自去外地，在火车站和爸妈告别",
+      "大学第一天报到，一个人铺床整理",
+      "第一次做课堂展示，紧张到手抖",
+      "第一次挂科，觉得自己很失败",
+      "补考通过的那一刻，如释重负",
+      "第一次实习，被同事使唤得团团转",
+      "大学毕业典礼，穿着学士服拍照",
+      "第一次找工作被拒绝，投了几十份简历都没回音",
+      "收到第一份正式工作offer",
+      "第一次租房独居，自己组装家具",
+      "第一次给自己做一整桌饭，虽然卖相一般"
+    ]
+  },
+  {
+    icon: "💼",
+    title: "事业与奋斗",
+    subtitle: "职场的磕碰、坚持、和偶尔的崩溃",
+    events: [
+      "第一份正式工作第一天上班，紧张到睡不着",
+      "拿到第一个月工资，虽然不多但很自豪",
+      "第一次加班到深夜，走出公司发现天已经亮了",
+      "第一次被领导当众批评，委屈到想辞职",
+      "第一次被领导认可，升职加薪",
+      "第一次主动辞职裸辞，不知道下一份工作在哪",
+      "第一次尝试创业/做副业，充满希望又很焦虑",
+      "创业/副业失败，亏了一笔钱",
+      "第一次遇到职场挫折，觉得自己撑不下去了",
+      "熬过职场挫折，发现自己比想象中坚强",
+      "第一次休带薪年假，真正放松地玩了几天",
+      "第一次用自己赚的钱买喜欢的大件",
+      "第一次独立完成一个大项目，很有成就感",
+      "第一次当导师带新人，发现自己也能独当一面了",
+      "决定转行做自己喜欢的工作，重新开始"
+    ]
+  },
+  {
+    icon: "❤️",
+    title: "感情与家庭",
+    subtitle: "爱的甜蜜、争吵、失去、和责任",
+    events: [
+      "第一次暗恋别人，不敢说出口",
+      "第一次和喜欢的人牵手，心跳加速",
+      "第一次谈恋爱，觉得全世界都亮了",
+      "第一次分手，哭到眼睛肿",
+      "分手后一个人熬过去，发现自己变坚强了",
+      "遇到对的人，第一次觉得「就是他/她了」",
+      "双方父母见面，紧张到手心出汗",
+      "求婚成功",
+      "婚礼当天，紧张又幸福",
+      "第一个结婚纪念日",
+      "第一次和伴侣吵架，吵到想离婚/分手",
+      "吵架后和好，关系反而更深了",
+      "备孕成功/知道自己要当爸妈了",
+      "第一次抱自己的孩子，眼泪止不住",
+      "第一次和伴侣一起带孩子，手忙脚乱",
+      "第一次给父母过结婚纪念日，才发现他们老了"
+    ]
+  },
+  {
+    icon: "🏠",
+    title: "生活与居家",
+    subtitle: "柴米油盐、责任和偶尔的崩溃",
+    events: [
+      "第一次买房/签购房合同，手抖着签字",
+      "第一次自己装修房子，跑工地跑到累瘫",
+      "第一次搬进新家，虽然空荡荡但很满足",
+      "第一次养宠物，多了一个家人",
+      "第一次自己种活一盆植物",
+      "第一次在家请朋友吃饭，忙了一整天",
+      "第一次和家人一起旅游",
+      "第一次买车/学会开车",
+      "第一次带父母旅游，才发现他们走不动了",
+      "第一次自己操办家里的大节日，才发现爸妈老了",
+      "第一次遇到人生重大变故（失业/生病/意外）",
+      "熬过重大变故，发现自己比想象中坚强",
+      "第一次觉得「我能把自己的生活过好了」"
+    ]
+  },
+  {
+    icon: "🌍",
+    title: "体验与冒险",
+    subtitle: "探索世界、开阔眼界、挑战自己",
+    events: [
+      "第一次坐飞机，takeoff 的时候很兴奋",
+      "第一次看海，被那种广阔震撼到",
+      "第一次爬一座名山，爬到腿软但登顶那一刻值了",
+      "第一次独自旅行，发现自己也能照顾好自己",
+      "第一次看演唱会/livehouse演出，全场一起唱",
+      "第一次学会一项新技能（画画/吉他/做饭/滑雪等）",
+      "第一次参加志愿者活动，被需要感觉很好",
+      "第一次在特别的地方看日出/日落",
+      "第一次尝试异地的特色美食",
+      "第一次去外省/外国，发现世界很大",
+      "第一次完成一件自己以为做不到的挑战",
+      "第一次见到自己的偶像/敬佩的人"
+    ]
+  },
+  {
+    icon: "🎉",
+    title: "仪式感与回忆",
+    subtitle: "那些值得记录的小事，和成长的领悟",
+    events: [
+      "第一次和朋友一起过生日",
+      "第一次收到惊喜礼物",
+      "第一次给未来的自己写一封信",
+      "第一次参加朋友的婚礼，感动到哭",
+      "第一次当伴娘/伴郎，忙到脚不沾地",
+      "第一次给别人做手工礼物",
+      "第一次完成一个读书清单/观影清单",
+      "第一次跑完一场全程马拉松/5公里跑",
+      "第一次给需要的人捐款/捐物",
+      "第一次翻以前的旧照片，觉得「我长大了」",
+      "第一次定新年目标然后完成",
+      "第一次觉得「我现在很幸福」",
+      "第一次失去重要的朋友/亲人，那种空洞感",
+      "失去之后，学会珍惜还在身边的人"
+    ]
+  },
+  {
+    icon: "🕰️",
+    title: "成长与接纳",
+    subtitle: "活到老的智慧、平和、和接纳不完美",
+    events: [
+      "第一次发现父母长了白头发",
+      "第一次陪父母去医院，才发现他们也会老",
+      "第一次接纳自己的不完美",
+      "第一次退休/准备退休，不知道该做什么",
+      "退休后找到新的爱好，生活重新充实起来",
+      "第一次退休后和伴侣一起旅行",
+      "第一次带孙子孙女玩，累并快乐着",
+      "第一次回望自己的人生，觉得「我没有遗憾」",
+      "第一次把自己的经验传给下一代",
+      "第一次过金婚（结婚50周年）",
+      "第一次意识到「人生最重要的就是平安和健康」",
+      "第一次完成自己多年的愿望清单",
+      "第一次觉得「年龄只是数字」",
+      "第一次给自己写回忆录/整理老照片"
+    ]
+  }
+];
+
+// Generate event IDs
+const ALL_EVENTS = [];
+CHAPTERS.forEach((ch, ci) => {
+  ch.events.forEach((ev, ei) => {
+    ALL_EVENTS.push({ id: `${ci}-${ei}`, chapter: ci, name: ev });
+  });
+});
+const TOTAL = ALL_EVENTS.length;
+
+// ========== STATE ==========
+let checkinData = {};  // { eventId: { date, photo (base64), note, timestamp } }
+let currentEventId = null;
+let tempPhotoData = null;
+
+// ========== INIT ==========
+function init() {
+  loadData();
+  renderList();
+  updateProgress();
+  // Set default date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('checkinDate').value = today;
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('lifeCheckinData');
+    if (raw) checkinData = JSON.parse(raw);
+  } catch(e) { checkinData = {}; }
+}
+
+function saveData() {
+  localStorage.setItem('lifeCheckinData', JSON.stringify(checkinData));
+}
+
+// ========== RENDER LIST ==========
+function renderList() {
+  const container = document.getElementById('mainList');
+  container.innerHTML = '';
+  CHAPTERS.forEach((ch, ci) => {
+    const chapterDiv = document.createElement('div');
+    chapterDiv.className = 'chapter open';
+    chapterDiv.id = `chapter-${ci}`;
+    
+    const checkedCount = ch.events.filter((_, ei) => checkinData[`${ci}-${ei}`]).length;
+    
+    chapterDiv.innerHTML = `
+      <div class="chapter-header" onclick="toggleChapter(${ci})">
+        <span class="chapter-icon">${ch.icon}</span>
+        <span class="chapter-title">${ch.title}</span>
+        <span class="chapter-count">${checkedCount}/${ch.events.length}</span>
+        <span class="chapter-arrow">▼</span>
+      </div>
+      <div class="chapter-items">
+        ${ch.events.map((ev, ei) => {
+          const id = `${ci}-${ei}`;
+          const checked = checkinData[id];
+          const meta = checked ? formatMeta(checked) : '';
+          return `
+            <div class="event-item ${checked ? 'checked' : ''}" onclick="openCheckin('${id}')">
+              <div class="event-check">${checked ? '✓' : ''}</div>
+              <div class="event-info">
+                <div class="event-name">${ev}</div>
+                ${meta ? `<div class="event-meta">${meta}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    container.appendChild(chapterDiv);
+  });
+}
+
+function formatMeta(data) {
+  let parts = [];
+  if (data.date) parts.push(`📅 ${data.date}`);
+  if (data.photo) parts.push('📷 有照片');
+  if (data.note) parts.push(`💬 ${data.note}`);
+  return parts.join(' &nbsp;·&nbsp; ');
+}
+
+function toggleChapter(ci) {
+  const el = document.getElementById(`chapter-${ci}`);
+  el.classList.toggle('open');
+}
+
+// ========== PROGRESS ==========
+function updateProgress() {
+  const done = Object.keys(checkinData).length;
+  const pct = Math.round(done / TOTAL * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `已点亮 ${done} / ${TOTAL} 个经历（${pct}%）`;
+}
+
+// ========== MODAL ==========
+function openCheckin(eventId) {
+  currentEventId = eventId;
+  tempPhotoData = null;
+  const ev = ALL_EVENTS.find(e => e.id === eventId);
+  document.getElementById('modalEventName').textContent = ev.name;
+  
+  const existing = checkinData[eventId];
+  if (existing) {
+    document.getElementById('checkinDate').value = existing.date || new Date().toISOString().split('T')[0];
+    document.getElementById('checkinNote').value = existing.note || '';
+    if (existing.photo) {
+      showPhotoPreview(existing.photo);
+    } else {
+      clearPhotoPreview();
+    }
+    document.getElementById('deleteBtnRow').style.display = 'flex';
+  } else {
+    document.getElementById('checkinDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('checkinNote').value = '';
+    clearPhotoPreview();
+    document.getElementById('deleteBtnRow').style.display = 'none';
+  }
+  
+  document.getElementById('checkinModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('checkinModal').classList.remove('show');
+  currentEventId = null;
+  tempPhotoData = null;
+}
+
+function submitCheckin() {
+  if (!currentEventId) return;
+  const date = document.getElementById('checkinDate').value;
+  const note = document.getElementById('checkinNote').value.trim();
+  
+  checkinData[currentEventId] = {
+    date: date,
+    photo: tempPhotoData,
+    note: note,
+    timestamp: Date.now()
+  };
+  
+  saveData();
+  closeModal();
+  renderList();
+  updateProgress();
+  showToast('🌟 打卡成功！');
+}
+
+function deleteCheckin() {
+  if (!currentEventId) return;
+  delete checkinData[currentEventId];
+  saveData();
+  closeModal();
+  renderList();
+  updateProgress();
+  showToast('已删除打卡记录');
+}
+
+// ========== PHOTO ==========
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('⚠️ 照片不能超过5MB');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    // Compress
+    compressImage(ev.target.result, 600, 0.7).then(compressed => {
+      tempPhotoData = compressed;
+      showPhotoPreview(compressed);
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function compressImage(dataUrl, maxW, quality) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * maxW / w; w = maxW; }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
+function showPhotoPreview(dataUrl) {
+  const upload = document.getElementById('photoUpload');
+  const preview = document.getElementById('photoPreview');
+  preview.src = dataUrl;
+  upload.classList.add('has-photo');
+}
+
+function clearPhotoPreview() {
+  const upload = document.getElementById('photoUpload');
+  const preview = document.getElementById('photoPreview');
+  preview.src = '';
+  upload.classList.remove('has-photo');
+  document.getElementById('photoInput').value = '';
+  tempPhotoData = null;
+}
+
+function removePhoto(e) {
+  e.stopPropagation();
+  tempPhotoData = null;
+  clearPhotoPreview();
+}
+
+// ========== TABS ==========
+function switchTab(tab) {
+  document.getElementById('mainList').classList.toggle('hidden', tab !== 'list');
+  document.getElementById('timelineView').classList.toggle('show', tab === 'timeline');
+  document.getElementById('statsView').classList.toggle('show', tab === 'stats');
+  document.getElementById('tabList').classList.toggle('active', tab === 'list');
+  document.getElementById('tabTimeline').classList.toggle('active', tab === 'timeline');
+  document.getElementById('tabStats').classList.toggle('active', tab === 'stats');
+  document.getElementById('tabData').classList.toggle('active', false);
+  
+  if (tab === 'timeline') renderTimeline();
+  if (tab === 'stats') renderStats();
+}
+
+// ========== TIMELINE ==========
+function renderTimeline() {
+  const container = document.getElementById('timelineView');
+  const entries = [];
+  ALL_EVENTS.forEach(ev => {
+    const data = checkinData[ev.id];
+    if (data && data.date) {
+      entries.push({ ...ev, ...data });
+    }
+  });
+  
+  entries.sort((a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0));
+  
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="timeline-empty">还没有打卡记录<br>去清单里点亮你的第一个经历吧 🌟</div>';
+    return;
+  }
+  
+  container.innerHTML = entries.map(ev => {
+    const ch = CHAPTERS[ev.chapter];
+    const photoHtml = ev.photo ? `<img class="timeline-photo" src="${ev.photo}" onclick="viewPhoto('${ev.id}')">` : '';
+    const noteHtml = ev.note ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px;">💬 ${ev.note}</div>` : '';
+    const dateParts = ev.date.split('-');
+    return `
+      <div class="timeline-item">
+        <div class="timeline-date">
+          <div class="day">${dateParts[2]}</div>
+          <div class="month">${dateParts[0]}年${parseInt(dateParts[1])}月</div>
+        </div>
+        <div class="timeline-info">
+          <div class="timeline-chapter">${ch.icon} ${ch.title}</div>
+          <div class="timeline-name">${ev.name}</div>
+          ${noteHtml}
+          ${photoHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function viewPhoto(eventId) {
+  const data = checkinData[eventId];
+  if (data && data.photo) {
+    document.getElementById('photoViewerImg').src = data.photo;
+    document.getElementById('photoViewer').classList.add('show');
+  }
+}
+
+function closePhotoViewer() {
+  document.getElementById('photoViewer').classList.remove('show');
+}
+
+// ========== STATS ==========
+function renderStats() {
+  const container = document.getElementById('statsView');
+  const done = Object.keys(checkinData).length;
+  const pct = Math.round(done / TOTAL * 100);
+  
+  // Chapter stats
+  const chapterStats = CHAPTERS.map((ch, ci) => {
+    const count = ch.events.filter((_, ei) => checkinData[`${ci}-${ei}`]).length;
+    return { title: ch.title, icon: ch.icon, count, total: ch.events.length };
+  });
+  
+  // Find most recent checkin
+  let recentDate = '';
+  Object.values(checkinData).forEach(d => {
+    if (d.date && (!recentDate || d.date > recentDate)) recentDate = d.date;
+  });
+  
+  // Photo count
+  const photoCount = Object.values(checkinData).filter(d => d.photo).length;
+  
+  container.innerHTML = `
+    <div class="stats-card">
+      <div class="stats-number">${done}</div>
+      <div class="stats-label">共打卡 ${TOTAL} 个经历，完成 ${pct}%</div>
+    </div>
+    <div class="stats-card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">📊 各章节完成度</div>
+      <div class="stats-chart">
+        ${chapterStats.map(s => {
+          const h = Math.max(4, Math.round(s.count / s.total * 100));
+          return `
+            <div class="stats-bar-wrap">
+              <div class="stats-bar" style="height:${h}px;"></div>
+              <div class="stats-bar-label">${s.icon}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    <div class="stats-card">
+      <div style="display:flex;justify-content:space-around;text-align:center;">
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--primary);">${photoCount}</div>
+          <div style="font-size:12px;color:var(--text-light);">照片记录</div>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--primary);">${recentDate ? recentDate.split('-').join('.') : '-'}</div>
+          <div style="font-size:12px;color:var(--text-light);">最近打卡</div>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--primary);">${done > 0 ? Math.round(chapterStats.filter(s => s.count === s.total).length) : 0}</div>
+          <div style="font-size:12px;color:var(--text-light);">已完成章节</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ========== DATA MANAGEMENT ==========
+function showDataPanel() {
+  document.getElementById('dataModal').classList.add('show');
+}
+function closeDataPanel() {
+  document.getElementById('dataModal').classList.remove('show');
+}
+
+function exportData() {
+  const dataStr = JSON.stringify(checkinData, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `人生打卡备份_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 数据已导出');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (confirm(`即将导入 ${Object.keys(imported).length} 条打卡记录，是否覆盖当前数据？\n（取消则合并数据）`)) {
+        checkinData = imported;
+      } else {
+        // Merge
+        Object.assign(checkinData, imported);
+      }
+      saveData();
+      renderList();
+      updateProgress();
+      showToast('📥 数据导入成功！');
+    } catch(err) {
+      showToast('⚠️ 文件格式不正确');
+    }
+  };
+  reader.readAsText(file);
+  document.getElementById('importInput').value = '';
+  closeDataPanel();
+}
+
+function confirmClearData() {
+  if (confirm('确定要清除所有打卡数据吗？此操作不可恢复！')) {
+    checkinData = {};
+    saveData();
+    renderList();
+    updateProgress();
+    showToast('🗑️ 所有数据已清除');
+    closeDataPanel();
+  }
+}
+
+// ========== TOAST ==========
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ========== START ==========
+init();
+</script>
+</body>
+</html>
