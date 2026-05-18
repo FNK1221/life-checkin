@@ -824,7 +824,7 @@
       <label class="form-label">📅 打卡日期</label>
       <input type="date" class="form-input" id="checkinDate">
     </div>
-    <div class="form-group">
+    <div class="form-group media-upload">
       <label class="form-label">📷 记录照片（可选）</label>
       <div class="photo-upload" id="photoUpload" onclick="document.getElementById('photoInput').click()">
         <span class="photo-upload-icon">📷</span>
@@ -1527,6 +1527,7 @@ var TOTAL = ALL_EVENTS.length;
 // ========== STATE ==========
 var checkinData = {};
 var currentEventId = null;
+var currentWithMedia = false;
 var tempPhotoData = null;
 var tempAudioData = null;
 var tempVideoData = null;
@@ -1638,6 +1639,8 @@ function handleMediaConfirm(isMedia) {
 function openCheckinModal(eventId, withMedia) {
   currentEventId = eventId;
   tempPhotoData = null;
+  tempAudioData = null;
+  tempVideoData = null;
   var ev = ALL_EVENTS.find(function(e) { return e.id === eventId; });
   document.getElementById('modalEventName').textContent = ev.name;
 
@@ -1645,23 +1648,24 @@ function openCheckinModal(eventId, withMedia) {
   if (existing) {
     document.getElementById('checkinDate').value = existing.date || new Date().toISOString().split('T')[0];
     document.getElementById('checkinNote').value = existing.note || '';
-    if (existing.photo) {
+    if (existing.photo && withMedia) {
       showPhotoPreview(existing.photo);
     } else {
       clearPhotoPreview();
     }
     document.getElementById('deleteBtnWrap').style.display = 'block';
-    // 根据 withMedia 显示/隐藏媒体上传区
-    var mediaWraps = document.querySelectorAll('.media-upload');
-    for (var i = 0; i < mediaWraps.length; i++) {
-      mediaWraps[i].style.display = withMedia ? '' : 'none';
-    }
   } else {
     document.getElementById('checkinDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('checkinNote').value = '';
     clearPhotoPreview();
     clearMediaPreview();
     document.getElementById('deleteBtnWrap').style.display = 'none';
+  }
+  // 根据 withMedia 显示/隐藏所有媒体上传区
+  currentWithMedia = withMedia;
+  var mediaWraps = document.querySelectorAll('.media-upload');
+  for (var i = 0; i < mediaWraps.length; i++) {
+    mediaWraps[i].style.display = withMedia ? '' : 'none';
   }
 
   document.getElementById('checkinModal').classList.add('show');
@@ -1677,23 +1681,41 @@ function submitCheckin() {
   if (!currentEventId) return;
   var date = document.getElementById('checkinDate').value;
   var note = document.getElementById('checkinNote').value.trim();
+  var existing = checkinData[currentEventId];
 
-  checkinData[currentEventId] = {
-    date: date,
-    photo: tempPhotoData,
-    hasAudio: !!tempAudioData,
-    hasVideo: !!tempVideoData,
-    note: note,
-    timestamp: Date.now()
-  };
-
-  saveData();
-  saveMediaToDB(currentEventId, function() {
+  if (currentWithMedia) {
+    // "是"模式：使用临时媒体数据
+    checkinData[currentEventId] = {
+      date: date,
+      photo: tempPhotoData,
+      hasAudio: !!tempAudioData,
+      hasVideo: !!tempVideoData,
+      note: note,
+      timestamp: Date.now()
+    };
+    saveData();
+    saveMediaToDB(currentEventId, function() {
+      closeModal();
+      renderList();
+      updateProgress();
+      showToast('🌟 打卡成功！');
+    });
+  } else {
+    // "否"模式：保留已有媒体数据，只更新日期和备注
+    checkinData[currentEventId] = {
+      date: date,
+      photo: existing ? existing.photo : null,
+      hasAudio: existing ? !!existing.hasAudio : false,
+      hasVideo: existing ? !!existing.hasVideo : false,
+      note: note,
+      timestamp: Date.now()
+    };
+    saveData();
     closeModal();
     renderList();
     updateProgress();
     showToast('🌟 打卡成功！');
-  });
+  }
 }
 
 function deleteCheckin() {
