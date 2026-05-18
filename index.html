@@ -1555,6 +1555,95 @@
     color: var(--text-light);
     border: 1.5px solid var(--border);
   }
+
+  /* ========== MOBILE RESPONSIVE ========== */
+  @media (max-width: 640px) {
+    /* 时光轴：单列布局 */
+    .timeline-river {
+      left: 18px;
+      transform: none;
+      width: 3px;
+    }
+    .timeline-river::before { left: 50%; transform: translateX(-50%); }
+
+    .tl-item {
+      width: 100% !important;
+      padding-left: 38px !important;
+      padding-right: 8px !important;
+      margin-bottom: 18px;
+    }
+    .tl-item.left, .tl-item.right {
+      margin-right: 0;
+      margin-left: 0;
+      padding-right: 8px !important;
+      padding-left: 38px !important;
+    }
+
+    /* 连接线：从卡片指向左侧河流 */
+    .tl-item::before {
+      left: 18px !important;
+      right: auto !important;
+      width: 20px;
+    }
+    .tl-item.left::before, .tl-item.right::before { left: 18px; right: auto; }
+
+    /* 河面锚点：固定在左侧河流上 */
+    .tl-item::after {
+      left: 18px !important;
+      transform: translateX(-50%);
+    }
+    .tl-item.left::after, .tl-item.right::after { left: 18px; right: auto; }
+
+    /* 卡片内部间距放大 */
+    .tl-card { padding: 12px 14px; }
+    .tl-name { font-size: 15px; }
+    .tl-note { font-size: 13px; padding: 8px 10px; }
+    .tl-photo-container { min-height: 120px; }
+    .tl-photo { max-height: 200px; }
+
+    /* 年份标记调整到左侧 */
+    .timeline-year-marker {
+      left: 18px;
+      transform: none;
+      margin: 14px 0 14px 0;
+      display: block;
+      width: fit-content;
+    }
+
+    /* 顶部 header 优化 */
+    .header { padding: 18px 12px 22px; }
+    .header h1 { font-size: 19px; }
+    .progress-circle-wrap { width: 130px; height: 130px; }
+    .progress-circle-text .pct { font-size: 30px; }
+    .header-stats { gap: 14px; }
+    .header-stat-num { font-size: 16px; }
+    .header-stat-label { font-size: 9px; }
+
+    /* 章节卡片 */
+    .chapter { margin: 10px 8px 0; }
+    .event-item { padding: 11px 8px; }
+    .event-name { font-size: 14px; }
+
+    /* 统计页 */
+    .stats-hero { padding: 24px 14px; }
+    .stats-hero-num { font-size: 42px; }
+    .stats-card { padding: 14px 12px; }
+    .stats-grid-num { font-size: 18px; }
+
+    /* 底部导航栏 */
+    .bottom-bar { padding: 8px 4px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+    .bottom-btn { padding: 4px 8px; font-size: 9px; }
+    .bottom-btn .icon { font-size: 18px; }
+  }
+
+  /* 超小屏幕额外优化 */
+  @media (max-width: 380px) {
+    .header h1 { font-size: 17px; }
+    .progress-circle-wrap { width: 110px; height: 110px; }
+    .progress-circle-text .pct { font-size: 26px; }
+    .header-stats { gap: 8px; }
+    .tl-item { padding-left: 32px !important; }
+  }
 </style>
 </head>
 <body>
