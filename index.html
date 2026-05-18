@@ -1084,7 +1084,7 @@
 // ========= LOADING ANIMATION ==========
 (function(){
   var canvas = document.getElementById("loadingCanvas");
-  if(!canvas) return;
+  if(!canvas) { finishLoading(); return; }
   var ctx = canvas.getContext("2d");
   var screen = document.getElementById("loadingScreen");
   var textEl = document.getElementById("loadingText");
@@ -1100,6 +1100,9 @@
   function H(){ return canvas.height; }
   function cx(){ return canvas.width/2; }
   function cy(){ return canvas.height/2; }
+
+  // 安全兜底：8秒后强制结束loading
+  setTimeout(finishLoading, 8000);
 
   // ===== Particle system =====
   var particles = [];
@@ -1131,12 +1134,26 @@
     ctx.globalAlpha = 1;
   }
 
+  function finishLoading(){
+    if(screen){
+      screen.style.display = "none";
+    }
+    animDone = true;
+  }
+
   var frame = 0, animDone = false;
   var FPS = 60, SPD = 1000/FPS;
 
   function loop(){
-    if(animDone) return;
+    if(animDone) { finishLoading(); return; }
     ctx.clearRect(0, 0, W(), H());
+
+    textEl.classList.add("show");
+    if(frame > 60 && frame < 400){
+      textEl.textContent = "孕育中…";
+    } else if(frame >= 400){
+      textEl.textContent = "即将破茧…";
+    }
 
     // ===== Phase 1: Two orbs approach (Milky White + Light Yellow) =====
     if(frame < 120){
@@ -1147,13 +1164,11 @@
       var xRight = cx() + maxDist * (1 - ease);
       var orbY = cy() + Math.sin(frame*0.04)*4;
 
-      // Left orb trail particles
       if(frame % 2 === 0){
         spawnP(xLeft, orbY, 1, function(){ return "rgba(220,230,255,"+(0.3+Math.random()*0.3)+")"; }, 0.3, 35);
         spawnP(xRight, orbY, 1, function(){ return "rgba(255,230,160,"+(0.3+Math.random()*0.3)+")"; }, 0.3, 35);
       }
 
-      // Left orb: milky white (阴)
       var oL_o = ctx.createRadialGradient(xLeft, orbY, 0, xLeft, orbY, 50+t*20);
       oL_o.addColorStop(0, "rgba(230,240,255,0.12)");
       oL_o.addColorStop(1, "rgba(230,240,255,0)");
@@ -1168,7 +1183,6 @@
       ctx.fillStyle = "rgba(255,255,255,0.85)";
       ctx.beginPath(); ctx.arc(xLeft, orbY, 7, 0, Math.PI*2); ctx.fill();
 
-      // Right orb: light yellow/gold (阳)
       var oR_o = ctx.createRadialGradient(xRight, orbY, 0, xRight, orbY, 50+t*20);
       oR_o.addColorStop(0, "rgba(255,230,150,0.13)");
       oR_o.addColorStop(1, "rgba(255,230,150,0)");
@@ -1183,19 +1197,16 @@
       ctx.fillStyle = "rgba(255,255,200,0.85)";
       ctx.beginPath(); ctx.arc(xRight, orbY, 7, 0, Math.PI*2); ctx.fill();
     } else if(frame < 200){
-      // ===== Phase 2: Merge + Golden Flash (阴阳融合 -> 金丹初成) =====
       var t = (frame - 120) / 80;
       var ease = 1 - Math.pow(1 - t, 3);
       var flash = Math.sin(t * Math.PI);
 
-      // Flash burst
       ctx.save();
       ctx.globalAlpha = flash * 0.35;
       ctx.fillStyle = "#fffbe6";
       ctx.beginPath(); ctx.arc(cx(), cy(), W()*0.7*flash, 0, Math.PI*2); ctx.fill();
       ctx.restore();
 
-      // Radial shockwave rings
       if(t < 0.6){
         var ringR = (t/0.6) * Math.max(W(),H())*0.45;
         ctx.save();
@@ -1209,7 +1220,6 @@
         ctx.restore();
       }
 
-      // Merged golden core (growing)
       var coreR = 8 + ease * 45;
       var coreGlow = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), coreR * 2.5);
       coreGlow.addColorStop(0, "rgba(255,220,100,"+(0.3+flash*0.2)+")");
@@ -1218,7 +1228,6 @@
       ctx.fillStyle = coreGlow;
       ctx.beginPath(); ctx.arc(cx(), cy(), coreR*2.5, 0, Math.PI*2); ctx.fill();
 
-      // Golden dan core
       var danGrad = ctx.createRadialGradient(cx()-coreR*0.2, cy()-coreR*0.2, 0, cx(), cy(), coreR);
       danGrad.addColorStop(0, "rgba(255,250,220,0.98)");
       danGrad.addColorStop(0.5, "rgba(255,200,80,0.95)");
@@ -1227,7 +1236,6 @@
       ctx.fillStyle = danGrad;
       ctx.beginPath(); ctx.arc(cx(), cy(), coreR, 0, Math.PI*2); ctx.fill();
 
-      // Surface swirl on golden dan
       ctx.save();
       ctx.globalAlpha = 0.25;
       ctx.strokeStyle = "rgba(255,255,200,0.7)";
@@ -1245,20 +1253,17 @@
       }
       ctx.restore();
 
-      // Burst particles
       if(frame % 2 === 0 && t < 0.7){
         spawnP(cx(), cy(), 3, function(){
-          return "hsl("+(35+Math.random()*25)+","+(80+Math.random()*20)+"%,"+(65+Math.random()*20)+"%)";
+          return "hsl("+(35+Math.random()*25)+", "+(80+Math.random()*20)+"%, "+(65+Math.random()*20)+"%)";
         }, 1.5+Math.random()*2, 40+Math.random()*20);
       }
     } else if(frame < 340){
-      // ===== Phase 3: Golden Dan charges, rotates, cracks (金丹蕴养) =====
       var t = (frame - 200) / 140;
       var pulse = Math.sin(frame * 0.04) * 0.5 + 0.5;
       var rotateAngle = frame * 0.008;
       var coreR = 50 + pulse * 5;
 
-      // Outer aura (multiple layers)
       for(var L=0; L<3; L++){
         var Lr = coreR * (1.3 + L*0.45 + Math.sin(frame*0.03+L)*0.1);
         var Lg = ctx.createRadialGradient(cx(), cy(), coreR*0.8, cx(), cy(), Lr);
@@ -1268,7 +1273,6 @@
         ctx.beginPath(); ctx.arc(cx(), cy(), Lr, 0, Math.PI*2); ctx.fill();
       }
 
-      // Golden dan body (with rotation)
       ctx.save();
       ctx.translate(cx(), cy());
       ctx.rotate(rotateAngle);
@@ -1281,7 +1285,6 @@
       ctx.fillStyle = danGrad2;
       ctx.beginPath(); ctx.arc(0, 0, coreR, 0, Math.PI*2); ctx.fill();
 
-      // Dan surface: Tao symbol hints
       ctx.globalAlpha = 0.18;
       ctx.strokeStyle = "rgba(255,255,200,0.7)";
       ctx.lineWidth = 1.5;
@@ -1292,7 +1295,6 @@
       ctx.beginPath(); ctx.arc(-coreR*0.12, 0, coreR*0.06, 0, Math.PI*2); ctx.fill();
       ctx.beginPath(); ctx.arc( coreR*0.12, 0, coreR*0.06, 0, Math.PI*2); ctx.fill();
 
-      // Surface crack lines (t > 0.35)
       if(t > 0.35){
         var crackAlpha = Math.min(1, (t-0.35)/0.2);
         ctx.globalAlpha = crackAlpha * 0.6;
@@ -1316,7 +1318,6 @@
       }
       ctx.restore();
 
-      // Floating rune particles
       if(frame % 4 === 0){
         var fa = Math.random()*Math.PI*2;
         var fd = coreR*1.2 + Math.random()*40;
@@ -1324,7 +1325,6 @@
           function(){ return "rgba(255,220,140,"+(0.3+Math.random()*0.3)+")"; }, 0.2, 50);
       }
 
-      // Intense golden glow (building to shatter)
       if(t > 0.6){
         var intensity = (t-0.6)/0.4 * pulse;
         ctx.save();
@@ -1334,16 +1334,14 @@
         ctx.restore();
       }
     } else if(frame < 415){
-      // ===== Phase 4: Golden Dan shatters (金丹破碎，元婴已移除) =====
-      var t = (frame - 340) / 160;
+      // Phase 4: shatter — FIXED denominator: 415-340=75
+      var t = (frame - 340) / 75;
       var ease = 1 - Math.pow(1 - Math.min(t,1), 3);
 
-      // === Part A: Dan shatters (t 0~0.35) ===
       if(t < 0.4){
         var st = t / 0.4;
         var stEase = 1 - Math.pow(1-st, 2);
 
-        // Shockwave burst
         var burstR = stEase * Math.max(W(),H())*0.5;
         ctx.save();
         ctx.globalAlpha = (1-stEase)*0.3;
@@ -1352,7 +1350,6 @@
         ctx.beginPath(); ctx.arc(cx(), cy(), burstR, 0, Math.PI*2); ctx.stroke();
         ctx.restore();
 
-        // Shatter particles
         if(frame % 2 === 0){
           for(var i=0;i<5;i++){
             var sa = Math.random()*Math.PI*2;
@@ -1363,7 +1360,6 @@
           }
         }
 
-        // Remaining dan core (cracking apart)
         var remR = 50 * (1 - stEase*0.7);
         ctx.save();
         ctx.globalAlpha = 1 - stEase*0.6;
@@ -1381,30 +1377,26 @@
         }
         ctx.restore();
       }
+      // When t>=0.4: nothing to draw, just let particles finish
 
     } else {
-      // ===== Phase 5: Fade out =====
+      // Phase 5: fade out
       var t = Math.min(1, (frame - 415) / 40);
       if(screen) screen.style.opacity = 1 - t;
       if(t >= 1){
-        animDone = true;
-        if(screen){
-          screen.classList.add("fade-out");
-          setTimeout(function(){ screen.style.display = "none"; }, 800);
-        }
+        finishLoading();
         return;
       }
     }
 
-    // Draw particles on top of everything
     tickP();
     drawP();
 
     frame++;
-    setTimeout(function(){ requestAnimationFrame(loop); }, SPD);
+    setTimeout(loop, SPD);
   }
 
-  setTimeout(function(){ requestAnimationFrame(loop); }, 100);
+  setTimeout(loop, 100);
 })();
 
 
