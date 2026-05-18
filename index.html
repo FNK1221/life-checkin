@@ -905,56 +905,166 @@
       }
 
     } else if(frame < 370){
-      // Phase 4: child appears
+      // Phase 4: child appears — cute cartoon kid
       const t = (frame - 280) / 90;
-      const cs = 0.2 + t * 0.85;
-      const ca = t < 0.35 ? t / 0.35 : 1;
+      const cs = 0.15 + t * 0.9;   // scale up from small
+      const ca = t < 0.3 ? t / 0.3 : 1;  // fade in
 
       ctx.save();
       ctx.globalAlpha = ca;
-      ctx.translate(cx, cy + 20);
+      ctx.translate(cx, cy + 30);
       ctx.scale(cs, cs);
 
-      // Head
-      ctx.fillStyle = '#fce8d8';
-      ctx.beginPath(); ctx.arc(0, -45, 26, 0, Math.PI*2); ctx.fill();
-      // Eyes
-      ctx.fillStyle = '#3e2d23';
-      ctx.beginPath(); ctx.arc(-9, -49, 3.2, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(9, -49, 3.2, 0, Math.PI*2); ctx.fill();
-      // Smile
-      ctx.strokeStyle = '#3e2d23'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0, -43, 9, 0.15, Math.PI - 0.15); ctx.stroke();
-      // Body
-      ctx.fillStyle = '#fce8d8';
+      // ---- Hair (top fringe) ----
+      ctx.fillStyle = '#4a3728';
       ctx.beginPath();
-      ctx.moveTo(-20, -8);
-      ctx.lineTo(-26, 48);
-      ctx.lineTo(26, 48);
-      ctx.lineTo(20, -8);
-      ctx.closePath(); ctx.fill();
-      // Arms
-      ctx.strokeStyle = '#fce8d8'; ctx.lineWidth = 7; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(-20, -3); ctx.lineTo(-36, 18); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(20, -3); ctx.lineTo(36, 18); ctx.stroke();
-      // Legs
-      ctx.beginPath(); ctx.moveTo(-11, 48); ctx.lineTo(-14, 86); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(11, 48); ctx.lineTo(14, 86); ctx.stroke();
+      ctx.ellipse(0, -62, 28, 14, 0, Math.PI, 0);
+      ctx.fill();
+      // side hair
+      ctx.beginPath();
+      ctx.ellipse(-22, -56, 10, 16, -0.2, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(22, -56, 10, 16, 0.2, 0, Math.PI*2);
+      ctx.fill();
+
+      // ---- Head ----
+      const headGrad = ctx.createRadialGradient(0, -44, 2, 0, -44, 28);
+      headGrad.addColorStop(0, '#ffe8d6');
+      headGrad.addColorStop(1, '#f0cdb0');
+      ctx.fillStyle = headGrad;
+      ctx.beginPath(); ctx.arc(0, -44, 26, 0, Math.PI*2); ctx.fill();
+
+      // ---- Ears ----
+      ctx.fillStyle = '#f0cdb0';
+      ctx.beginPath(); ctx.ellipse(-24, -44, 7, 10, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse( 24, -44, 7, 10, 0, 0, Math.PI*2); ctx.fill();
+      // inner ear
+      ctx.fillStyle = '#e8b89a';
+      ctx.beginPath(); ctx.ellipse(-24, -44, 4, 6, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse( 24, -44, 4, 6, 0, 0, Math.PI*2); ctx.fill();
+
+      // ---- Eyes ----
+      // eyeball white
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.ellipse(-10, -47, 7, 8, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse( 10, -47, 7, 8, 0, 0, Math.PI*2); ctx.fill();
+      // iris
+      ctx.fillStyle = '#5c3d2e';
+      ctx.beginPath(); ctx.arc(-10, -46, 4.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc( 10, -46, 4.5, 0, Math.PI*2); ctx.fill();
+      // pupil
+      ctx.fillStyle = '#1a0e08';
+      ctx.beginPath(); ctx.arc(-10, -46, 2.2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc( 10, -46, 2.2, 0, Math.PI*2); ctx.fill();
+      // eye highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.beginPath(); ctx.arc(-8.5, -48.5, 1.8, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc( 11.5, -48.5, 1.8, 0, Math.PI*2); ctx.fill();
+
+      // ---- Eyebrows ----
+      ctx.strokeStyle = '#4a3728';
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-16, -55); ctx.quadraticCurveTo(-10, -58, -5, -55); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo( 5, -55); ctx.quadraticCurveTo( 10, -58, 16, -55); ctx.stroke();
+
+      // ---- Nose ----
+      ctx.fillStyle = '#e8b89a';
+      ctx.beginPath(); ctx.ellipse(0, -40, 3.5, 2.5, 0, 0, Math.PI*2); ctx.fill();
+
+      // ---- Mouth / Smile ----
+      ctx.strokeStyle = '#c47a5e';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, -37, 7, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+      // tongue hint
+      ctx.fillStyle = 'rgba(220,130,130,0.45)';
+      ctx.beginPath(); ctx.ellipse(0, -32, 4, 2.5, 0, 0, Math.PI); ctx.fill();
+
+      // ---- Blush ----
+      ctx.fillStyle = 'rgba(255,150,150,0.25)';
+      ctx.beginPath(); ctx.ellipse(-18, -41, 7, 4, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse( 18, -41, 7, 4, 0, 0, Math.PI*2); ctx.fill();
+
+      // ---- Body (onesie / t-shirt) ----
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.moveTo(-22, -18);
+      ctx.quadraticCurveTo(-30, 10, -28, 50);
+      ctx.lineTo(28, 50);
+      ctx.quadraticCurveTo(30, 10, 22, -18);
+      ctx.closePath();
+      ctx.fill();
+      // onesie color band
+      ctx.fillStyle = 'rgba(196,122,94,0.18)';
+      ctx.fillRect(-28, 20, 56, 32);
+
+      // ---- Arms ----
+      ctx.strokeStyle = '#f0cdb0';
+      ctx.lineWidth = 10;
+      ctx.lineCap = 'round';
+      // left arm
+      ctx.beginPath();
+      ctx.moveTo(-22, -12);
+      ctx.quadraticCurveTo(-42, 8, -38, 30);
+      ctx.stroke();
+      // right arm
+      ctx.beginPath();
+      ctx.moveTo(22, -12);
+      ctx.quadraticCurveTo(42, 8, 38, 30);
+      ctx.stroke();
+      // hands
+      ctx.fillStyle = '#f0cdb0';
+      ctx.beginPath(); ctx.arc(-38, 30, 7, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc( 38, 30, 7, 0, Math.PI*2); ctx.fill();
+
+      // ---- Legs ----
+      ctx.strokeStyle = '#f0cdb0';
+      ctx.lineWidth = 11;
+      // left leg
+      ctx.beginPath();
+      ctx.moveTo(-12, 48);
+      ctx.lineTo(-14, 82);
+      ctx.stroke();
+      // right leg
+      ctx.beginPath();
+      ctx.moveTo(12, 48);
+      ctx.lineTo(14, 82);
+      ctx.stroke();
+      // feet
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#e0c8b0';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(-16, 84, 10, 6, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse( 16, 84, 10, 6, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.stroke();
+
       ctx.restore();
 
-      if(t > 0.5 && textEl && !textEl.classList.contains('show')){
+      // ---- "I'm here!" text ----
+      if(t > 0.45 && textEl && !textEl.classList.contains('show')){
         textEl.textContent = '我tm来了';
         textEl.classList.add('show');
       }
 
-      // Particles around child
-      if(frame % 4 === 0){
-        const px = cx + (Math.random()-0.5) * 110;
-        const py = cy + 20 + (Math.random()-0.5) * 100;
-        ctx.fillStyle = `hsl(${25+Math.random()*35|0},${65}%,${72+Math.random()*18|0}%)`;
-        ctx.globalAlpha = 0.5;
-        ctx.beginPath(); ctx.arc(px, py, 2+Math.random()*3, 0, Math.PI*2); ctx.fill();
-        ctx.globalAlpha = 1;
+      // ---- Sparkle particles around kid ----
+      if(frame % 3 === 0){
+        for(let i = 0; i < 2; i++){
+          const angle = Math.random() * Math.PI * 2;
+          const dist  = 40 + Math.random() * 80;
+          const px    = cx + Math.cos(angle) * dist;
+          const py    = (cy + 30) + Math.sin(angle) * dist * 0.7;
+          const size  = 1.5 + Math.random() * 3;
+          const hue   = 30 + Math.random() * 40;
+          ctx.fillStyle = `hsla(${hue},80%,75%,${0.4 + Math.random()*0.4})`;
+          ctx.beginPath(); ctx.arc(px, py, size, 0, Math.PI*2); ctx.fill();
+        }
       }
 
     } else {
