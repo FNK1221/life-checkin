@@ -589,6 +589,13 @@
   .chapter.hidden-chapter { display: none; }
   .event-item.hidden-event { display: none; }
   
+  /* ========== SHARE CARD MODAL ========== */
+  .share-card-preview {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  
   /* ========== BOTTOM BAR ========== */
   .bottom-bar {
     position: fixed;
@@ -1561,6 +1568,19 @@
 <div class="photo-viewer" id="photoViewer" onclick="closePhotoViewer()">
   <img id="photoViewerImg">
   <div class="photo-viewer-hint">点击任意位置关闭</div>
+</div>
+
+<!-- SHARE CARD MODAL -->
+<div class="modal-overlay" id="shareCardModal">
+  <div class="modal">
+    <div class="modal-title">🎨 生成分享卡片</div>
+    <div class="modal-subtitle">将你的人生体验进度生成精美卡片</div>
+    <div id="shareCardPreview" style="text-align:center;margin:20px 0;"></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeShareCardModal()">关闭</button>
+      <button class="btn btn-primary" onclick="downloadShareCard()">📥 保存卡片</button>
+    </div>
+  </div>
 </div>
 
 <!-- TOAST -->
@@ -2941,8 +2961,12 @@ function renderStats() {
       '<div class="heatmap-title" id="heatmapTitle"></div>' +
       '<div class="heatmap-grid" id="heatmapGrid"></div>' +
       '<div class="heatmap-months" id="heatmapMonths"></div>' +
+    '</div>' +
+    '<div class="stats-card">' +
+      '<div class="stats-card-title">📤 分享你的进度</div>' +
+      '<button class="data-btn primary" onclick="generateShareCard()" style="margin-top:12px;">🎨 生成精美分享卡片</button>' +
     '</div>';
-
+    
   // 生成热力图
   buildHeatmap(container);
 }
@@ -3280,6 +3304,120 @@ function spawnStars(count) {
       }, idx * 60);
     })(i);
   }
+}
+
+// ========== SHARE CARD ==========
+function generateShareCard() {
+  var done = Object.keys(checkinData).length;
+  var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
+  
+  // 创建Canvas
+  var canvas = document.createElement('canvas');
+  canvas.width = 800;
+  canvas.height = 600;
+  var ctx = canvas.getContext('2d');
+  
+  // 背景渐变
+  var gradient = ctx.createLinearGradient(0, 0, 800, 600);
+  gradient.addColorStop(0, '#d4a574');
+  gradient.addColorStop(0.5, '#c47a5e');
+  gradient.addColorStop(1, '#b86248');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 800, 600);
+  
+  // 装饰圆圈
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 2;
+  for (var i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.arc(400, 300, 100 + i * 60, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  
+  // 标题
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🌅 人生体验卡', 400, 120);
+  
+  // 进度
+  ctx.font = 'bold 72px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText(done + ' / ' + TOTAL, 400, 260);
+  
+  // 百分比
+  ctx.font = '28px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText('已完成 ' + pct + '%', 400, 310);
+  
+  // 进度条
+  var barWidth = 400;
+  var barHeight = 12;
+  var barX = 200;
+  var barY = 350;
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  roundRect(ctx, barX, barY, barWidth, barHeight, 6);
+  ctx.fill();
+  var fillWidth = (pct / 100) * barWidth;
+  if (fillWidth > 0) {
+    ctx.fillStyle = '#fff';
+    roundRect(ctx, barX, barY, fillWidth, barHeight, 6);
+    ctx.fill();
+  }
+  
+  // 日期
+  ctx.font = '16px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  var today = new Date();
+  var dateStr = today.getFullYear() + '.' + (today.getMonth()+1) + '.' + today.getDate();
+  ctx.fillText('📅 ' + dateStr, 400, 420);
+  
+  // 底部文字
+  ctx.font = '14px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText('记录人生体验，珍惜每一个瞬间 ✨', 400, 520);
+  
+  // 转换为图片并显示
+  var dataUrl = canvas.toDataURL('image/png');
+  var preview = document.getElementById('shareCardPreview');
+  if (!preview) {
+    preview = document.createElement('img');
+    preview.id = 'shareCardPreview';
+    preview.className = 'share-card-preview';
+    document.getElementById('shareCardModal').querySelector('.modal').insertBefore(preview, document.querySelector('#shareCardModal .btn-row'));
+  }
+  preview.src = dataUrl;
+  document.getElementById('shareCardModal').classList.add('show');
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function downloadShareCard() {
+  var preview = document.getElementById('shareCardPreview');
+  if (!preview || !preview.src) {
+    showToast('⚠️ 请先生成分享卡片');
+    return;
+  }
+  
+  var link = document.createElement('a');
+  link.download = '人生体验卡_' + new Date().toISOString().split('T')[0] + '.png';
+  link.href = preview.src;
+  link.click();
+  showToast('📥 卡片已保存');
+}
+
+function closeShareCardModal() {
+  document.getElementById('shareCardModal').classList.remove('show');
 }
 
 // ========== TOAST ==========
