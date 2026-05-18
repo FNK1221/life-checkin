@@ -1253,45 +1253,54 @@ function openMediaDB() {
   });
 }
 
-function saveMediaToD(eventId, callback) {
+function saveMediaToDB(eventId, callback) {
   openMediaDB().then(function(db) {
     var tx = db.transaction(['media'], 'readwrite');
     var store = tx.objectStore('media');
-    // 删除该 eventId 的旧媒体
-    var idx = store.index('eventId');
-    if (!idx) {
-      // 如果没有 eventId 索引，遍历删除
-      store.openCursor().onsuccess = function(e) {
-        var cursor = e.target.result;
-        if (cursor) {
-          if (cursor.value.eventId === eventId) store.delete(cursor.primaryKey);
-          cursor.continue();
-        } else {
-          // 删除完毕，开始写入新媒体
-          writeNewMedia();
+    // 收集该 eventId 的现有记录（按 type 分类）
+    var existing = {};
+    store.openCursor().onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        if (cursor.value.eventId === eventId) {
+          existing[cursor.value.type] = cursor.value;
         }
-      };
-    } else {
-      idx.openCursor(IDBKeyRange.only(eventId)).onsuccess = function(e) {
-        var cursor = e.target.result;
-        if (cursor) { cursor.delete(); cursor.continue(); }
-      };
-      tx.oncomplete = function() { writeNewMedia(); };
-    }
-    function writeNewMedia() {
-      var tx2 = db.transaction(['media'], 'readwrite');
-      var store2 = tx2.objectStore('media');
-      var count = 0;
-      function done() { count++; if (count >= 3 && callback) callback(); }
-      if (tempPhotoData) {
-        store2.add({ eventId: eventId, type: 'photo', data: tempPhotoData, timestamp: Date.now() });
-        count++;
+        cursor.continue();
+      } else {
+        // 删除事务完成后，开始写入新数据
+        var tx2 = db.transaction(['media'], 'readwrite');
+        var store2 = tx2.objectStore('media');
+
+        // Photo：有新版或清除标记才动
+        if (tempPhotoData) {
+          if (existing.photo) store2.delete(existing.photo.id);
+          store2.add({ eventId: eventId, type: 'photo', data: tempPhotoData, timestamp: Date.now() });
+        }
+        // tempPhotoData 为 null 时不处理，保留已有记录
+
+        // Audio
+        if (tempAudioData) {
+          if (existing.audio) store2.delete(existing.audio.id);
+          store2.add({ eventId: eventId, type: 'audio', data: tempAudioData, timestamp: Date.now() });
+        } else if (tempRemoveAudio) {
+          if (existing.audio) store2.delete(existing.audio.id);
+        }
+        // 两者都不满足：不动已有音频记录
+
+        // Video
+        if (tempVideoData) {
+          if (existing.video) store2.delete(existing.video.id);
+          store2.add({ eventId: eventId, type: 'video', data: tempVideoData, timestamp: Date.now() });
+        } else if (tempRemoveVideo) {
+          if (existing.video) store2.delete(existing.video.id);
+        }
+        // 两者都不满足：不动已有视频记录
+
+        tx2.oncomplete = function() { if (callback) callback(); };
+        tx2.onerror = function() { if (callback) callback(); };
       }
-      if (tempAudioData) { store2.add({ eventId: eventId, type: 'audio', data: tempAudioData, timestamp: Date.now() }); count++; }
-      if (tempVideoData) { store2.add({ eventId: eventId, type: 'video', data: tempVideoData, timestamp: Date.now() }); count++; }
-      if (callback && count === 0) callback();
-    }
-  }).catch(function(err) { if (callback) callback(); });
+    };
+  }).catch(function() { if (callback) callback(); });
 }
 
 function getMediaForEvent(eventId, callback) {
@@ -1531,6 +1540,10 @@ var currentWithMedia = false;
 var tempPhotoData = null;
 var tempAudioData = null;
 var tempVideoData = null;
+var tempRemoveAudio = false;
+var tempRemoveVideo = false;
+var tempAudioData = null;
+var tempVideoData = null;
 
 // ========== INIT ==========
 function init() {
@@ -1641,6 +1654,8 @@ function openCheckinModal(eventId, withMedia) {
   tempPhotoData = null;
   tempAudioData = null;
   tempVideoData = null;
+  tempRemoveAudio = false;
+  tempRemoveVideo = false;
   var ev = ALL_EVENTS.find(function(e) { return e.id === eventId; });
   document.getElementById('modalEventName').textContent = ev.name;
 
@@ -1648,8 +1663,13 @@ function openCheckinModal(eventId, withMedia) {
   if (existing) {
     document.getElementById('checkinDate').value = existing.date || new Date().toISOString().split('T')[0];
     document.getElementById('checkinNote').value = existing.note || '';
-    if (existing.photo && withMedia) {
-      showPhotoPreview(existing.photo);
+    if (withMedia) {
+      tempPhotoData = existing.photo || null;
+      if (tempPhotoData) {
+        showPhotoPreview(tempPhotoData);
+      } else {
+        clearPhotoPreview();
+      }
     } else {
       clearPhotoPreview();
     }
@@ -1684,12 +1704,14 @@ function submitCheckin() {
   var existing = checkinData[currentEventId];
 
   if (currentWithMedia) {
-    // "是"模式：使用临时媒体数据
+    // "是"模式：正确处理音频视频标志
+    var audioFlag = !!(tempAudioData || (existing && !!existing.hasAudio && !tempRemoveAudio));
+    var videoFlag = !!(tempVideoData || (existing && !!existing.hasVideo && !tempRemoveVideo));
     checkinData[currentEventId] = {
       date: date,
       photo: tempPhotoData,
-      hasAudio: !!tempAudioData,
-      hasVideo: !!tempVideoData,
+      hasAudio: !!audioFlag,
+      hasVideo: !!videoFlag,
       note: note,
       timestamp: Date.now()
     };
@@ -1804,6 +1826,7 @@ function handleAudio(e) {
   var file = e.target.files[0];
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { showToast('⚠️ 音频不能超过 10MB'); return; }
+  tempRemoveAudio = false;
   tempAudioData = file;
   var preview = document.getElementById('audioPreview');
   preview.src = URL.createObjectURL(file);
@@ -1815,6 +1838,7 @@ function handleVideo(e) {
   var file = e.target.files[0];
   if (!file) return;
   if (file.size > 20 * 1024 * 1024) { showToast('⚠️ 视频不能超过 20MB'); return; }
+  tempRemoveVideo = false;
   tempVideoData = file;
   var preview = document.getElementById('videoPreview');
   preview.src = URL.createObjectURL(file);
@@ -1825,6 +1849,7 @@ function handleVideo(e) {
 function removeAudio(e) {
   e.stopPropagation();
   tempAudioData = null;
+  tempRemoveAudio = true;
   var preview = document.getElementById('audioPreview');
   preview.src = '';
   preview.style.display = 'none';
@@ -1835,6 +1860,7 @@ function removeAudio(e) {
 function removeVideo(e) {
   e.stopPropagation();
   tempVideoData = null;
+  tempRemoveVideo = true;
   var preview = document.getElementById('videoPreview');
   preview.src = '';
   preview.style.display = 'none';
