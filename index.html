@@ -184,18 +184,38 @@
   /* ========== PROGRESS CIRCLE ========== */
   .progress-circle-wrap {
     position: relative;
-    width: 120px;
-    height: 120px;
-    margin: 10px auto 8px;
+    width: 160px;
+    height: 160px;
+    margin: 14px auto 10px;
   }
   .progress-circle {
     width: 100%;
     height: 100%;
     transform: rotate(-90deg);
+    filter: drop-shadow(0 0 8px rgba(255,255,255,0.25));
+  }
+  /* 外圈装饰虚线环 */
+  .progress-ring-outer {
+    fill: none;
+    stroke: rgba(255,255,255,0.15);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+    animation: outerRingRotate 20s linear infinite;
+  }
+  @keyframes outerRingRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  /* 中圈发光背景环 */
+  .progress-ring-glow {
+    fill: none;
+    stroke: rgba(255,255,255,0.12);
+    stroke-width: 10;
+    filter: blur(2px);
   }
   .progress-ring-bg {
     fill: none;
-    stroke: rgba(255,255,255,0.2);
+    stroke: rgba(255,255,255,0.25);
     stroke-width: 8;
   }
   .progress-ring-fill {
@@ -206,6 +226,28 @@
     stroke-dasharray: 326.726;
     stroke-dashoffset: 326.726;
     transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.5));
+  }
+  /* 脉冲光环 */
+  .progress-pulse-ring {
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    animation: progressPulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .progress-pulse-ring::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    animation: progressPulse 3s ease-in-out infinite 1s;
+  }
+  @keyframes progressPulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.06); opacity: 0; }
   }
   .progress-circle-text {
     position: absolute;
@@ -213,17 +255,63 @@
     left: 50%;
     transform: translate(-50%, -50%);
     color: #fff;
-    font-size: 13px;
-    font-weight: 600;
     text-align: center;
-    line-height: 1.4;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    line-height: 1.3;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
     pointer-events: none;
   }
   .progress-circle-text .pct {
-    font-size: 22px;
+    font-size: 36px;
     font-weight: 800;
     display: block;
+    letter-spacing: -1px;
+    background: linear-gradient(180deg, #fff, rgba(255,255,255,0.85));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .progress-circle-text .pct-label {
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.85;
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+  .progress-circle-text .pct-count {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
+  /* 顶部统计栏 */
+  .header-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 8px;
+  }
+  .header-stat-item {
+    text-align: center;
+    color: rgba(255,255,255,0.9);
+  }
+  .header-stat-num {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .header-stat-label {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-top: 3px;
+    letter-spacing: 1px;
+  }
+  /* 顶部装饰线 */
+  .header-decoration {
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
   }
 
   /* ========== CHAPTER ========== */
@@ -1483,12 +1571,35 @@
   <h1>🌅 人生体验卡</h1>
   <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">🌙</button>
   <div class="progress-circle-wrap">
-    <svg class="progress-circle" viewBox="0 0 120 120">
-      <circle class="progress-ring-bg" cx="60" cy="60" r="52"/>
-      <circle class="progress-ring-fill" id="progressRing" cx="60" cy="60" r="52"/>
+    <div class="progress-pulse-ring"></div>
+    <svg class="progress-circle" viewBox="0 0 160 160">
+      <circle class="progress-ring-outer" cx="80" cy="80" r="76"/>
+      <circle class="progress-ring-glow" cx="80" cy="80" r="70"/>
+      <circle class="progress-ring-bg" cx="80" cy="80" r="64"/>
+      <circle class="progress-ring-fill" id="progressRing" cx="80" cy="80" r="64"
+        stroke-dasharray="402.124" stroke-dashoffset="402.124"/>
     </svg>
-    <div class="progress-circle-text" id="progressText">0 / 96</div>
+    <div class="progress-circle-text" id="progressText">
+      <span class="pct">0%</span>
+      <span class="pct-label">已完成</span>
+      <span class="pct-count">0 / 111</span>
+    </div>
   </div>
+  <div class="header-stats" id="headerStats">
+    <div class="header-stat-item">
+      <div class="header-stat-num" id="statDone">0</div>
+      <div class="header-stat-label">已点亮</div>
+    </div>
+    <div class="header-stat-item">
+      <div class="header-stat-num" id="statRemain">111</div>
+      <div class="header-stat-label">待探索</div>
+    </div>
+    <div class="header-stat-item">
+      <div class="header-stat-num" id="statChapters">0</div>
+      <div class="header-stat-label">章节完成</div>
+    </div>
+  </div>
+  <div class="header-decoration"></div>
 </div>
 
 <!-- SEARCH BOX -->
@@ -2477,13 +2588,33 @@ function clearSearch() {
   });
 }
 // ========== PROGRESS ==========
-var PROGRESS_CIRC = 2 * Math.PI * 52; // 圆周长 ≈ 326.726
+var PROGRESS_CIRC = 2 * Math.PI * 64; // 圆周长 ≈ 402.124
 function updateProgress() {
   var done = Object.keys(checkinData).length;
   var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
   var offset = PROGRESS_CIRC * (1 - pct / 100);
   document.getElementById('progressRing').style.strokeDashoffset = offset;
-  document.getElementById('progressText').innerHTML = '<span class="pct">' + pct + '%</span>' + done + ' / ' + TOTAL + ' 经历';
+
+  // 更新中心文字
+  var pctEl = document.querySelector('#progressText .pct');
+  var countEl = document.querySelector('#progressText .pct-count');
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (countEl) countEl.textContent = done + ' / ' + TOTAL + ' 经历';
+
+  // 更新顶部统计栏
+  var remain = TOTAL - done;
+  var completedChapters = 0;
+  CHAPTERS.forEach(function(ch, ci) {
+    var allDone = ch.events.every(function(_, ei) { return !!checkinData[ci + '-' + ei]; });
+    if (allDone) completedChapters++;
+  });
+
+  var statDone = document.getElementById('statDone');
+  var statRemain = document.getElementById('statRemain');
+  var statChapters = document.getElementById('statChapters');
+  if (statDone) statDone.textContent = done;
+  if (statRemain) statRemain.textContent = remain;
+  if (statChapters) statChapters.textContent = completedChapters;
 }
 
 // ========== MODAL ==========
@@ -3597,72 +3728,252 @@ function spawnStars(count) {
 function generateShareCard() {
   var done = Object.keys(checkinData).length;
   var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
-  
-  // 创建Canvas
+  var tag = calculatePersonalityTag();
+
+  // 计算章节统计
+  var chapterStats = CHAPTERS.map(function(ch, ci) {
+    var count = 0;
+    ch.events.forEach(function(_, ei) { if (checkinData[ci + '-' + ei]) count++; });
+    return { title: ch.title, icon: ch.icon, count: count, total: ch.events.length, pct: Math.round(count / ch.events.length * 100) };
+  });
+
+  // 创建Canvas - 竖版 750 x 1200
   var canvas = document.createElement('canvas');
-  canvas.width = 800;
-  canvas.height = 600;
+  var W = 750, H = 1200;
+  canvas.width = W;
+  canvas.height = H;
   var ctx = canvas.getContext('2d');
-  
-  // 背景渐变
-  var gradient = ctx.createLinearGradient(0, 0, 800, 600);
-  gradient.addColorStop(0, '#d4a574');
-  gradient.addColorStop(0.5, '#c47a5e');
-  gradient.addColorStop(1, '#b86248');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 800, 600);
-  
-  // 装饰圆圈
+
+  // ===== 背景层 =====
+  // 主渐变
+  var bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  bgGrad.addColorStop(0, '#c47a5e');
+  bgGrad.addColorStop(0.35, '#b86248');
+  bgGrad.addColorStop(0.7, '#a05038');
+  bgGrad.addColorStop(1, '#8a4030');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 顶部光晕
+  var topGlow = ctx.createRadialGradient(W*0.5, 0, 0, W*0.5, 100, 500);
+  topGlow.addColorStop(0, 'rgba(255,200,140,0.25)');
+  topGlow.addColorStop(1, 'rgba(255,200,140,0)');
+  ctx.fillStyle = topGlow;
+  ctx.fillRect(0, 0, W, 400);
+
+  // 底部光晕
+  var botGlow = ctx.createRadialGradient(W*0.5, H, 0, W*0.5, H-100, 400);
+  botGlow.addColorStop(0, 'rgba(255,180,120,0.15)');
+  botGlow.addColorStop(1, 'rgba(255,180,120,0)');
+  ctx.fillStyle = botGlow;
+  ctx.fillRect(0, H-400, W, 400);
+
+  //  subtle 网格纹理
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  for (var gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
+  for (var gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  ctx.restore();
+
+  // 浮动几何装饰
+  drawFloatingShapes(ctx, W, H);
+
+  // ===== 顶部标题区 =====
+  ctx.textAlign = 'center';
+  // 小标签
+  ctx.font = '500 18px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText('L I F E  E X P E R I E N C E S', W/2, 70);
+
+  // 主标题带阴影
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.2)';
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetY = 4;
+  ctx.font = 'bold 48px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('人生体验卡', W/2, 125);
+  ctx.restore();
+
+  // 装饰线
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(W/2 - 80, 145);
+  ctx.lineTo(W/2 + 80, 145);
+  ctx.stroke();
+
+  // ===== 中央圆环进度区 =====
+  var cx = W/2, cy = 310, cr = 100;
+  // 外圈装饰虚线
+  ctx.save();
   ctx.strokeStyle = 'rgba(255,255,255,0.15)';
   ctx.lineWidth = 2;
-  for (var i = 0; i < 5; i++) {
-    ctx.beginPath();
-    ctx.arc(400, 300, 100 + i * 60, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  
-  // 标题
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr + 18, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // 内圈发光背景
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 12;
+  ctx.filter = 'blur(3px)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // 背景圆环
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 10;
+  ctx.stroke();
+
+  // 进度圆环
+  var circ = 2 * Math.PI * cr;
+  var offset = circ * (1 - pct / 100);
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr, -Math.PI/2, -Math.PI/2 + (pct/100) * Math.PI * 2);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.shadowColor = 'rgba(255,255,255,0.4)';
+  ctx.shadowBlur = 12;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // 中心数字
   ctx.textAlign = 'center';
-  ctx.fillText('🌅 人生体验卡', 400, 120);
-  
-  // 进度
-  ctx.font = 'bold 72px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText(done + ' / ' + TOTAL, 400, 260);
-  
-  // 百分比
-  ctx.font = '28px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('已完成 ' + pct + '%', 400, 310);
-  
-  // 进度条
-  var barWidth = 400;
-  var barHeight = 12;
-  var barX = 200;
-  var barY = 350;
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  roundRect(ctx, barX, barY, barWidth, barHeight, 6);
-  ctx.fill();
-  var fillWidth = (pct / 100) * barWidth;
-  if (fillWidth > 0) {
-    ctx.fillStyle = '#fff';
-    roundRect(ctx, barX, barY, fillWidth, barHeight, 6);
-    ctx.fill();
-  }
-  
-  // 日期
-  ctx.font = '16px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 56px -apple-system, sans-serif';
+  ctx.fillText(pct + '%', cx, cy + 10);
+  ctx.font = '22px -apple-system, PingFang SC, sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.fillText(done + ' / ' + TOTAL, cx, cy + 42);
+
+  // ===== 个性标签 =====
+  var tagY = 460;
+  // 标签背景
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  roundRectPath(ctx, W/2 - 130, tagY - 32, 260, 44, 22);
+  ctx.fill();
+  // 标签边框
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1;
+  roundRectPath(ctx, W/2 - 130, tagY - 32, 260, 44, 22);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.font = '500 20px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.textAlign = 'center';
+  ctx.fillText(tag, W/2, tagY);
+
+  // ===== 章节完成度 =====
+  var chartY = 540;
+  ctx.font = '500 20px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.textAlign = 'left';
+  ctx.fillText('章节进度', 55, chartY);
+
+  // 分隔线
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(55, chartY + 12);
+  ctx.lineTo(W - 55, chartY + 12);
+  ctx.stroke();
+
+  var barStartY = chartY + 35;
+  var barHeight = 10;
+  var barMaxW = W - 190;
+  var rowH = 52;
+
+  chapterStats.forEach(function(s, i) {
+    var y = barStartY + i * rowH;
+    // 图标+标题
+    ctx.font = '18px -apple-system, PingFang SC, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.textAlign = 'left';
+    ctx.fillText(s.icon + ' ' + s.title, 55, y);
+
+    // 数值
+    ctx.font = '16px -apple-system, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.textAlign = 'right';
+    ctx.fillText(s.count + '/' + s.total, W - 55, y);
+
+    // 背景条
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    roundRectPath(ctx, 55, y + 8, barMaxW, barHeight, 5);
+    ctx.fill();
+
+    // 填充条
+    if (s.count > 0) {
+      var bw = (s.count / s.total) * barMaxW;
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      roundRectPath(ctx, 55, y + 8, bw, barHeight, 5);
+      ctx.fill();
+      // 微光
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      roundRectPath(ctx, 55, y + 8, Math.min(bw, 30), barHeight, 5);
+      ctx.fill();
+    }
+  });
+
+  // ===== 中间统计区 =====
+  var midY = barStartY + chapterStats.length * rowH + 50;
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(55, midY - 20);
+  ctx.lineTo(W - 55, midY - 20);
+  ctx.stroke();
+
+  var stats = [
+    { label: '照片记录', value: '' + countPhotos() },
+    { label: '最近打卡', value: getRecentDate() },
+    { label: '完成章节', value: '' + countCompletedChapters() }
+  ];
+  var statW = (W - 110) / 3;
+  stats.forEach(function(st, i) {
+    var sx = 55 + i * statW + statW/2;
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 28px -apple-system, sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(st.value, sx, midY + 18);
+    ctx.font = '16px -apple-system, PingFang SC, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(st.label, sx, midY + 44);
+  });
+
+  // ===== 底部区域 =====
+  var botY = H - 140;
+  // 装饰线
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(W/2 - 100, botY);
+  ctx.lineTo(W/2 + 100, botY);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.font = '20px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.fillText('记录人生体验，珍惜每一个瞬间', W/2, botY + 36);
+
+  ctx.font = '16px -apple-system, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
   var today = new Date();
   var dateStr = today.getFullYear() + '.' + (today.getMonth()+1) + '.' + today.getDate();
-  ctx.fillText('📅 ' + dateStr, 400, 420);
-  
-  // 底部文字
-  ctx.font = '14px -apple-system, PingFang SC, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.fillText('记录人生体验，珍惜每一个瞬间 ✨', 400, 520);
-  
-  // 转换为图片并显示
+  ctx.fillText('Generated on ' + dateStr + '  ·  人生体验卡', W/2, botY + 68);
+
+  // ===== 转换为图片 =====
   var dataUrl = canvas.toDataURL('image/png');
   var preview = document.getElementById('shareCardPreview');
   if (!preview) {
@@ -3675,17 +3986,99 @@ function generateShareCard() {
   document.getElementById('shareCardModal').classList.add('show');
 }
 
-function roundRect(ctx, x, y, width, height, radius) {
+// 绘制浮动装饰几何
+function drawFloatingShapes(ctx, W, H) {
+  ctx.save();
+  var shapes = [
+    { x: 60, y: 180, r: 40, a: 0.08 },
+    { x: W-50, y: 220, r: 55, a: 0.06 },
+    { x: 90, y: H-200, r: 70, a: 0.05 },
+    { x: W-80, y: H-160, r: 50, a: 0.07 },
+    { x: 150, y: 500, r: 30, a: 0.1 },
+    { x: W-120, y: 450, r: 35, a: 0.08 }
+  ];
+  shapes.forEach(function(s) {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
+    ctx.fill();
+  });
+
+  // 小圆点装饰
+  var dots = [
+    { x: 120, y: 100, r: 4 },
+    { x: W-100, y: 140, r: 3 },
+    { x: 80, y: 400, r: 5 },
+    { x: W-60, y: 380, r: 4 },
+    { x: 200, y: 700, r: 3 },
+    { x: W-150, y: 750, r: 4 },
+    { x: 130, y: 950, r: 3 },
+    { x: W-110, y: 920, r: 5 }
+  ];
+  dots.forEach(function(d) {
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fill();
+  });
+
+  // 十字装饰
+  var crosses = [
+    { x: 45, y: 300, len: 12 },
+    { x: W-45, y: 340, len: 10 },
+    { x: 100, y: 600, len: 8 },
+    { x: W-70, y: 580, len: 10 },
+    { x: 70, y: 820, len: 12 },
+    { x: W-90, y: 850, len: 8 }
+  ];
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1.5;
+  crosses.forEach(function(c) {
+    ctx.beginPath();
+    ctx.moveTo(c.x - c.len, c.y);
+    ctx.lineTo(c.x + c.len, c.y);
+    ctx.moveTo(c.x, c.y - c.len);
+    ctx.lineTo(c.x, c.y + c.len);
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
+function countPhotos() {
+  var count = 0;
+  Object.keys(checkinData).forEach(function(k) { if (checkinData[k].photo) count++; });
+  return count;
+}
+
+function getRecentDate() {
+  var recent = '';
+  Object.keys(checkinData).forEach(function(k) {
+    var d = checkinData[k].date;
+    if (d && (!recent || d > recent)) recent = d;
+  });
+  return recent ? recent.replace(/-/g, '.') : '-';
+}
+
+function countCompletedChapters() {
+  var count = 0;
+  CHAPTERS.forEach(function(ch, ci) {
+    var allDone = ch.events.every(function(_, ei) { return !!checkinData[ci + '-' + ei]; });
+    if (allDone) count++;
+  });
+  return count;
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
 
