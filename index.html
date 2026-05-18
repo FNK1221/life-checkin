@@ -2042,16 +2042,21 @@ function removeVideo(e) {
 
 // ========== TABS ==========
 function switchTab(tab) {
-  document.getElementById('mainList').classList.toggle('hidden', tab !== 'list');
-  document.getElementById('timelineView').classList.toggle('show', tab === 'timeline');
-  document.getElementById('statsView').classList.toggle('show', tab === 'stats');
-  document.getElementById('tabList').classList.toggle('active', tab === 'list');
-  document.getElementById('tabTimeline').classList.toggle('active', tab === 'timeline');
-  document.getElementById('tabStats').classList.toggle('active', tab === 'stats');
-  document.getElementById('tabData').classList.toggle('active', false);
+  try {
+    document.getElementById('mainList').classList.toggle('hidden', tab !== 'list');
+    document.getElementById('timelineView').classList.toggle('show', tab === 'timeline');
+    document.getElementById('statsView').classList.toggle('show', tab === 'stats');
+    document.getElementById('tabList').classList.toggle('active', tab === 'list');
+    document.getElementById('tabTimeline').classList.toggle('active', tab === 'timeline');
+    document.getElementById('tabStats').classList.toggle('active', tab === 'stats');
+    document.getElementById('tabData').classList.toggle('active', false);
 
-  if (tab === 'timeline') renderTimeline();
-  if (tab === 'stats') renderStats();
+    if (tab === 'timeline') renderTimeline();
+    if (tab === 'stats') renderStats();
+  } catch(e) {
+    alert('Tab切换出错: ' + e.message);
+    console.error('switchTab error:', e);
+  }
 }
 
 
