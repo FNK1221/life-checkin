@@ -791,11 +791,11 @@
 <script>
 // ========= LOADING ANIMATION ==========
 (function(){
-  const canvas = document.getElementById("loadingCanvas");
+  var canvas = document.getElementById("loadingCanvas");
   if(!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const screen = document.getElementById("loadingScreen");
-  const textEl = document.getElementById("loadingText");
+  var ctx = canvas.getContext("2d");
+  var screen = document.getElementById("loadingScreen");
+  var textEl = document.getElementById("loadingText");
 
   function resize(){
     canvas.width = window.innerWidth;
@@ -804,30 +804,34 @@
   resize();
   window.addEventListener("resize", resize);
 
-  const W = ()=>canvas.width, H = ()=>canvas.height;
-  const cx = ()=>canvas.width/2, cy = ()=>canvas.height/2;
+  function W(){ return canvas.width; }
+  function H(){ return canvas.height; }
+  function cx(){ return canvas.width/2; }
+  function cy(){ return canvas.height/2; }
 
-  // ─── Particle helper ───
-  const particles = [];
+  // ===== Particle system =====
+  var particles = [];
   function spawnP(x, y, count, colorFn, speed, life){
-    for(let i=0;i<count;i++){
-      const a = Math.random()*Math.PI*2;
-      const s = speed * (0.3+Math.random()*0.7);
-      particles.push({x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s,
-        life: life||60, maxLife: life||60, r: 1+Math.random()*2.5,
-        color: colorFn ? colorFn() : `rgba(255,220,140,0.8)` });
+    for(var i=0;i<count;i++){
+      var a = Math.random()*Math.PI*2;
+      var s = speed * (0.3+Math.random()*0.7);
+      var c = colorFn ? colorFn() : "rgba(255,220,140,0.8)";
+      particles.push({x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s,
+        life:life||60, maxLife:life||60, r:1+Math.random()*2.5,
+        color:c});
     }
   }
   function tickP(){
-    for(let i=particles.length-1;i>=0;i--){
-      const p=particles[i];
+    for(var i=particles.length-1;i>=0;i--){
+      var p=particles[i];
       p.x+=p.vx; p.y+=p.vy; p.life--;
       if(p.life<=0){ particles.splice(i,1); }
     }
   }
-  function drawP(ctx){
-    for(const p of particles){
-      const a = p.life / p.maxLife;
+  function drawP(){
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      var a = p.life / p.maxLife;
       ctx.globalAlpha = a * 0.8;
       ctx.fillStyle = p.color;
       ctx.beginPath(); ctx.arc(p.x, p.y, p.r*a, 0, Math.PI*2); ctx.fill();
@@ -835,95 +839,65 @@
     ctx.globalAlpha = 1;
   }
 
-  let frame = 0, animDone = false;
-  const FPS = 60, SPD = 1000/FPS;
+  var frame = 0, animDone = false;
+  var FPS = 60, SPD = 1000/FPS;
 
   function loop(){
     if(animDone) return;
     ctx.clearRect(0, 0, W(), H());
 
-    // ─── Background: deep cosmic purple/black ───
-    const bgGrad = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), Math.max(W(),H())*0.8);
-    bgGrad.addColorStop(0, "#1a0a2e");
-    bgGrad.addColorStop(0.5, "#0d0516");
-    bgGrad.addColorStop(1, "#050210");
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, W(), H());
-
-    // Subtle starfield
-    if(frame % 3 === 0){
-      const sx = Math.random()*W(), sy = Math.random()*H();
-      const sa = 0.2 + Math.random()*0.5;
-      ctx.fillStyle = `rgba(255,240,220,${sa})`;
-      ctx.beginPath(); ctx.arc(sx, sy, 0.6+Math.random()*0.8, 0, Math.PI*2); ctx.fill();
-    }
-
+    // ===== Phase 1: Two orbs approach (Milky White + Light Yellow) =====
     if(frame < 120){
-      // ─── Phase 1: Two orbs approach (Milky White ☯ Light Yellow) ───
-      const t = frame / 120;
-      const ease = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; // ease-in-out
-      const maxDist = W() * 0.38;
-      const xLeft  = cx() - maxDist * (1 - ease);
-      const xRight = cx() + maxDist * (1 - ease);
-      const orbY = cy() + Math.sin(frame*0.04)*4;
+      var t = frame / 120;
+      var ease = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+      var maxDist = W() * 0.38;
+      var xLeft  = cx() - maxDist * (1 - ease);
+      var xRight = cx() + maxDist * (1 - ease);
+      var orbY = cy() + Math.sin(frame*0.04)*4;
 
-      // Orb trails
+      // Left orb trail particles
       if(frame % 2 === 0){
-        spawnP(xLeft, orbY, 1, ()=>`rgba(220,230,255,${0.3+Math.random()*0.3})`, 0.3, 35);
-        spawnP(xRight, orbY, 1, ()=>`rgba(255,230,160,${0.3+Math.random()*0.3})`, 0.3, 35);
+        spawnP(xLeft, orbY, 1, function(){ return "rgba(220,230,255,"+(0.3+Math.random()*0.3)+")"; }, 0.3, 35);
+        spawnP(xRight, orbY, 1, function(){ return "rgba(255,230,160,"+(0.3+Math.random()*0.3)+")"; }, 0.3, 35);
       }
 
       // Left orb: milky white (阴)
-      const oL_outer = ctx.createRadialGradient(xLeft, orbY, 0, xLeft, orbY, 50+t*20);
-      oL_outer.addColorStop(0, "rgba(230,240,255,0.12)");
-      oL_outer.addColorStop(1, "rgba(230,240,255,0)");
-      ctx.fillStyle = oL_outer;
+      var oL_o = ctx.createRadialGradient(xLeft, orbY, 0, xLeft, orbY, 50+t*20);
+      oL_o.addColorStop(0, "rgba(230,240,255,0.12)");
+      oL_o.addColorStop(1, "rgba(230,240,255,0)");
+      ctx.fillStyle = oL_o;
       ctx.beginPath(); ctx.arc(xLeft, orbY, 50+t*20, 0, Math.PI*2); ctx.fill();
-      const oL_core = ctx.createRadialGradient(xLeft-4, orbY-4, 0, xLeft, orbY, 18);
-      oL_core.addColorStop(0, "rgba(255,255,255,0.95)");
-      oL_core.addColorStop(0.6, "rgba(210,225,255,0.8)");
-      oL_core.addColorStop(1, "rgba(180,200,240,0.4)");
-      ctx.fillStyle = oL_core;
+      var oL_c = ctx.createRadialGradient(xLeft-4, orbY-4, 0, xLeft, orbY, 18);
+      oL_c.addColorStop(0, "rgba(255,255,255,0.95)");
+      oL_c.addColorStop(0.6, "rgba(210,225,255,0.8)");
+      oL_c.addColorStop(1, "rgba(180,200,240,0.4)");
+      ctx.fillStyle = oL_c;
       ctx.beginPath(); ctx.arc(xLeft, orbY, 18, 0, Math.PI*2); ctx.fill();
-      // bright center
       ctx.fillStyle = "rgba(255,255,255,0.85)";
       ctx.beginPath(); ctx.arc(xLeft, orbY, 7, 0, Math.PI*2); ctx.fill();
 
       // Right orb: light yellow/gold (阳)
-      const oR_outer = ctx.createRadialGradient(xRight, orbY, 0, xRight, orbY, 50+t*20);
-      oR_outer.addColorStop(0, "rgba(255,230,150,0.13)");
-      oR_outer.addColorStop(1, "rgba(255,230,150,0)");
-      ctx.fillStyle = oR_outer;
+      var oR_o = ctx.createRadialGradient(xRight, orbY, 0, xRight, orbY, 50+t*20);
+      oR_o.addColorStop(0, "rgba(255,230,150,0.13)");
+      oR_o.addColorStop(1, "rgba(255,230,150,0)");
+      ctx.fillStyle = oR_o;
       ctx.beginPath(); ctx.arc(xRight, orbY, 50+t*20, 0, Math.PI*2); ctx.fill();
-      const oR_core = ctx.createRadialGradient(xRight+4, orbY-4, 0, xRight, orbY, 18);
-      oR_core.addColorStop(0, "rgba(255,255,230,0.95)");
-      oR_core.addColorStop(0.6, "rgba(255,220,130,0.8)");
-      oR_core.addColorStop(1, "rgba(255,200,100,0.4)");
-      ctx.fillStyle = oR_core;
+      var oR_c = ctx.createRadialGradient(xRight+4, orbY-4, 0, xRight, orbY, 18);
+      oR_c.addColorStop(0, "rgba(255,255,230,0.95)");
+      oR_c.addColorStop(0.6, "rgba(255,220,130,0.8)");
+      oR_c.addColorStop(1, "rgba(255,200,100,0.4)");
+      ctx.fillStyle = oR_c;
       ctx.beginPath(); ctx.arc(xRight, orbY, 18, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "rgba(255,255,200,0.85)";
       ctx.beginPath(); ctx.arc(xRight, orbY, 7, 0, Math.PI*2); ctx.fill();
-
-      // Drag-trail glow behind each orb
-      ctx.save();
-      ctx.globalAlpha = 0.25;
-      const trailLen = 12;
-      for(let i=trailLen;i>=1;i--){
-        const tt = i/trailLen;
-        ctx.fillStyle = `rgba(200,220,255,${tt*0.3})`;
-        ctx.beginPath(); ctx.arc(xLeft - (cx()-xLeft)*(1-tt)*0.3, orbY, 18*tt, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = `rgba(255,220,150,${tt*0.3})`;
-        ctx.beginPath(); ctx.arc(xRight + (xRight-cx())*(1-tt)*0.3, orbY, 18*tt, 0, Math.PI*2); ctx.fill();
-      }
-      ctx.restore();
     }
     } else if(frame < 200){
-      // ─── Phase 2: Merge + Golden Flash (阴阳融合 → 金丹初成) ───
-      const t = (frame - 120) / 80;
-      const ease = 1 - Math.pow(1 - t, 3); // ease-out strong
+      // ===== Phase 2: Merge + Golden Flash (阴阳融合 -> 金丹初成) =====
+      var t = (frame - 120) / 80;
+      var ease = 1 - Math.pow(1 - t, 3);
+      var flash = Math.sin(t * Math.PI);
 
-      // Golden burst flash (strongest at t~0.3)
-      const flash = Math.sin(t * Math.PI);
+      // Flash burst
       ctx.save();
       ctx.globalAlpha = flash * 0.35;
       ctx.fillStyle = "#fffbe6";
@@ -932,30 +906,29 @@
 
       // Radial shockwave rings
       if(t < 0.6){
-        const ringT = t / 0.6;
-        const ringR = ringT * Math.max(W(),H())*0.45;
+        var ringR = (t/0.6) * Math.max(W(),H())*0.45;
         ctx.save();
-        ctx.globalAlpha = (1-ringT) * 0.4;
+        ctx.globalAlpha = (1-t/0.6) * 0.4;
         ctx.strokeStyle = "rgba(255,220,140,0.8)";
-        ctx.lineWidth = 3*(1-ringT)+1;
+        ctx.lineWidth = 3*(1-t/0.6)+1;
         ctx.beginPath(); ctx.arc(cx(), cy(), ringR, 0, Math.PI*2); ctx.stroke();
         ctx.strokeStyle = "rgba(255,240,200,0.5)";
-        ctx.lineWidth = 6*(1-ringT)+1;
+        ctx.lineWidth = 6*(1-t/0.6)+1;
         ctx.beginPath(); ctx.arc(cx(), cy(), ringR*1.05, 0, Math.PI*2); ctx.stroke();
         ctx.restore();
       }
 
       // Merged golden core (growing)
-      const coreR = 8 + ease * 45;
-      const coreGlow = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), coreR * 2.5);
-      coreGlow.addColorStop(0, `rgba(255,220,100,${0.3+flash*0.2})`);
+      var coreR = 8 + ease * 45;
+      var coreGlow = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), coreR * 2.5);
+      coreGlow.addColorStop(0, "rgba(255,220,100,"+(0.3+flash*0.2)+")");
       coreGlow.addColorStop(0.4, "rgba(255,180,60,0.1)");
       coreGlow.addColorStop(1, "rgba(255,180,60,0)");
       ctx.fillStyle = coreGlow;
       ctx.beginPath(); ctx.arc(cx(), cy(), coreR*2.5, 0, Math.PI*2); ctx.fill();
 
       // Golden dan core
-      const danGrad = ctx.createRadialGradient(cx()-coreR*0.2, cy()-coreR*0.2, 0, cx(), cy(), coreR);
+      var danGrad = ctx.createRadialGradient(cx()-coreR*0.2, cy()-coreR*0.2, 0, cx(), cy(), coreR);
       danGrad.addColorStop(0, "rgba(255,250,220,0.98)");
       danGrad.addColorStop(0.5, "rgba(255,200,80,0.95)");
       danGrad.addColorStop(0.85, "rgba(220,150,40,0.9)");
@@ -963,18 +936,18 @@
       ctx.fillStyle = danGrad;
       ctx.beginPath(); ctx.arc(cx(), cy(), coreR, 0, Math.PI*2); ctx.fill();
 
-      // Surface swirl lines on golden dan
+      // Surface swirl on golden dan
       ctx.save();
       ctx.globalAlpha = 0.25;
       ctx.strokeStyle = "rgba(255,255,200,0.7)";
       ctx.lineWidth = 1.2;
-      for(let s=0; s<3; s++){
-        const soff = s*2.1 + frame*0.03;
+      for(var s=0; s<3; s++){
+        var soff = s*2.1 + frame*0.03;
         ctx.beginPath();
-        for(let a=0;a<=Math.PI*2;a+=0.08){
-          const rr = coreR * (0.3 + 0.55*Math.sin(a*2+soff));
-          const px = cx() + Math.cos(a)*rr;
-          const py = cy() + Math.sin(a)*rr;
+        for(var a=0;a<=Math.PI*2;a+=0.08){
+          var rr = coreR * (0.3 + 0.55*Math.sin(a*2+soff));
+          var px = cx() + Math.cos(a)*rr;
+          var py = cy() + Math.sin(a)*rr;
           if(a===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
         }
         ctx.closePath(); ctx.stroke();
@@ -983,24 +956,23 @@
 
       // Burst particles
       if(frame % 2 === 0 && t < 0.7){
-        spawnP(cx(), cy(), 3,
-          ()=>`hsl(${35+Math.random()*25},${80+Math.random()*20}%,${65+Math.random()*20}%)`,
-          1.5+Math.random()*2, 40+Math.random()*20);
+        spawnP(cx(), cy(), 3, function(){
+          return "hsl("+(35+Math.random()*25)+","+(80+Math.random()*20)+"%,"+(65+Math.random()*20)+"%)";
+        }, 1.5+Math.random()*2, 40+Math.random()*20);
       }
     }
     } else if(frame < 340){
-      // ─── Phase 3: Golden Dan charges, rotates, starts cracking (金丹蕴养) ───
-      const t = (frame - 200) / 140;
-      const pulse = Math.sin(frame * 0.04) * 0.5 + 0.5;
-      const rotateAngle = frame * 0.008;
-
-      const coreR = 50 + pulse * 5;
+      // ===== Phase 3: Golden Dan charges, rotates, cracks (金丹蕴养) =====
+      var t = (frame - 200) / 140;
+      var pulse = Math.sin(frame * 0.04) * 0.5 + 0.5;
+      var rotateAngle = frame * 0.008;
+      var coreR = 50 + pulse * 5;
 
       // Outer aura (multiple layers)
-      for(let L=0; L<3; L++){
-        const Lr = coreR * (1.3 + L*0.45 + Math.sin(frame*0.03+L)*0.1);
-        const Lg = ctx.createRadialGradient(cx(), cy(), coreR*0.8, cx(), cy(), Lr);
-        Lg.addColorStop(0, `rgba(255,200,80,${0.08 - L*0.02})`);
+      for(var L=0; L<3; L++){
+        var Lr = coreR * (1.3 + L*0.45 + Math.sin(frame*0.03+L)*0.1);
+        var Lg = ctx.createRadialGradient(cx(), cy(), coreR*0.8, cx(), cy(), Lr);
+        Lg.addColorStop(0, "rgba(255,200,80,"+(0.08 - L*0.02)+")");
         Lg.addColorStop(1, "rgba(255,180,60,0)");
         ctx.fillStyle = Lg;
         ctx.beginPath(); ctx.arc(cx(), cy(), Lr, 0, Math.PI*2); ctx.fill();
@@ -1011,7 +983,7 @@
       ctx.translate(cx(), cy());
       ctx.rotate(rotateAngle);
 
-      const danGrad2 = ctx.createRadialGradient(-coreR*0.15, -coreR*0.15, 0, 0, 0, coreR);
+      var danGrad2 = ctx.createRadialGradient(-coreR*0.15, -coreR*0.15, 0, 0, 0, coreR);
       danGrad2.addColorStop(0, "rgba(255,252,230,0.98)");
       danGrad2.addColorStop(0.4, "rgba(255,210,90,0.95)");
       danGrad2.addColorStop(0.75, "rgba(220,160,50,0.92)");
@@ -1019,31 +991,28 @@
       ctx.fillStyle = danGrad2;
       ctx.beginPath(); ctx.arc(0, 0, coreR, 0, Math.PI*2); ctx.fill();
 
-      // Dan surface: rotating rune/ Tao symbol hints
+      // Dan surface: Tao symbol hints
       ctx.globalAlpha = 0.18;
       ctx.strokeStyle = "rgba(255,255,200,0.7)";
       ctx.lineWidth = 1.5;
-      // Tai Chi / Yin-Yang hint on the dan
       ctx.beginPath(); ctx.arc(0, 0, coreR*0.35, -Math.PI/2, Math.PI*1.5); ctx.stroke();
       ctx.beginPath(); ctx.arc(-coreR*0.12, 0, coreR*0.22, 0, Math.PI*2); ctx.stroke();
       ctx.beginPath(); ctx.arc( coreR*0.12, 0, coreR*0.22, 0, Math.PI*2); ctx.stroke();
-      // small dots for yin-yang
       ctx.fillStyle = "rgba(255,255,200,0.5)";
       ctx.beginPath(); ctx.arc(-coreR*0.12, 0, coreR*0.06, 0, Math.PI*2); ctx.fill();
       ctx.beginPath(); ctx.arc( coreR*0.12, 0, coreR*0.06, 0, Math.PI*2); ctx.fill();
 
-      // Surface crack lines (appear after t > 0.4)
+      // Surface crack lines (t > 0.35)
       if(t > 0.35){
-        const crackAlpha = Math.min(1, (t-0.35)/0.2);
+        var crackAlpha = Math.min(1, (t-0.35)/0.2);
         ctx.globalAlpha = crackAlpha * 0.6;
         ctx.strokeStyle = "rgba(255,100,30,0.8)";
         ctx.lineWidth = 1.8;
         ctx.lineCap = "round";
-        // 5-6 crack lines radiating from center
-        for(let c=0; c<6; c++){
-          const ca = c*(Math.PI/3) + frame*0.01;
-          const innerR = coreR * (0.2 + Math.sin(frame*0.05+c)*0.1);
-          const outerR = coreR * (0.75 + Math.sin(frame*0.03+c)*0.15);
+        for(var c=0; c<6; c++){
+          var ca = c*(Math.PI/3) + frame*0.01;
+          var innerR = coreR * (0.2 + Math.sin(frame*0.05+c)*0.1);
+          var outerR = coreR * (0.75 + Math.sin(frame*0.03+c)*0.15);
           ctx.beginPath();
           ctx.moveTo(Math.cos(ca)*innerR, Math.sin(ca)*innerR);
           ctx.quadraticCurveTo(
@@ -1051,25 +1020,23 @@
             Math.cos(ca)*outerR, Math.sin(ca)*outerR);
           ctx.stroke();
         }
-        // Golden light leaking through cracks
         ctx.globalAlpha = crackAlpha * 0.35;
         ctx.fillStyle = "rgba(255,180,50,0.7)";
         ctx.beginPath(); ctx.arc(0, 0, coreR*1.05, 0, Math.PI*2); ctx.fill();
       }
-
       ctx.restore();
 
-      // Floating rune particles around dan
+      // Floating rune particles
       if(frame % 4 === 0){
-        const a = Math.random()*Math.PI*2;
-        const d = coreR*1.2 + Math.random()*40;
-        spawnP(cx()+Math.cos(a)*d, cy()+Math.sin(a)*d, 1,
-          ()=>`rgba(255,220,140,${0.3+Math.random()*0.3})`, 0.2, 50);
+        var fa = Math.random()*Math.PI*2;
+        var fd = coreR*1.2 + Math.random()*40;
+        spawnP(cx()+Math.cos(fa)*fd, cy()+Math.sin(fa)*fd, 1,
+          function(){ return "rgba(255,220,140,"+(0.3+Math.random()*0.3)+")"; }, 0.2, 50);
       }
 
-      // Intense golden glow pulses (building to shatter)
+      // Intense golden glow (building to shatter)
       if(t > 0.6){
-        const intensity = (t-0.6)/0.4 * pulse;
+        var intensity = (t-0.6)/0.4 * pulse;
         ctx.save();
         ctx.globalAlpha = intensity * 0.18;
         ctx.fillStyle = "#fffbe6";
@@ -1078,17 +1045,17 @@
       }
     }
     } else if(frame < 500){
-      // ─── Phase 4: Golden Dan shatters, Yuan Ying emerges (金丹破碎，元婴出世) ───
-      const t = (frame - 340) / 160;
-      const ease = 1 - Math.pow(1 - Math.min(t,1), 3);
+      // ===== Phase 4: Golden Dan shatters, Yuan Ying emerges (金丹破碎,元婴出世) =====
+      var t = (frame - 340) / 160;
+      var ease = 1 - Math.pow(1 - Math.min(t,1), 3);
 
       // === Part A: Dan shatters (t 0~0.35) ===
       if(t < 0.4){
-        const st = t / 0.4;
-        const stEase = 1 - Math.pow(1-st, 2);
+        var st = t / 0.4;
+        var stEase = 1 - Math.pow(1-st, 2);
 
         // Shockwave burst
-        const burstR = stEase * Math.max(W(),H())*0.5;
+        var burstR = stEase * Math.max(W(),H())*0.5;
         ctx.save();
         ctx.globalAlpha = (1-stEase)*0.3;
         ctx.strokeStyle = "rgba(255,220,120,0.9)";
@@ -1096,47 +1063,46 @@
         ctx.beginPath(); ctx.arc(cx(), cy(), burstR, 0, Math.PI*2); ctx.stroke();
         ctx.restore();
 
-        // Shatter particles (dan fragments flying outward)
+        // Shatter particles
         if(frame % 2 === 0){
-          for(let i=0;i<5;i++){
-            const a = Math.random()*Math.PI*2;
-            const d = 20 + Math.random()*30;
-            spawnP(cx()+Math.cos(a)*d, cy()+Math.sin(a)*d, 1,
-              ()=>`rgba(${200+Math.random()*55},${140+Math.random()*80},${30+Math.random()*40},0.8)`,
+          for(var i=0;i<5;i++){
+            var sa = Math.random()*Math.PI*2;
+            var sd = 20 + Math.random()*30;
+            spawnP(cx()+Math.cos(sa)*sd, cy()+Math.sin(sa)*sd, 1,
+              function(){ return "rgba("+(200+Math.random()*55)+","+(140+Math.random()*80)+","+(30+Math.random()*40)+",0.8)"; },
               2+Math.random()*3, 35+Math.random()*25);
           }
         }
 
         // Remaining dan core (cracking apart)
-        const remR = 50 * (1 - stEase*0.7);
+        var remR = 50 * (1 - stEase*0.7);
         ctx.save();
         ctx.globalAlpha = 1 - stEase*0.6;
-        const remGrad = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), remR);
+        var remGrad = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), remR);
         remGrad.addColorStop(0, "rgba(255,240,200,0.9)");
         remGrad.addColorStop(1, "rgba(220,160,50,0.7)");
         ctx.fillStyle = remGrad;
-        // Draw as 6 fragments (cracked dan)
-        for(let f=0;f<6;f++){
-          const fa = f*(Math.PI/3) + stEase*2;
-          const fr = remR * (0.4 + 0.6*(1-stEase*0.5));
+        for(var f=0;f<6;f++){
+          var fa2 = f*(Math.PI/3) + stEase*2;
+          var fr = remR * (0.4 + 0.6*(1-stEase*0.5));
           ctx.beginPath();
-          ctx.arc(cx()+Math.cos(fa)*remR*0.2*stEase, cy()+Math.sin(fa)*remR*0.2*stEase, fr*0.55, fa, fa+Math.PI/3);
-          ctx.arc(cx(), cy(), remR*0.3, fa+Math.PI/3, fa, true);
+          ctx.arc(cx()+Math.cos(fa2)*remR*0.2*stEase, cy()+Math.sin(fa2)*remR*0.2*stEase, fr*0.55, fa2, fa2+Math.PI/3);
+          ctx.arc(cx(), cy(), remR*0.3, fa2+Math.PI/3, fa2, true);
           ctx.fill();
         }
         ctx.restore();
       }
 
-      // === Part B: Yuan Ying emerges from light (t 0.25~1.0) ===
+      // === Part B: Yuan Ying emerges (t 0.15~1.0) ===
       if(t > 0.15){
-        const yt = Math.min(1, (t - 0.15) / 0.7);
-        const yAlpha = yt < 0.3 ? yt/0.3 : 1;
-        const yScale = 0.2 + yt * 0.8;
+        var yt = Math.min(1, (t - 0.15) / 0.7);
+        var yAlpha = yt < 0.3 ? yt/0.3 : 1;
+        var yScale = 0.2 + yt * 0.8;
 
         // Power glow behind yuan ying
-        const yyGlow = ctx.createRadialGradient(cx(), cy()-20, 0, cx(), cy()-20, 80+yScale*30);
-        yyGlow.addColorStop(0, `rgba(255,230,150,${yAlpha*0.25})`);
-        yyGlow.addColorStop(0.5, `rgba(255,200,80,${yAlpha*0.1})`);
+        var yyGlow = ctx.createRadialGradient(cx(), cy()-20, 0, cx(), cy()-20, 80+yScale*30);
+        yyGlow.addColorStop(0, "rgba(255,230,150,"+(yAlpha*0.25)+")");
+        yyGlow.addColorStop(0.5, "rgba(255,200,80,"+(yAlpha*0.1)+")");
         yyGlow.addColorStop(1, "rgba(255,200,80,0)");
         ctx.fillStyle = yyGlow;
         ctx.beginPath(); ctx.arc(cx(), cy()-20, 80+yScale*30, 0, Math.PI*2); ctx.fill();
@@ -1146,111 +1112,82 @@
         ctx.translate(cx(), cy() - 20);
         ctx.scale(yScale, yScale);
 
-        // ─── Yuan Ying (元婴): tiny golden translucent baby in lotus position ───
-        const yySkin = "rgba(255,230,180,0.92)";
-        const yyGlowC = "rgba(255,220,140,0.5)";
+        var yySkin = "rgba(255,230,180,0.92)";
 
-        // Golden aura around body
-        const bodyGlow = ctx.createRadialGradient(0, -10, 5, 0, -10, 55);
-        bodyGlow.addColorStop(0, "rgba(255,240,200,0.2)");
-        bodyGlow.addColorStop(1, "rgba(255,220,150,0)");
-        ctx.fillStyle = bodyGlow;
-        ctx.beginPath(); ctx.arc(0, -10, 55, 0, Math.PI*2); ctx.fill();
-
-        // == Head ==
-        const headG = ctx.createRadialGradient(-3, -52, 2, 0, -52, 22);
+        // Head
+        var headG = ctx.createRadialGradient(-3, -52, 2, 0, -52, 22);
         headG.addColorStop(0, "rgba(255,240,210,0.95)");
         headG.addColorStop(1, yySkin);
         ctx.fillStyle = headG;
         ctx.beginPath(); ctx.arc(0, -52, 22, 0, Math.PI*2); ctx.fill();
-        // Golden lotus mark on forehead
+        // Golden mark on forehead
         ctx.fillStyle = "rgba(255,220,100,0.6)";
         ctx.beginPath(); ctx.arc(0, -58, 4, 0, Math.PI*2); ctx.fill();
 
-        // == Eyes (closed, serene) ==
+        // Eyes (closed, serene)
         ctx.strokeStyle = "rgba(200,170,140,0.7)";
         ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.moveTo(-8, -50); ctx.quadraticCurveTo(-3, -48, 2, -50); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(2, -50);  ctx.quadraticCurveTo( 7, -48, 12,-50); ctx.stroke();
 
-        // == Ears ==
+        // Ears
         ctx.fillStyle = yySkin;
         ctx.beginPath(); ctx.ellipse(-20, -50, 5, 8, -0.1, 0, Math.PI*2); ctx.fill();
         ctx.beginPath(); ctx.ellipse( 20, -50, 5, 8,  0.1, 0, Math.PI*2); ctx.fill();
 
-        // == Torso (small, in lotus position) ==
+        // Torso (lotus position)
         ctx.fillStyle = yySkin;
         ctx.beginPath(); ctx.ellipse(0, -18, 18, 24, 0, 0, Math.PI*2); ctx.fill();
-        // Golden belt/sash hint
         ctx.strokeStyle = "rgba(255,220,120,0.5)";
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(-16, -8); ctx.quadraticCurveTo(0, -5, 16, -8); ctx.stroke();
 
-        // == Arms (hands at heart center in meditation mudra) ==
+        // Arms (hands at heart in mudra)
         ctx.strokeStyle = yySkin;
         ctx.lineWidth = 8;
         ctx.lineCap = "round";
-        // left arm
         ctx.beginPath(); ctx.moveTo(-14, -28); ctx.quadraticCurveTo(-22, -18, -12, -10); ctx.stroke();
-        // right arm
         ctx.beginPath(); ctx.moveTo( 14, -28); ctx.quadraticCurveTo( 22, -18,  12, -10); ctx.stroke();
-        // hands (pressed together at heart)
         ctx.fillStyle = "rgba(255,240,210,0.95)";
         ctx.beginPath(); ctx.ellipse(-2, -8, 6, 9, 0.1, 0, Math.PI*2); ctx.fill();
 
-        // == Legs (lotus position, crossed) ==
-        // left leg
+        // Legs (lotus position)
         ctx.lineWidth = 9;
         ctx.beginPath(); ctx.moveTo(-10, 8);  ctx.quadraticCurveTo(-25, 18, -30, 30); ctx.stroke();
-        // right leg
         ctx.beginPath(); ctx.moveTo( 10, 8);  ctx.quadraticCurveTo( 25, 18,  30, 30); ctx.stroke();
 
-        // == Golden light rays emanating from yuan ying ==
         ctx.restore();
-        ctx.save();
-        ctx.globalAlpha = yAlpha * 0.3;
-        for(let r=0; r<8; r++){
-          const ra = r*(Math.PI/4) + frame*0.005;
-          const rLen = 30 + Math.sin(frame*0.05+r)*15;
-          ctx.strokeStyle = "rgba(255,220,140,0.6)";
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(cx()+Math.cos(ra)*10, (cy()-20)+Math.sin(ra)*10);
-          ctx.lineTo(cx()+Math.cos(ra)*(10+rLen), (cy()-20)+Math.sin(ra)*(10+rLen));
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
 
-      // == "我tm来了" text ==
-      if(t > 0.35 && textEl && !textEl.classList.contains("show")){
-        textEl.textContent = "我tm来了";
-        textEl.classList.add("show");
+        // "我tm来了" text
+        if(yt > 0.35 && textEl && !textEl.classList.contains("show")){
+          textEl.textContent = "我tm来了";
+          textEl.classList.add("show");
+        }
       }
     }
     } else {
-      // ─── Phase 5: Fade out ───
-      const t = Math.min(1, (frame - 500) / 40);
+      // ===== Phase 5: Fade out =====
+      var t = Math.min(1, (frame - 500) / 40);
       if(screen) screen.style.opacity = 1 - t;
       if(t >= 1){
         animDone = true;
         if(screen){
           screen.classList.add("fade-out");
-          setTimeout(()=>{ screen.style.display = "none"; }, 800);
+          setTimeout(function(){ screen.style.display = "none"; }, 800);
         }
         return;
       }
     }
 
-    // ─── Draw particles on top of everything ───
+    // Draw particles on top of everything
     tickP();
-    drawP(ctx);
+    drawP();
 
     frame++;
-    setTimeout(()=> requestAnimationFrame(loop), SPD);
+    setTimeout(function(){ requestAnimationFrame(loop); }, SPD);
   }
 
-  setTimeout(()=> requestAnimationFrame(loop), 100);
+  setTimeout(function(){ requestAnimationFrame(loop); }, 100);
 })();
 
 // ========== DATA ==========
