@@ -2119,7 +2119,7 @@ function renderTimeline() {
     var mediaClass = hasMedia ? 'has-media' : 'no-media';
 
     var noteHtml = ev.note ? '<div class="tl-note">💬 ' + escapeHtml(ev.note) + '</div>' : '';
-    var photoHtml = ev.photo ? '<img class="tl-photo" data-event-id="' + ev.id + '" src="' + ev.photo + '">'' : '';
+    var photoHtml = ev.photo ? '<img class="tl-photo" data-event-id="' + ev.id + '" src="' + ev.photo + '">' : '';
     var fleetingMsg = (!hasMedia) ? '<div class="fleeting-msg">「这一刻，只存在于记忆里」<br><span style="font-size:10px;opacity:0.5;">谁的人生没点遗憾呢</span></div>' : '';
     var mediaDivId = 'tl-media-' + ev.id;
 
