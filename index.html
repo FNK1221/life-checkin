@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>人生经历打卡</title>
+<title>人生体验卡</title>
 <style>
   /* ========== LOADING SCREEN ========== */
   #loadingScreen {
@@ -960,7 +960,7 @@
 
 <!-- HEADER -->
 <div class="header">
-  <h1>🌅 人生经历打卡</h1>
+  <h1>🌅 人生体验卡</h1>
   <div class="progress-outer">
     <div class="progress-inner" id="progressFill"></div>
   </div>
@@ -2295,7 +2295,7 @@ function exportData() {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = '人生打卡备份_' + new Date().toISOString().split('T')[0] + '.json';
+  a.download = '人生体验卡备份_' + new Date().toISOString().split('T')[0] + '.json';
   a.click();
   URL.revokeObjectURL(url);
   showToast('📤 数据已导出');
