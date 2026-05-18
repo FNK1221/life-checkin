@@ -1090,12 +1090,6 @@
         ctx.restore();
       }
 
-      // 显示文字
-      if(t > 0.3 && textEl && !textEl.classList.contains("show")){
-        textEl.textContent = "\u6211tm\u6765\u4e86";
-        textEl.classList.add("show");
-      }
-
     } else {
       // ===== Phase 5: Fade out =====
       var t = Math.min(1, (frame - 415) / 40);
