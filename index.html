@@ -3725,10 +3725,22 @@ function spawnStars(count) {
 }
 
 // ========== SHARE CARD ==========
+var SHARE_CARD_THEMES = [
+  { name:'暖阳陶土', bg:['#c47a5e','#b86248','#a05038','#8a4030'], glow:[255,200,140] },
+  { name:'深海蔚蓝', bg:['#2a6a8f','#1f5a7a','#154a65','#0d3a50'], glow:[100,200,255] },
+  { name:'森林墨绿', bg:['#2d6a4f','#1f5a3f','#144a30','#0a3a22'], glow:[100,255,180] },
+  { name:'星夜紫', bg:['#4a2d7a','#3a1f6a','#2a1055','#1a0845'], glow:[180,140,255] },
+  { name:'日落玫瑰', bg:['#a83e6e','#8f2d5a','#751d48','#5a1035'], glow:[255,140,200] },
+  { name:'金黄麦田', bg:['#b8860b','#a07010','#885a0a','#704505'], glow:[255,220,100] },
+  { name:'午夜灰蓝', bg:['#36454f','#2a3840','#1e2d35','#121e28'], glow:[150,200,230] },
+  { name:'珊瑚橘', bg:['#e07050','#c86040','#a85030','#883820'], glow:[255,180,140] }
+];
+
 function generateShareCard() {
   var done = Object.keys(checkinData).length;
   var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
   var tag = calculatePersonalityTag();
+  var theme = SHARE_CARD_THEMES[Math.floor(Math.random() * SHARE_CARD_THEMES.length)];
 
   // 计算章节统计
   var chapterStats = CHAPTERS.map(function(ch, ci) {
@@ -3745,26 +3757,27 @@ function generateShareCard() {
   var ctx = canvas.getContext('2d');
 
   // ===== 背景层 =====
-  // 主渐变
+  // 主渐变（根据随机主题）
   var bgGrad = ctx.createLinearGradient(0, 0, W, H);
-  bgGrad.addColorStop(0, '#c47a5e');
-  bgGrad.addColorStop(0.35, '#b86248');
-  bgGrad.addColorStop(0.7, '#a05038');
-  bgGrad.addColorStop(1, '#8a4030');
+  bgGrad.addColorStop(0, theme.bg[0]);
+  bgGrad.addColorStop(0.35, theme.bg[1]);
+  bgGrad.addColorStop(0.7, theme.bg[2]);
+  bgGrad.addColorStop(1, theme.bg[3]);
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // 顶部光晕
+  // 顶部光晕（根据随机主题）
+  var ga = theme.glow;
   var topGlow = ctx.createRadialGradient(W*0.5, 0, 0, W*0.5, 100, 500);
-  topGlow.addColorStop(0, 'rgba(255,200,140,0.25)');
-  topGlow.addColorStop(1, 'rgba(255,200,140,0)');
+  topGlow.addColorStop(0, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0.25)');
+  topGlow.addColorStop(1, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0)');
   ctx.fillStyle = topGlow;
   ctx.fillRect(0, 0, W, 400);
 
-  // 底部光晕
+  // 底部光晕（根据随机主题）
   var botGlow = ctx.createRadialGradient(W*0.5, H, 0, W*0.5, H-100, 400);
-  botGlow.addColorStop(0, 'rgba(255,180,120,0.15)');
-  botGlow.addColorStop(1, 'rgba(255,180,120,0)');
+  botGlow.addColorStop(0, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0.15)');
+  botGlow.addColorStop(1, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0)');
   ctx.fillStyle = botGlow;
   ctx.fillRect(0, H-400, W, 400);
 
