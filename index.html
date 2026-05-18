@@ -3677,6 +3677,18 @@ function pickDailyRecommend() {
 // ========== CHAPTER ACHIEVEMENT ==========
 var pendingAchievement = -1;
 
+// 每个章节完成时的专属特效表情
+var CHAPTER_ACHIEVEMENT_EFFECTS = {
+  0: { emojis: ['🌸','🏵️','💮','🪷','🌺'], name:'花瓣飘落' },
+  1: { emojis: ['📚','📖','🎓','✏️','📝'], name:'书香满屋' },
+  2: { emojis: ['💼','🚀','📈','💡','🏆'], name:'星光闪耀' },
+  3: { emojis: ['❤️','💕','💖','💗','🥰'], name:'爱心飞扬' },
+  4: { emojis: ['🏠','🍳','🪴','🕯️','🧺'], name:'温馨家居' },
+  5: { emojis: ['✈️','🌍','🗺️','⛰️','🏝️'], name:'星辰大海' },
+  6: { emojis: ['🎉','🎊','🪅','🎆','✨'], name:'烟花绽放' },
+  7: { emojis: ['🕰️','💎','🌟','📜','🦉'], name:'智慧之光' }
+};
+
 function checkChapterAchievement(chapterIdx) {
   var ch = CHAPTERS[chapterIdx];
   if (!ch) return;
@@ -3689,20 +3701,32 @@ function checkChapterAchievement(chapterIdx) {
 function showAchievement(chapterIdx) {
   var ch = CHAPTERS[chapterIdx];
   if (!ch) return;
+  var effect = CHAPTER_ACHIEVEMENT_EFFECTS[chapterIdx];
   document.getElementById('achievementIcon').textContent = ch.icon;
-  document.getElementById('achievementTitle').textContent = '🎊 章节圆满完成！';
+  document.getElementById('achievementTitle').textContent = '🎊 ' + (effect ? effect.name : '章节圆满完成！');
   document.getElementById('achievementSub').textContent = '「' + ch.title + '」的所有经历都已打卡，太了不起！';
   document.getElementById('achievementOverlay').classList.add('show');
-  spawnStars(12);
+  // 不同章节使用不同特效
+  if (chapterIdx === 0) {
+    spawnPetals(18);
+  } else if (chapterIdx === 6) {
+    // 烟花章节：双重特效
+    spawnStars(12, effect ? effect.emojis : null);
+    setTimeout(function() { spawnStars(8, ['🎆','🎇','✨']); }, 400);
+  } else {
+    spawnStars(12, effect ? effect.emojis : null);
+  }
 }
 
 function closeAchievement() {
   document.getElementById('achievementOverlay').classList.remove('show');
   pendingAchievement = -1;
+  renderList();
+  updateProgress();
 }
 
-function spawnStars(count) {
-  var stars = ['⭐','🌟','✨','💫','⚡','🔆'];
+function spawnStars(count, emojis) {
+  var items = emojis || ['⭐','🌟','✨','💫','⚡','🔆'];
   var centerX = window.innerWidth / 2;
   var centerY = window.innerHeight / 2;
   for (var i = 0; i < count; i++) {
@@ -3710,7 +3734,7 @@ function spawnStars(count) {
       setTimeout(function() {
         var el = document.createElement('div');
         el.className = 'achievement-star';
-        el.textContent = stars[Math.floor(Math.random() * stars.length)];
+        el.textContent = items[Math.floor(Math.random() * items.length)];
         el.style.left = centerX + 'px';
         el.style.top = centerY + 'px';
         var angle = (idx / count) * Math.PI * 2 + Math.random() * 0.5;
