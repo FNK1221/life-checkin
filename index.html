@@ -3964,7 +3964,7 @@ function generateShareCard() {
   });
 
   // ===== 中间统计区 =====
-  var midY = barStartY + chapterStats.length * rowH + 50;
+  var midY = barStartY + chapterStats.length * rowH + 60;
   ctx.strokeStyle = 'rgba(255,255,255,0.15)';
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -3990,7 +3990,7 @@ function generateShareCard() {
   });
 
   // ===== 底部区域 =====
-  var botY = H - 140;
+  var botY = H - 90;
   // 装饰线
   ctx.strokeStyle = 'rgba(255,255,255,0.2)';
   ctx.lineWidth = 1;
@@ -4002,13 +4002,13 @@ function generateShareCard() {
   ctx.textAlign = 'center';
   ctx.font = '20px -apple-system, PingFang SC, sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.fillText('记录人生体验，珍惜每一个瞬间', W/2, botY + 36);
+  ctx.fillText('记录人生体验，珍惜每一个瞬间', W/2, botY + 28);
 
   ctx.font = '16px -apple-system, sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   var today = new Date();
   var dateStr = today.getFullYear() + '.' + (today.getMonth()+1) + '.' + today.getDate();
-  ctx.fillText('Generated on ' + dateStr + '  ·  人生体验卡', W/2, botY + 68);
+  ctx.fillText('Generated on ' + dateStr + '  ·  人生体验卡', W/2, botY + 52);
 
   // ===== 转换为图片 =====
   var dataUrl = canvas.toDataURL('image/png');
