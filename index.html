@@ -1124,191 +1124,212 @@
         var yySkin = "rgba(255,235,190,0.94)";
         var yySkinLight = "rgba(255,245,220,0.97)";
 
-        // ===== 裸体小孩（元婴）=====
-        var skin   = 'rgba(255,220,180,0.95)';
-        var skin2  = 'rgba(240,195,145,0.95)';
-        var eyeW   = 5.5;
-        var eyeH   = 6;
+        // ===== 国画风格小婴儿（元婴）=====
+        // 国画色彩：墨(ink)、赭石(ochre)、朱砂(cinnabar)、藤黄(gamboge)
+        var ink       = 'rgba( 60, 40, 20,0.7)';
+        var inkLight  = 'rgba(120, 90, 60,0.4)';
+        var skinWash  = 'rgba(255,225,185,0.85)';
+        var skinWash2 = 'rgba(240,200,160,0.9)';
+        var blush     = 'rgba(210,110, 90,0.35)';
+        var dudou     = 'rgba(210, 50, 50,0.65)';
+        var dudou2    = 'rgba(240, 80, 60,0.5)';
 
-        // ----- 光晕（已在外部画过，这里不再重复）-----
-
-        // ----- 脑袋（圆圆的大脑袋）-----
-        var headG = ctx.createRadialGradient(-2, -56, 4, 0, -52, 22);
-        headG.addColorStop(0, '#fff5e6');
-        headG.addColorStop(0.7, skin);
-        headG.addColorStop(1, skin2);
+        // ----- 脑袋（水墨晕染感）-----
+        // 后脑勺淡墨晕染
+        ctx.fillStyle = 'rgba(180,140,100,0.18)';
+        ctx.beginPath(); ctx.arc(2, -51, 21, 0.3, Math.PI*1.75); ctx.fill();
+        // 脑袋（淡赭墨晕染）
+        var headG = ctx.createRadialGradient(-2, -56, 3, 0, -51, 21);
+        headG.addColorStop(0, 'rgba(255,235,210,0.9)');
+        headG.addColorStop(0.6, skinWash);
+        headG.addColorStop(1, skinWash2);
         ctx.fillStyle = headG;
-        ctx.beginPath(); ctx.arc(0, -52, 22, 0, Math.PI*2); ctx.fill();
-        // 后脑勺阴影
-        ctx.fillStyle = 'rgba(200,150,100,0.25)';
-        ctx.beginPath(); ctx.arc(3, -51, 20, 0.2, Math.PI*1.8); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -51, 21, 0, Math.PI*2); ctx.fill();
+        // 脑袋淡墨轮廓（写意感）
+        ctx.strokeStyle = 'rgba(100,70,40,0.25)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(0, -51, 21, -0.1, Math.PI*1.05); ctx.stroke();
 
-        // ----- 头发（简单几笔）-----
-        ctx.fillStyle = 'rgba(60,35,20,0.75)';
-        // 头顶头发
-        ctx.beginPath();
-        ctx.arc(0, -58, 20, Math.PI*1.12, Math.PI*1.88);
-        ctx.lineTo(0, -62);
-        ctx.closePath(); ctx.fill();
-        // 左边一撮呆毛
-        ctx.beginPath(); ctx.ellipse(-10, -68, 4, 7, -0.4, 0, Math.PI*2); ctx.fill();
-        // 右边一撮呆毛
-        ctx.beginPath(); ctx.ellipse( 10, -68, 4, 7,  0.4, 0, Math.PI*2); ctx.fill();
+        // ----- 头发（浓墨，几笔写意）-----
+        ctx.fillStyle = 'rgba( 40, 25, 15,0.8)';
+        ctx.beginPath(); ctx.arc(0, -57, 19, Math.PI*1.13, Math.PI*1.87); ctx.lineTo(0,-62); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba( 50, 30, 18,0.65)';
+        ctx.beginPath(); ctx.ellipse(-9, -67, 4, 6, -0.35, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse( 9, -67, 4, 6,  0.35, 0, Math.PI*2); ctx.fill();
+        // 额前碎发（淡墨）
+        ctx.strokeStyle = 'rgba( 60, 35, 20,0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(-5,-63); ctx.quadraticCurveTo(-3,-66, -1,-63); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo( 1,-63); ctx.quadraticCurveTo( 3,-66,  5,-63); ctx.stroke();
 
-        // ----- 脸 -----
-        // 眉毛（弯弯的）
-        ctx.strokeStyle = 'rgba(90,55,30,0.6)';
-        ctx.lineWidth = 1.3;
+        // ----- 脸（简约，写意）-----
+        // 眉毛（两笔淡墨）
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = 1.4;
         ctx.beginPath(); ctx.moveTo(-11,-57); ctx.quadraticCurveTo(-7,-60,-3,-57); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(  3,-57); ctx.quadraticCurveTo( 7,-60, 11,-57); ctx.stroke();
-        // 大眼睛（重点！可爱）
-        // 左眼白
+        // 眼睛（国画风：点睛）
+        ctx.fillStyle = '#fffef8';
+        ctx.beginPath(); ctx.ellipse(-7, -54, 4.2, 4.8, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse( 7, -54, 4.2, 4.8, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#2a1800';
+        ctx.beginPath(); ctx.arc(-7, -53.5, 2.6, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 7, -53.5, 2.6, 0, Math.PI*2); ctx.fill();
+        // 眼高光（留白）
         ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.ellipse(-7, -53, eyeW, eyeH, 0, 0, Math.PI*2); ctx.fill();
-        // 右眼白
-        ctx.beginPath(); ctx.ellipse( 7, -53, eyeW, eyeH, 0, 0, Math.PI*2); ctx.fill();
-        // 左眼瞳孔
-        ctx.fillStyle = '#3a2200';
-        ctx.beginPath(); ctx.arc(-7, -52.5, 3, 0, Math.PI*2); ctx.fill();
-        // 右眼瞳孔
-        ctx.beginPath(); ctx.arc( 7, -52.5, 3, 0, Math.PI*2); ctx.fill();
-        // 左眼高光
-        ctx.fillStyle = '#fff';
-        ctx.beginPath(); ctx.arc(-5.8, -54.2, 1.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-8.2, -52,   0.8, 0, Math.PI*2); ctx.fill();
-        // 右眼高光
-        ctx.beginPath(); ctx.arc( 8.2, -54.2, 1.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 5.8, -52,   0.8, 0, Math.PI*2); ctx.fill();
-        // 腮红
-        ctx.fillStyle = 'rgba(255,140,140,0.3)';
-        ctx.beginPath(); ctx.ellipse(-13, -49, 5, 3.5, 0, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse( 13, -49, 5, 3.5, 0, 0, Math.PI*2); ctx.fill();
-        // 鼻子（小三角）
-        ctx.fillStyle = 'rgba(220,170,130,0.5)';
-        ctx.beginPath();
-        ctx.moveTo(-1.5, -48); ctx.lineTo(1.5, -48); ctx.lineTo(0, -45.5);
-        ctx.closePath(); ctx.fill();
-        // 微笑嘴巴
-        ctx.strokeStyle = 'rgba(180,80,80,0.7)';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath(); ctx.moveTo(-4,-44); ctx.quadraticCurveTo(0,-41.5,4,-44); ctx.stroke();
-        // 嘴巴内（一点点粉色）
-        ctx.fillStyle = 'rgba(255,130,130,0.25)';
-        ctx.beginPath(); ctx.ellipse(0, -43.5, 3.5, 1.2, 0, 0, Math.PI); ctx.fill();
+        ctx.beginPath(); ctx.arc(-5.8,-55.2, 1.3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-8.2,-53.0, 0.7, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 8.2,-55.2, 1.3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 5.8,-53.0, 0.7, 0, Math.PI*2); ctx.fill();
+        // 腮红（淡朱砂）
+        ctx.fillStyle = blush;
+        ctx.beginPath(); ctx.ellipse(-13, -50, 4.5, 3, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse( 13, -50, 4.5, 3, 0, 0, Math.PI*2); ctx.fill();
+        // 鼻子（简约一笔）
+        ctx.fillStyle = 'rgba(220,180,140,0.5)';
+        ctx.beginPath(); ctx.arc(0, -49, 1.8, 0, Math.PI*2); ctx.fill();
+        // 嘴巴（淡朱砂）
+        ctx.strokeStyle = 'rgba(190, 80, 70,0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(-3.5,-46); ctx.quadraticCurveTo(0,-44, 3.5,-46); ctx.stroke();
+        ctx.fillStyle = 'rgba(210,120,110,0.2)';
+        ctx.beginPath(); ctx.ellipse(0, -45.5, 3, 1, 0, 0, Math.PI); ctx.fill();
 
-        // ----- 耳朵 -----
-        ctx.fillStyle = skin;
-        ctx.beginPath(); ctx.ellipse(-20, -52, 5, 8, -0.12, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse( 20, -52, 5, 8,  0.12, 0, Math.PI*2); ctx.fill();
-        // 耳朵内侧（粉粉的）
-        ctx.fillStyle = 'rgba(255,200,180,0.45)';
-        ctx.beginPath(); ctx.ellipse(-20, -52, 3, 5.5, -0.12, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse( 20, -52, 3, 5.5,  0.12, 0, Math.PI*2); ctx.fill();
+        // ----- 耳朵（淡墨）-----
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.ellipse(-19, -53, 4.5, 7, -0.1, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse( 19, -53, 4.5, 7,  0.1, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,210,190,0.4)';
+        ctx.beginPath(); ctx.ellipse(-19, -53, 2.5, 4.5, -0.1, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse( 19, -53, 2.5, 4.5,  0.1, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = inkLight;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.ellipse(-19, -53, 4.5, 7, -0.1, 0.8, Math.PI*0.9); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse( 19, -53, 4.5, 7,  0.1, 2.2, Math.PI*2.1); ctx.stroke();
 
         // ----- 脖子 -----
-        ctx.fillStyle = skin;
-        ctx.beginPath(); ctx.fillRect(-5, -34, 10, 7); ctx.fill();
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.fillRect(-4.5, -35, 9, 7); ctx.fill();
 
-        // ----- 身体（不穿衣服，裸体小孩）-----
-        // 身体渐变
-        var bodyG = ctx.createLinearGradient(0, -30, 0, 20);
-        bodyG.addColorStop(0, '#fff5e0');
-        bodyG.addColorStop(0.5, skin);
-        bodyG.addColorStop(1, skin2);
+        // ----- 身体（水墨写意）-----
+        var bodyG = ctx.createLinearGradient(0, -30, 0, 22);
+        bodyG.addColorStop(0, 'rgba(255,235,205,0.9)' );
+        bodyG.addColorStop(0.5, skinWash);
+        bodyG.addColorStop(1, skinWash2);
         ctx.fillStyle = bodyG;
-        ctx.beginPath(); ctx.ellipse(0, -8, 20, 28, 0, 0, Math.PI*2); ctx.fill();
-        // 肩膀线条（轻微）
-        ctx.strokeStyle = 'rgba(200,150,100,0.2)';
+        ctx.beginPath(); ctx.ellipse(0, -8, 19, 28, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(130, 95, 65,0.18)';
         ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(-18,-28); ctx.quadraticCurveTo(0,-32,18,-28); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(0, -8, 19, 28, 0, -0.05, Math.PI*1.05); ctx.stroke();
         // 肚脐
-        ctx.fillStyle = 'rgba(200,150,100,0.35)';
-        ctx.beginPath(); ctx.arc(0, -2, 2.5, 0, Math.PI*2); ctx.fill();
-        // 胸部一点点（小孩特征）
-        ctx.fillStyle = 'rgba(255,200,170,0.3)';
-        ctx.beginPath(); ctx.arc(-7, -20, 5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 7, -20, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(200,160,120,0.35)';
+        ctx.beginPath(); ctx.arc(0, -1, 2.2, 0, Math.PI*2); ctx.fill();
 
-        // ----- 左手臂 -----  
-        ctx.fillStyle = skin;
-        // 左上臂
-        ctx.beginPath(); ctx.ellipse(-26, -26, 6, 14, 0.25, 0, Math.PI*2); ctx.fill();
-        // 左下臂
-        ctx.beginPath(); ctx.ellipse(-32, -14, 5.5, 12, 0.15, 0, Math.PI*2); ctx.fill();
-        // 左手掌
-        ctx.beginPath(); ctx.arc(-34, -4, 7, 0, Math.PI*2); ctx.fill();
-        // 左手手指（简单圆点）
-        ctx.fillStyle = skin;
-        ctx.beginPath(); ctx.arc(-37, -7, 2.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-36, -3, 2.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-34,  0, 2.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-31,  1, 2.5, 0, Math.PI*2); ctx.fill();
+        // ----- 肚兜（朱砂红，挡住隐私部位）-----
+        ctx.fillStyle = dudou;
+        ctx.beginPath();
+        ctx.moveTo(-12, -18);
+        ctx.quadraticCurveTo(0, -22,  12, -18);
+        ctx.quadraticCurveTo(14,  -2,   8,  16);
+        ctx.quadraticCurveTo(0,  20,  -8,  16);
+        ctx.quadraticCurveTo(-14,  -2,-12, -18);
+        ctx.closePath(); ctx.fill();
+        // 肚兜金边
+        ctx.strokeStyle = 'rgba(255,220,100,0.7)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-12,-18); ctx.quadraticCurveTo(0,-22, 12,-18); ctx.stroke();
+        // 盘扣
+        ctx.fillStyle = 'rgba(255,230,120,0.8)';
+        ctx.beginPath(); ctx.arc(0, -20, 1.8, 0, Math.PI*2); ctx.fill();
+        // 肚兜花纹
+        ctx.strokeStyle = 'rgba(255,220,100,0.4)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(-8, -8); ctx.quadraticCurveTo(0,-5, 8,-8); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-7, -2); ctx.quadraticCurveTo(0, 1, 7,-2); ctx.stroke();
+        // 肚兜绳子
+        ctx.strokeStyle = dudou2;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(-10,-18); ctx.quadraticCurveTo(-14,-30,-12,-34); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo( 10,-18); ctx.quadraticCurveTo( 14,-30, 12,-34); ctx.stroke();
 
-        // ----- 右手臂（在胸前合十位置）-----
-        ctx.fillStyle = skin;
-        // 右上臂
-        ctx.beginPath(); ctx.ellipse( 26, -26, 6, 14, -0.25, 0, Math.PI*2); ctx.fill();
-        // 右下臂
-        ctx.beginPath(); ctx.ellipse( 32, -14, 5.5, 12, -0.15, 0, Math.PI*2); ctx.fill();
-        // 右手掌（靠拢胸前）
-        ctx.beginPath(); ctx.arc( 18, -6, 7, 0, Math.PI*2); ctx.fill();
-        // 右手手指
-        ctx.beginPath(); ctx.arc( 21, -9, 2.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 20, -5, 2.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 18, -2, 2.5, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 15, -1, 2.5, 0, Math.PI*2); ctx.fill();
+        // ----- 左手臂 -----
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.ellipse(-25, -27, 5.5, 13, 0.25, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(-31, -15, 5,   11, 0.15, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-33, -5, 6.5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = skinWash2;
+        ctx.beginPath(); ctx.arc(-36, -8, 2.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-35, -4, 2.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-33, -1, 2.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-30,  0, 2.0, 0, Math.PI*2); ctx.fill();
 
-        // ----- 合十手心（胸前金光）-----
-        var palmG = ctx.createRadialGradient(0, -5, 1, 0, -5, 10);
-        palmG.addColorStop(0, 'rgba(255,250,200,0.9)');
-        palmG.addColorStop(0.5, 'rgba(255,220,120,0.5)');
+        // ----- 右手臂（合十）-----
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.ellipse( 25, -27, 5.5, 13,-0.25, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse( 31, -15, 5,   11,-0.15, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 20, -6, 6.5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = skinWash2;
+        ctx.beginPath(); ctx.arc( 23, -9, 2.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 22, -5, 2.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 20, -2, 2.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 17, -1, 2.0, 0, Math.PI*2); ctx.fill();
+
+        // ----- 合十手心（金光）-----
+        var palmG = ctx.createRadialGradient(0, -6, 1, 0, -6, 10);
+        palmG.addColorStop(0, 'rgba(255,250,200,0.85)');
+        palmG.addColorStop(0.5, 'rgba(255,220,120,0.45)');
         palmG.addColorStop(1, 'rgba(255,200,80,0)');
         ctx.fillStyle = palmG;
-        ctx.beginPath(); ctx.arc(0, -5, 10, 0, Math.PI*2); ctx.fill();
-        // 合十双手重叠部分
-        ctx.fillStyle = skin;
-        ctx.beginPath(); ctx.ellipse(0, -5, 6, 8, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -6, 10, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.ellipse(0, -6, 5.5, 7.5, 0, 0, Math.PI*2); ctx.fill();
 
-        // ----- 屁股（小孩圆屁股）-----
-        ctx.fillStyle = skin;
-        ctx.beginPath(); ctx.ellipse(0, 18, 18, 10, 0, 0, Math.PI*2); ctx.fill();
+        // ----- 屁股（圆润）-----
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.ellipse(0, 16, 17, 9, 0, 0, Math.PI*2); ctx.fill();
 
         // ----- 左腿（盘坐）-----
-        ctx.fillStyle = skin;
-        ctx.beginPath(); ctx.ellipse(-18, 22, 8, 14, 0.2, 0, Math.PI*2); ctx.fill();
-        // 左脚
-        ctx.beginPath(); ctx.ellipse(-28, 32, 6, 10, 0.3, 0, Math.PI*2); ctx.fill();
-        // 左脚指头（圆圆的小脚趾）
-        ctx.fillStyle = skin2;
-        ctx.beginPath(); ctx.arc(-32, 30, 2.2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-30, 34, 2.2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-27, 36, 2.2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-24, 35, 2,   0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-22, 33, 1.8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.ellipse(-17, 20, 7.5, 13, 0.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(-27, 30, 5.5, 9, 0.3, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = skinWash2;
+        ctx.beginPath(); ctx.arc(-31, 28, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-29, 32, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-26, 34, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-23, 33, 1.8, 0, Math.PI*2); ctx.fill();
 
         // ----- 右腿（盘坐）-----
-        ctx.fillStyle = skin;
-        ctx.beginPath(); ctx.ellipse( 18, 22, 8, 14, -0.2, 0, Math.PI*2); ctx.fill();
-        // 右脚
-        ctx.beginPath(); ctx.ellipse( 28, 32, 6, 10, -0.3, 0, Math.PI*2); ctx.fill();
-        // 右脚指头
-        ctx.fillStyle = skin2;
-        ctx.beginPath(); ctx.arc( 32, 30, 2.2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 30, 34, 2.2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 27, 36, 2.2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 24, 35, 2,   0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc( 22, 33, 1.8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = skinWash;
+        ctx.beginPath(); ctx.ellipse( 17, 20, 7.5, 13,-0.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse( 27, 30, 5.5, 9,-0.3, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = skinWash2;
+        ctx.beginPath(); ctx.arc( 31, 28, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 29, 32, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 26, 34, 2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 23, 33, 1.8, 0, Math.PI*2); ctx.fill();
 
-        // ----- 小鸡鸡（小孩裸体）-----
-        ctx.fillStyle = skin2;
-        ctx.beginPath(); ctx.ellipse(0, 14, 3.5, 5, 0, 0, Math.PI*2); ctx.fill();
-
-        // ----- 金色光环（围绕身体）-----
+        // ----- 金色光环 -----
         ctx.save();
-        ctx.globalAlpha = 0.18 + Math.sin(frame*0.05)*0.08;
-        ctx.strokeStyle = 'rgba(255,220,100,0.8)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.ellipse(0, -8, 30, 38, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.globalAlpha = 0.15 + Math.sin(frame*0.04)*0.07;
+        ctx.strokeStyle = 'rgba(255,215, 80,0.7)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.ellipse(0, -8, 32, 40, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.restore();
+
+        // ----- 莲花座（淡彩，写意）-----
+        ctx.fillStyle = 'rgba(255,230,180,0.38)';
+        for(var p=0; p<6; p++){
+          var pa = p*(Math.PI/3);
+          var px = Math.cos(pa)*23;
+          var py = 44 + Math.sin(pa)*9;
+          ctx.beginPath(); ctx.ellipse(px, py, 5.5, 14, pa, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.fillStyle = 'rgba(255,220,100,0.5)';
+        ctx.beginPath(); ctx.arc(0, 44, 7, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(220,80,50,0.4)';
+        ctx.beginPath(); ctx.arc(-2, 43, 1.5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 2, 43, 1.5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc( 0, 45, 1.5, 0, Math.PI*2); ctx.fill();
         ctx.restore();
 
         // ----- 莲花座 -----
