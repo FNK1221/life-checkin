@@ -2901,9 +2901,15 @@ function renderTimeline() {
 
 // 加载时光轴中的所有媒体
 function loadTimelineMedia() {
-  allTimelineEntries.forEach(function(ev) {
+  console.log('开始加载时光轴媒体，共', allTimelineEntries.length, '个条目');
+  
+  allTimelineEntries.forEach(function(ev, idx) {
     if (ev.hasPhoto || ev.hasAudio || ev.hasVideo) {
+      console.log('加载条目', ev.id, '的媒体，hasPhoto:', ev.hasPhoto, 'hasAudio:', ev.hasAudio, 'hasVideo:', ev.hasVideo);
+      
       getMediaForEvent(ev.id, function(media) {
+        console.log('条目', ev.id, '的媒体加载完成:', media);
+        
         // 处理照片
         if (ev.hasPhoto && media.photo) {
           var photoContainer = document.getElementById('tl-photo-' + ev.id);
@@ -2917,6 +2923,7 @@ function loadTimelineMedia() {
             
             photoContainer.innerHTML = '';
             photoContainer.appendChild(img);
+            console.log('条目', ev.id, '的照片已加载');
           }
         }
         
@@ -2928,6 +2935,7 @@ function loadTimelineMedia() {
             audio.controls = true;
             audio.src = URL.createObjectURL(media.audio);
             mediaDiv.appendChild(audio);
+            console.log('条目', ev.id, '的音频已加载');
           }
         }
         
@@ -2939,6 +2947,7 @@ function loadTimelineMedia() {
             video.controls = true;
             video.src = URL.createObjectURL(media.video);
             mediaDiv.appendChild(video);
+            console.log('条目', ev.id, '的视频已加载');
           }
         }
         
@@ -2958,6 +2967,8 @@ function loadTimelineMedia() {
       }
     }
   });
+  
+  console.log('媒体加载请求已发送');
 }
 
 function renderTimelineBatch(container) {
