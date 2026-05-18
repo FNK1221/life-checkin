@@ -680,7 +680,7 @@
 
   /* 年份刻度 */
   .timeline-year-marker {
-    position: absolute;
+    position: relative;
     left: 50%;
     transform: translateX(-50%);
     background: var(--card);
@@ -694,6 +694,31 @@
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(196,122,94,0.12);
     letter-spacing: 1px;
+    display: inline-block;
+    margin: 18px auto;
+  }
+
+  /* 年份指示器 - 固定在顶部 */
+  .timeline-year-indicator {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 20px;
+    z-index: 98;
+    box-shadow: 0 4px 15px rgba(196,122,94,0.3);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  .timeline-year-indicator.show {
+    opacity: 0.9;
+    transform: translateY(0);
   }
 
   /* 打卡点通用 */
@@ -801,43 +826,43 @@
     line-height: 1.5;
     margin-top: 6px;
   }
-.tl-photo {
+.tl-photo-container {
   width: 100%;
-  max-height: 180px;
-  object-fit: cover;
-  border-radius: 10px;
+  min-height: 100px;
   margin-top: 8px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.tl-photo[data-lazy="true"] {
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.tl-photo.loaded {
-  opacity: 1;
-}
-.tl-photo-placeholder {
-  width: 100%;
-  height: 180px;
+  border-radius: 10px;
+  overflow: hidden;
   background: var(--accent2);
-  border-radius: 10px;
-  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  opacity: 0.5;
 }
-  .tl-photo:active { transform: scale(0.97); }
-  .tl-media-wrap {
-    margin-top: 8px;
-  }
-  .tl-media-wrap audio,
-  .tl-media-wrap video {
-    width: 100%;
-    border-radius: 10px;
-  }
+.tl-photo-placeholder {
+  font-size: 14px;
+  opacity: 0.7;
+  padding: 20px;
+  text-align: center;
+}
+.tl-photo {
+  width: 100%;
+  max-height: 250px;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+.tl-photo:hover {
+  transform: scale(1.02);
+}
+.tl-photo:active { transform: scale(0.98); }
+.tl-media-wrap {
+  margin-top: 8px;
+}
+.tl-media-wrap audio,
+.tl-media-wrap video {
+  width: 100%;
+  border-radius: 10px;
+}
 
   /* ===== 转瞬即逝效果（无媒体） ===== */
   .tl-item.no-media .tl-card {
@@ -877,6 +902,7 @@
     text-align: center;
     padding: 60px 20px;
     color: var(--text-muted);
+
     font-size: 14px;
     line-height: 1.8;
   }
@@ -1439,6 +1465,7 @@
 <!-- TIMELINE VIEW -->
 <div class="timeline-river-wrapper" id="timelineView">
     <div class="timeline-river"></div>
+    <div class="timeline-year-indicator" id="timelineYearIndicator">2024</div>
   </div>
 
 <!-- STATS VIEW -->
@@ -2680,6 +2707,7 @@ var allTimelineEntries = []; // 存储所有时间线条目
 var renderedTimelineCount = 0; // 已渲染的条目数
 var isLoadingTimeline = false; // 是否正在加载
 var TIMELINE_BATCH_SIZE = 15; // 每次渲染的条目数
+var currentTimelineYear = ''; // 当前查看的年份
 
 function setupTimelineObserver() {
   if (timelineObserver) return;
@@ -2690,17 +2718,49 @@ function setupTimelineObserver() {
       if (!mediaWrap) return;
       var audios = mediaWrap.querySelectorAll('audio');
       var videos = mediaWrap.querySelectorAll('video');
+      
       if (entry.isIntersecting) {
+        // 条目进入视口
         el.classList.add('playing');
-        audios.forEach(function(a) { a.play().catch(function(){}); });
-        videos.forEach(function(v) { v.play().catch(function(){}); });
+        el.style.transform = 'scale(1.01)';
+        el.style.boxShadow = '0 8px 30px rgba(196,122,94,0.2)';
+        
+        // 更新当前查看的年份
+        var dateEl = el.querySelector('.tl-date');
+        if (dateEl) {
+          var year = dateEl.textContent.split('.')[0];
+          if (year !== currentTimelineYear) {
+            currentTimelineYear = year;
+            updateTimelineYearIndicator(year);
+          }
+        }
+        
+        // 暂停其他音频，只播放当前条目的音频
+        document.querySelectorAll('.tl-item.playing').forEach(function(item) {
+          if (item !== el) {
+            var otherAudios = item.querySelectorAll('.tl-media-wrap audio');
+            otherAudios.forEach(function(a) { a.pause(); });
+          }
+        });
+        
+        // 播放当前条目的音频（如果需要）
+        audios.forEach(function(a) { 
+          // 不自动播放，让用户点击
+        });
+        videos.forEach(function(v) { 
+          // 不自动播放，让用户点击
+        });
       } else {
+        // 条目离开视口
         el.classList.remove('playing');
+        el.style.transform = '';
+        el.style.boxShadow = '';
+        
         audios.forEach(function(a) { a.pause(); });
         videos.forEach(function(v) { v.pause(); });
       }
     });
-  }, { threshold: 0.5 });
+  }, { threshold: 0.3, rootMargin: '-10% 0px -10% 0px' });
 }
 
 // 图片懒加载观察器
@@ -2787,7 +2847,8 @@ function renderTimelineBatch(container) {
     var mediaClass = hasMedia ? 'has-media' : 'no-media';
     
     var noteHtml = ev.note ? '<div class="tl-note">💬 ' + escapeHtml(ev.note) + '</div>' : '';
-    var photoHtml = ev.photo ? '<div class="tl-photo-placeholder">📷</div><img class="tl-photo" data-event-id="' + ev.id + '" data-src="' + ev.photo + '" data-lazy="true" alt="' + escapeHtml(ev.name) + '">' : '';
+    // 照片先显示占位符，异步从 IndexedDB 加载
+    var photoHtml = ev.hasPhoto ? '<div class="tl-photo-container" id="tl-photo-' + ev.id + '"><div class="tl-photo-placeholder">📷 加载中...</div></div>' : '';
     var fleetingMsg = (!hasMedia) ? '<div class="fleeting-msg">「这一刻，只存在于记忆里」<br><span style="font-size:10px;opacity:0.5;">谁的人生没点遗憾呢</span></div>' : '';
     var mediaDivId = 'tl-media-' + ev.id;
     
@@ -2823,36 +2884,86 @@ function renderTimelineBatch(container) {
     });
   });
   
-  // 异步加载 IndexedDB 中的音视频
+  // 异步加载 IndexedDB 中的照片、音频和视频
   for (var j = renderedTimelineCount - TIMELINE_BATCH_SIZE; j < end; j++) {
-    var ev = allTimelineEntries[j];
-    if (ev.hasAudio || ev.hasVideo) {
-      getMediaForEvent(ev.id, function(media, eventId) {
-        var mediaDiv = document.getElementById('tl-media-' + eventId);
-        if (!mediaDiv) return;
-        if (media.audio) {
-          var audio = document.createElement('audio');
-          audio.controls = true;
-          audio.preload = 'metadata';
-          audio.src = URL.createObjectURL(media.audio);
-          mediaDiv.appendChild(audio);
-        }
-        if (media.video) {
-          var video = document.createElement('video');
-          video.controls = true;
-          video.preload = 'metadata';
-          video.src = URL.createObjectURL(media.video);
-          mediaDiv.appendChild(video);
-        }
+    (function(batchEv) {
+      var ev = batchEv;
+      
+      // 加载照片
+      if (ev.hasPhoto) {
+        getMediaForEvent(ev.id, function(media) {
+          var photoContainer = document.getElementById('tl-photo-' + ev.id);
+          if (!photoContainer) return;
+          
+          if (media.photo) {
+            // 创建图片元素
+            var img = document.createElement('img');
+            img.className = 'tl-photo';
+            img.dataset.eventId = ev.id;
+            img.alt = ev.name;
+            img.src = URL.createObjectURL(media.photo);
+            img.onclick = function() { viewPhoto(this.dataset.eventId); };
+            
+            // 替换占位符
+            photoContainer.innerHTML = '';
+            photoContainer.appendChild(img);
+          }
+          
+          // 加载音频和视频
+          var mediaDiv = document.getElementById('tl-media-' + ev.id);
+          if (!mediaDiv) return;
+          
+          if (media.audio) {
+            var audio = document.createElement('audio');
+            audio.controls = true;
+            audio.preload = 'none';
+            audio.src = URL.createObjectURL(media.audio);
+            mediaDiv.appendChild(audio);
+          }
+          if (media.video) {
+            var video = document.createElement('video');
+            video.controls = true;
+            video.preload = 'none';
+            video.src = URL.createObjectURL(media.video);
+            mediaDiv.appendChild(video);
+          }
+          
+          setupTimelineObserver();
+          var el = document.getElementById('tl-item-' + ev.id);
+          if (el && timelineObserver) timelineObserver.observe(el);
+        });
+      } else if (ev.hasAudio || ev.hasVideo) {
+        // 没有照片，只有音频/视频
+        getMediaForEvent(ev.id, function(media) {
+          var mediaDiv = document.getElementById('tl-media-' + ev.id);
+          if (!mediaDiv) return;
+          
+          if (media.audio) {
+            var audio = document.createElement('audio');
+            audio.controls = true;
+            audio.preload = 'none';
+            audio.src = URL.createObjectURL(media.audio);
+            mediaDiv.appendChild(audio);
+          }
+          if (media.video) {
+            var video = document.createElement('video');
+            video.controls = true;
+            video.preload = 'none';
+            video.src = URL.createObjectURL(media.video);
+            mediaDiv.appendChild(video);
+          }
+          
+          setupTimelineObserver();
+          var el = document.getElementById('tl-item-' + ev.id);
+          if (el && timelineObserver) timelineObserver.observe(el);
+        });
+      } else {
+        // 没有媒体
         setupTimelineObserver();
-        var el = document.getElementById('tl-item-' + eventId);
+        var el = document.getElementById('tl-item-' + ev.id);
         if (el && timelineObserver) timelineObserver.observe(el);
-      }.bind(null, ev.id));
-    } else {
-      setupTimelineObserver();
-      var el = document.getElementById('tl-item-' + ev.id);
-      if (el && timelineObserver) timelineObserver.observe(el);
-    }
+      }
+    })(allTimelineEntries[j]);
   }
   
   // 如果还有更多条目，添加哨兵元素
@@ -2881,6 +2992,23 @@ function addTimelineSentinel(container) {
   }, { rootMargin: '200px' });
   
   window.timelineSentinelObserver.observe(sentinel);
+}
+
+// 更新年份指示器
+function updateTimelineYearIndicator(year) {
+  var indicator = document.getElementById('timelineYearIndicator');
+  if (!indicator) return;
+  
+  if (year && year !== currentTimelineYear) {
+    indicator.textContent = year + ' 年';
+    indicator.classList.add('show');
+    
+    // 3秒后淡出
+    clearTimeout(window.yearIndicatorTimer);
+    window.yearIndicatorTimer = setTimeout(function() {
+      indicator.classList.remove('show');
+    }, 3000);
+  }
 }
 
 
