@@ -67,7 +67,39 @@
     --shadow-hover: 0 4px 20px rgba(180, 140, 100, 0.18);
     --radius: 16px;
     --radius-sm: 10px;
+    --transition-theme: background 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
+
+  /* ========== THEME TRANSITION ========== */
+  html.theme-transitioning,
+  html.theme-transitioning * {
+    transition: background 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  }
+
+  /* ========== DARK THEME ========== */
+  html.dark-theme {
+    --bg: #1a1410;
+    --card: #2a211b;
+    --card-alt: #332820;
+    --primary: #d4957a;
+    --primary-light: #e0a88c;
+    --primary-dark: #c47a5e;
+    --accent: #3e2d23;
+    --accent2: #4a3528;
+    --text: #f0ddd0;
+    --text-light: #d4b89a;
+    --text-muted: #8b6f5e;
+    --border: #4a3528;
+    --success: #7cb89a;
+    --danger: #d4837a;
+    --danger-bg: #3e2020;
+    --shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+  html.dark-theme body { background: var(--bg); color: var(--text); }
+  html.dark-theme .header { background: linear-gradient(145deg, #3a2a1e 0%, #2a1e14 50%, #1e1410 100%); }
+  html.dark-theme .bottom-bar { background: rgba(42,33,27,0.92); border-top-color: rgba(74,53,40,0.5); }
+  html.dark-theme .photo-viewer { background: rgba(10,8,6,0.95); }
   
   body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -95,7 +127,28 @@
     letter-spacing: 1px;
     margin-bottom: 14px;
     text-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    display: inline-block;
   }
+  .theme-toggle {
+    position: absolute;
+    top: 24px;
+    right: 16px;
+    background: rgba(255,255,255,0.18);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    backdrop-filter: blur(4px);
+  }
+  .theme-toggle:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
   .progress-outer {
     background: rgba(255,255,255,0.22);
     border-radius: 20px;
@@ -128,6 +181,51 @@
     letter-spacing: 0.5px;
   }
   
+  /* ========== PROGRESS CIRCLE ========== */
+  .progress-circle-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 10px auto 8px;
+  }
+  .progress-circle {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .progress-ring-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.2);
+    stroke-width: 8;
+  }
+  .progress-ring-fill {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 326.726;
+    stroke-dashoffset: 326.726;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-circle-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.4;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    pointer-events: none;
+  }
+  .progress-circle-text .pct {
+    font-size: 22px;
+    font-weight: 800;
+    display: block;
+  }
+
   /* ========== CHAPTER ========== */
   .chapter {
     margin: 14px 12px 0;
@@ -430,6 +528,67 @@
   .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1.5px solid #f0d0cc; }
   .btn-delete-wrap { margin-top: 12px; }
   
+  /* ========== SEARCH BOX ========== */
+  .search-box {
+    position: sticky;
+    top: 81px;
+    z-index: 99;
+    background: var(--bg);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0.5;
+    z-index: 1;
+  }
+  .search-input {
+    width: 100%;
+    padding: 10px 36px 10px 36px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--card);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    -webkit-appearance: none;
+  }
+  .search-input:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(196, 122, 94, 0.12);
+  }
+  .search-clear {
+    position: absolute;
+    right: 10px;
+    font-size: 16px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: none;
+    padding: 4px;
+    line-height: 1;
+    z-index: 1;
+  }
+  .search-clear.show { display: block; }
+  .search-result {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 6px 4px 2px;
+    display: none;
+  }
+  .search-result.show { display: block; }
+  .chapter.hidden-chapter { display: none; }
+  .event-item.hidden-event { display: none; }
+  
   /* ========== BOTTOM BAR ========== */
   .bottom-bar {
     position: fixed;
@@ -488,8 +647,12 @@
       rgba(196,122,94,0.45) 75%,
       rgba(196,122,94,0.15) 100%);
     background-size: 100% 300%;
-    animation: riverFlow 6s ease-in-out infinite;
-    box-shadow: 0 0 12px rgba(196,122,94,0.25);
+    animation: riverFlow 6s ease-in-out infinite, riverGlow 3s ease-in-out infinite alternate;
+    box-shadow: 0 0 12px rgba(196,122,94,0.25), 0 0 30px rgba(196,122,94,0.1);
+  }
+  @keyframes riverGlow {
+    0% { box-shadow: 0 0 12px rgba(196,122,94,0.25), 0 0 30px rgba(196,122,94,0.1); }
+    100% { box-shadow: 0 0 20px rgba(196,122,94,0.4), 0 0 50px rgba(196,122,94,0.2); }
   }
   .timeline-river::before {
     content: '';
@@ -787,7 +950,41 @@
     line-height: 1;
   }
   .stats-grid-label { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
-  
+
+  /* ========== HEATMAP ========== */
+  .heatmap-card { margin-top: 12px; }
+  .heatmap-title { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; text-align: center; }
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(53, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 2px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 4px 0;
+  }
+  .heatmap-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--accent2);
+    transition: background 0.2s;
+  }
+  .heatmap-cell.level-0 { background: var(--accent2); }
+  .heatmap-cell.level-1 { background: rgba(196,122,94,0.2); }
+  .heatmap-cell.level-2 { background: rgba(196,122,94,0.4); }
+  .heatmap-cell.level-3 { background: rgba(196,122,94,0.6); }
+  .heatmap-cell.level-4 { background: rgba(196,122,94,0.85); }
+  .heatmap-cell.today { box-shadow: 0 0 0 1.5px var(--primary) inset; }
+  .heatmap-months {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+
   /* ========== DATA PANEL ========== */
   .data-section {
     background: var(--card);
@@ -864,6 +1061,235 @@
     font-size: 12px;
   }
   
+  /* ========== DAILY RECOMMEND ========== */
+  .daily-recommend {
+    margin: 12px 12px 6px;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    animation: recommendFadeIn 0.6s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .daily-recommend::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(196,122,94,0.08);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  @keyframes recommendFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .daily-recommend-label {
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .daily-recommend-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .daily-recommend-btn {
+    display: inline-block;
+    padding: 8px 22px;
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-dark));
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 3px 12px rgba(196,122,94,0.3);
+    transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .daily-recommend-btn:active { transform: scale(0.95); }
+  .daily-recommend-done {
+    font-size: 13px;
+    color: var(--success);
+    font-weight: 600;
+  }
+
+  /* ========== CHAPTER ACHIEVEMENT ========== */
+  .achievement-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(62,45,35,0.6);
+    z-index: 4000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .achievement-overlay.show { display: flex; }
+  .achievement-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 44px 30px 32px;
+    text-align: center;
+    max-width: 340px;
+    width: 85%;
+    animation: achievePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 16px 50px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes achievePop {
+    from { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.05); }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .achievement-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    animation: achieveBounce 0.8s ease 0.3s both;
+  }
+  @keyframes achieveBounce {
+    0% { transform: scale(0) rotate(-20deg); }
+    60% { transform: scale(1.3) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .achievement-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+  .achievement-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+    line-height: 1.6;
+  }
+  .achievement-btn {
+    padding: 12px 36px;
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-dark));
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 14px rgba(196,122,94,0.3);
+    transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .achievement-btn:active { transform: scale(0.96); }
+  /* 星星粒子 */
+  .achievement-star {
+    position: fixed;
+    z-index: 4001;
+    pointer-events: none;
+    font-size: 22px;
+    animation: starFly 1s ease-out forwards;
+  }
+  @keyframes starFly {
+    0% { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0); }
+  }
+
+  /* ========== CHECK-IN RITUAL ========== */
+  .ritual-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(62, 45, 35, 0.55);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .ritual-overlay.show { display: flex; }
+  .ritual-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 40px 32px 32px;
+    text-align: center;
+    max-width: 360px;
+    width: 88%;
+    animation: ritualPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    position: relative;
+    overflow: hidden;
+  }
+  @keyframes ritualPop {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .ritual-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: ritualBounce 0.6s ease 0.3s both;
+  }
+  @keyframes ritualBounce {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  .ritual-quote {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary);
+    line-height: 1.7;
+    margin-bottom: 12px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ritual-event {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    padding: 10px 16px;
+    background: var(--accent);
+    border-radius: 10px;
+    line-height: 1.5;
+  }
+  .ritual-btn {
+    padding: 12px 40px;
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-dark));
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 14px rgba(196, 122, 94, 0.3);
+    transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ritual-btn:active { transform: scale(0.96); }
+
+  /* Petals */
+  .petal {
+    position: fixed;
+    z-index: 3001;
+    pointer-events: none;
+    font-size: 20px;
+    animation: petalFall linear forwards;
+  }
+  @keyframes petalFall {
+    0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
+    80%  { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+  }
+
   /* ========== TOAST ========== */
   .toast {
     position: fixed;
@@ -961,10 +1387,24 @@
 <!-- HEADER -->
 <div class="header">
   <h1>🌅 人生体验卡</h1>
-  <div class="progress-outer">
-    <div class="progress-inner" id="progressFill"></div>
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">🌙</button>
+  <div class="progress-circle-wrap">
+    <svg class="progress-circle" viewBox="0 0 120 120">
+      <circle class="progress-ring-bg" cx="60" cy="60" r="52"/>
+      <circle class="progress-ring-fill" id="progressRing" cx="60" cy="60" r="52"/>
+    </svg>
+    <div class="progress-circle-text" id="progressText">0 / 96</div>
   </div>
-  <div class="progress-text" id="progressText">已点亮 0 / 96 个经历</div>
+</div>
+
+<!-- SEARCH BOX -->
+<div class="search-box" id="searchBox">
+  <div class="search-input-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="搜索人生体验..." oninput="handleSearch()">
+    <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+  </div>
+  <div class="search-result" id="searchResult"></div>
 </div>
 
 <!-- MAIN LIST -->
@@ -1060,6 +1500,26 @@
   </div>
 </div>
 
+<!-- RITUAL OVERLAY -->
+<div class="ritual-overlay" id="ritualOverlay">
+  <div class="ritual-card">
+    <div class="ritual-icon" id="ritualIcon">🌸</div>
+    <div class="ritual-quote" id="ritualQuote"></div>
+    <div class="ritual-event" id="ritualEvent"></div>
+    <button class="ritual-btn" onclick="closeRitual()">继续体验人生 ✨</button>
+  </div>
+</div>
+
+<!-- ACHIEVEMENT OVERLAY -->
+<div class="achievement-overlay" id="achievementOverlay">
+  <div class="achievement-card">
+    <div class="achievement-icon" id="achievementIcon">🏆</div>
+    <div class="achievement-title" id="achievementTitle"></div>
+    <div class="achievement-sub" id="achievementSub"></div>
+    <button class="achievement-btn" onclick="closeAchievement()">荣耀见证 ✨</button>
+  </div>
+</div>
+
 <!-- DATA MODAL -->
 <div class="modal-overlay" id="dataModal">
   <div class="modal">
@@ -1070,7 +1530,7 @@
       <button class="data-btn primary" onclick="exportData()">📤 导出数据（JSON 文件备份）</button>
       <button class="data-btn" onclick="document.getElementById('importInput').click()">📥 导入数据（恢复备份）</button>
       <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
-      <button class="data-btn danger" onclick="confirmClearData()">🗑️ 清除所有打卡数据</button>
+      <button class="data-btn danger" onclick="confirmResetApp()">🚨 重置整个应用（恢复初始状态）</button>
     </div>
     <div class="btn-row" style="margin-top:18px;">
       <button class="btn btn-cancel" onclick="closeDataPanel()">关闭</button>
@@ -1108,8 +1568,14 @@
   function cx(){ return canvas.width/2; }
   function cy(){ return canvas.height/2; }
 
-  // 安全兜底：8秒后强制结束loading
-  setTimeout(finishLoading, 8000);
+  // 安全兜底：5秒后强制结束loading
+  var safetyTimer = setTimeout(function() { finishLoading(); }, 5000);
+  
+  // 允许点击跳过
+  if (screen) {
+    screen.style.cursor = 'pointer';
+    screen.onclick = function() { finishLoading(); };
+  }
 
   // ===== Particle system =====
   var particles = [];
@@ -1401,6 +1867,19 @@
 
 
 
+// ========== GLOBAL ERROR HANDLER ==========
+window.onerror = function(msg, url, line, col, error) {
+  console.error('全局错误:', msg, 'at', url, ':', line);
+  // 如果加载界面还显示着，强制关闭
+  var screen = document.getElementById('loadingScreen');
+  if (screen && screen.style.display !== 'none') {
+    console.log('加载界面卡住，强制关闭');
+    screen.style.display = 'none';
+    showToast('⚠️ 加载动画异常，已自动跳过');
+  }
+  return false;
+};
+
 // ========== INDEXEDDB HELPERS ==========
 var mediaDB = null;
 function openMediaDB() {
@@ -1436,12 +1915,14 @@ function saveMediaToDB(eventId, callback) {
         var tx2 = db.transaction(['media'], 'readwrite');
         var store2 = tx2.objectStore('media');
 
-        // Photo：有新版或清除标记才动
+        // Photo：有新版则更新，为 null 则删除已有记录
         if (tempPhotoData) {
           if (existing.photo) store2.delete(existing.photo.id);
           store2.add({ eventId: eventId, type: 'photo', data: tempPhotoData, timestamp: Date.now() });
+        } else {
+          // tempPhotoData 为 null，删除已有照片
+          if (existing.photo) store2.delete(existing.photo.id);
         }
-        // tempPhotoData 为 null 时不处理，保留已有记录
 
         // Audio
         if (tempAudioData) {
@@ -1707,8 +2188,6 @@ var tempAudioData = null;
 var tempVideoData = null;
 var tempRemoveAudio = false;
 var tempRemoveVideo = false;
-var tempAudioData = null;
-var tempVideoData = null;
 
 // ========== INIT ==========
 function init() {
@@ -1733,6 +2212,23 @@ function saveData() {
 function renderList() {
   var container = document.getElementById('mainList');
   container.innerHTML = '';
+
+  // 每日推荐卡片
+  var recId = pickDailyRecommend();
+  if (recId) {
+    var recEv = ALL_EVENTS.find(function(e) { return e.id === recId; });
+    if (recEv) {
+      var ch = CHAPTERS[recEv.chapter];
+      var recDiv = document.createElement('div');
+      recDiv.className = 'daily-recommend';
+      recDiv.innerHTML =
+        '<div class="daily-recommend-label">🌟 今日推荐</div>' +
+        '<div class="daily-recommend-name">' + escapeHtml(recEv.name) + '</div>' +
+        '<button class="daily-recommend-btn" onclick="confirmMediaUpload(\'' + recId + '\')">去打卡 ✨</button>';
+      container.appendChild(recDiv);
+    }
+  }
+
   CHAPTERS.forEach(function(ch, ci) {
     var chapterDiv = document.createElement('div');
     chapterDiv.className = 'chapter open';
@@ -1795,18 +2291,103 @@ function toggleChapter(ci) {
   el.classList.toggle('open');
 }
 
+// ========== SEARCH ==========
+function handleSearch() {
+  var input = document.getElementById('searchInput');
+  var clearBtn = document.getElementById('searchClear');
+  var resultDiv = document.getElementById('searchResult');
+  var term = input.value.trim().toLowerCase();
+  
+  if (term) {
+    clearBtn.classList.add('show');
+    resultDiv.classList.add('show');
+  } else {
+    clearBtn.classList.remove('show');
+    resultDiv.classList.remove('show');
+  }
+  
+  // 遍历所有章节和事件
+  var totalVisible = 0;
+  var totalMatched = 0;
+  
+  CHAPTERS.forEach(function(ch, ci) {
+    var chapterEl = document.getElementById('chapter-' + ci);
+    var items = chapterEl ? chapterEl.querySelectorAll('.event-item') : [];
+    var chapterMatched = 0;
+    
+    items.forEach(function(item) {
+      var nameEl = item.querySelector('.event-name');
+      if (!nameEl) return;
+      
+      var name = nameEl.textContent.toLowerCase();
+      var match = name.indexOf(term) !== -1;
+      
+      if (match) {
+        item.classList.remove('hidden-event');
+        chapterMatched++;
+        totalMatched++;
+      } else {
+        item.classList.add('hidden-event');
+      }
+    });
+    
+    // 显示/隐藏章节
+    if (chapterMatched > 0 || !term) {
+      chapterEl.classList.remove('hidden-chapter');
+      totalVisible++;
+    } else {
+      chapterEl.classList.add('hidden-chapter');
+    }
+  });
+  
+  // 显示搜索结果统计
+  if (term) {
+    resultDiv.textContent = '找到 ' + totalMatched + ' 个匹配结果（共 ' + totalVisible + ' 个章节）';
+  }
+}
+
+function clearSearch() {
+  var input = document.getElementById('searchInput');
+  var clearBtn = document.getElementById('searchClear');
+  var resultDiv = document.getElementById('searchResult');
+  
+  input.value = '';
+  clearBtn.classList.remove('show');
+  resultDiv.classList.remove('show');
+  resultDiv.textContent = '';
+  
+  // 显示所有章节和事件
+  CHAPTERS.forEach(function(ch, ci) {
+    var chapterEl = document.getElementById('chapter-' + ci);
+    if (chapterEl) {
+      chapterEl.classList.remove('hidden-chapter');
+      var items = chapterEl.querySelectorAll('.event-item');
+      items.forEach(function(item) {
+        item.classList.remove('hidden-event');
+      });
+    }
+  });
+}
 // ========== PROGRESS ==========
+var PROGRESS_CIRC = 2 * Math.PI * 52; // 圆周长 ≈ 326.726
 function updateProgress() {
   var done = Object.keys(checkinData).length;
   var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressText').textContent = '已点亮 ' + done + ' / ' + TOTAL + ' 个经历（' + pct + '%）';
+  var offset = PROGRESS_CIRC * (1 - pct / 100);
+  document.getElementById('progressRing').style.strokeDashoffset = offset;
+  document.getElementById('progressText').innerHTML = '<span class="pct">' + pct + '%</span>' + done + ' / ' + TOTAL + ' 经历';
 }
 
 // ========== MODAL ==========
 function confirmMediaUpload(eventId) {
   currentEventId = eventId;
-  document.getElementById('mediaConfirmModal').classList.add('show');
+  // 如果已打卡，直接打开编辑模态框（跳过媒体确认）
+  if (checkinData[eventId]) {
+    openCheckinModal(eventId, true);
+  } else {
+    // 未打卡，询问是否上传媒体
+    document.getElementById('mediaConfirmModal').classList.add('show');
+  }
 }
 
 function handleMediaConfirm(isMedia) {
@@ -1867,9 +2448,10 @@ function submitCheckin() {
   var date = document.getElementById('checkinDate').value;
   var note = document.getElementById('checkinNote').value.trim();
   var existing = checkinData[currentEventId];
+  var ev = ALL_EVENTS.find(function(e) { return e.id === currentEventId; });
+  var chapterIdx = ev ? ev.chapter : -1;
 
   if (currentWithMedia) {
-    // "是"模式：正确处理音频视频标志
     var audioFlag = !!(tempAudioData || (existing && !!existing.hasAudio && !tempRemoveAudio));
     var videoFlag = !!(tempVideoData || (existing && !!existing.hasVideo && !tempRemoveVideo));
     checkinData[currentEventId] = {
@@ -1883,12 +2465,11 @@ function submitCheckin() {
     saveData();
     saveMediaToDB(currentEventId, function() {
       closeModal();
-      renderList();
-      updateProgress();
-      showToast('🌟 打卡成功！');
+      // 检查章节成就
+      checkChapterAchievement(chapterIdx);
+      showRitual(ev ? ev.name : '未知经历');
     });
   } else {
-    // "否"模式：保留已有媒体数据，只更新日期和备注
     checkinData[currentEventId] = {
       date: date,
       photo: existing ? existing.photo : null,
@@ -1899,9 +2480,9 @@ function submitCheckin() {
     };
     saveData();
     closeModal();
-    renderList();
-    updateProgress();
-    showToast('🌟 打卡成功！');
+    // 检查章节成就
+    checkChapterAchievement(chapterIdx);
+    showRitual(ev ? ev.name : '未知经历');
   }
 }
 
@@ -2259,7 +2840,102 @@ function renderStats() {
           '<div class="stats-grid-label">已完成章节</div>' +
         '</div>' +
       '</div>' +
+    '</div>' +
+
+    '<div class="stats-card heatmap-card">' +
+      '<div class="stats-card-title">🗓️ 打卡热力图</div>' +
+      '<div class="heatmap-title" id="heatmapTitle"></div>' +
+      '<div class="heatmap-grid" id="heatmapGrid"></div>' +
+      '<div class="heatmap-months" id="heatmapMonths"></div>' +
     '</div>';
+
+  // 生成热力图
+  buildHeatmap(container);
+}
+
+function buildHeatmap(container) {
+  var today = new Date();
+  var startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - 364); // 一年前
+  startDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+
+  // 按日期索引打卡次数
+  var countMap = {};
+  Object.keys(checkinData).forEach(function(k) {
+    var d = checkinData[k].date;
+    if (!d) return;
+    countMap[d] = (countMap[d] || 0) + 1;
+  });
+
+  // 构建按周的网格 (53列 x 7行)
+  var weeks = [];
+  var current = new Date(startDate);
+  // 调整到本周的周日
+  while (current.getDay() !== 0) {
+    current.setDate(current.getDate() - 1);
+  }
+
+  var week = [];
+  while (current <= today) {
+    var ds = current.getFullYear() + '-' + String(current.getMonth()+1).padStart(2,'0') + '-' + String(current.getDate()).padStart(2,'0');
+    week.push({ date: ds, dow: current.getDay() });
+    if (current.getDay() === 6) {
+      weeks.push(week);
+      week = [];
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  if (week.length > 0) weeks.push(week);
+
+  // 生成网格 HTML
+  var gridEl = document.getElementById('heatmapGrid');
+  if (!gridEl) {
+    // 还没渲染到DOM，需要在渲染后调用
+    setTimeout(function() { buildHeatmap(null); }, 100);
+    return;
+  }
+
+  gridEl.innerHTML = '';
+  weeks.forEach(function(week) {
+    for (var d=0; d<7; d++) {
+      var cell = week.find(function(w) { return w.dow === d; });
+      var level = 0;
+      if (cell) {
+        var cnt = countMap[cell.date] || 0;
+        if (cnt >= 4) level = 4;
+        else if (cnt >= 3) level = 3;
+        else if (cnt >= 2) level = 2;
+        else if (cnt >= 1) level = 1;
+      }
+      var div = document.createElement('div');
+      div.className = 'heatmap-cell level-' + level + (cell && cell.date === (today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0')) ? ' today' : '');
+      if (cell) div.title = cell.date + '：' + (countMap[cell.date]||0) + ' 个打卡';
+      gridEl.appendChild(div);
+    }
+  });
+
+  // 月份标签
+  var monthsEl = document.getElementById('heatmapMonths');
+  if (monthsEl) {
+    monthsEl.innerHTML = '';
+    var lastMonth = -1;
+    weeks.forEach(function(week, wi) {
+      if (week.length === 0) return;
+      var m = new Date(week[0].date).getMonth();
+      if (m !== lastMonth) {
+        var span = document.createElement('span');
+        span.textContent = (m+1) + '月';
+        span.style.gridColumn = wi + 1;
+        monthsEl.appendChild(span);
+        lastMonth = m;
+      }
+    });
+  }
+
+  var titleEl = document.getElementById('heatmapTitle');
+  if (titleEl) {
+    titleEl.textContent = '过去一年（' + startDate.getFullYear() + '.' + (startDate.getMonth()+1) + '.' + startDate.getDate() + ' - ' + (today.getMonth()+1) + '.' + today.getDate() + '）';
+  }
 }
 
 // ========== DATA MANAGEMENT ==========
@@ -2338,6 +3014,180 @@ function confirmClearData() {
   }
 }
 
+function confirmResetApp() {
+  if (confirm('确定要重置整个应用吗？\n\n这将清除所有打卡数据和媒体数据，并将应用恢复到初始状态。\n\n此操作不可恢复！')) {
+    resetApp();
+  }
+}
+
+function resetApp() {
+  try {
+    // 清除 localStorage
+    localStorage.removeItem('lifeCheckinData');
+    localStorage.removeItem('lifeCheckinTheme');
+    localStorage.removeItem('lifeCheckinDaily');
+    
+    // 清除 IndexedDB
+    if (mediaDB) {
+      mediaDB.close();
+      mediaDB = null;
+    }
+    var req = indexedDB.deleteDatabase('lifeCheckinMedia');
+    req.onsuccess = function() {
+      console.log('IndexedDB 已清除');
+      showToast('✅ 应用已重置，正在重新加载...');
+      setTimeout(function() { location.reload(); }, 1000);
+    };
+    req.onerror = function() {
+      console.log('IndexedDB 清除失败，但继续重置');
+      showToast('✅ 应用已重置，正在重新加载...');
+      setTimeout(function() { location.reload(); }, 1000);
+    };
+  } catch(e) {
+    console.error('重置应用出错:', e);
+    showToast('⚠️ 重置出错，请手动刷新页面');
+  }
+}
+
+// ========== CHECK-IN RITUAL ==========
+var RITUAL_QUOTES = [
+  '✨ 每一个第一次，都是生命的礼物',
+  '🌱 你在认真生活，这本身就很了不起',
+  '💫 这一刻，宇宙也为你鼓掌',
+  '🎐 把瞬间变成永恒，你做到了',
+  '🌟 人生没有白走的路，每一步都算数',
+  '🪶 轻如花瓣，却重若人生',
+  '🎋 记录，是对生命最深情的告白',
+  '🍃 一片叶子有一片叶子的命运，你记录了你的',
+  '🌸 花开一瞬，你记住了一生',
+  '🎐 风会带走声音，但带不走你的记录',
+  '✨ 今天的你，值得被明天记住',
+  '🪷 清净的心，记录不清净的繁华',
+  '🎐 生命的厚度，在于你记住了多少',
+  '🌙 夜深了，但这一刻永远亮着',
+  '🍂 落叶知秋，你知自己',
+  '💮 不必完美，只需真实',
+  '🎋 一枝一叶总关情',
+  '🌾 人生如穗，低头时最饱满',
+  '🪨 坚硬的石头也会记住水滴',
+  '🎐 风铃响起时，你在心里又活了一次'
+];
+
+var RITUAL_ICONS = ['🌸','🎋','🪷','✨','💫','🎐','🪶','🌾'];
+
+function showRitual(eventName) {
+  var idx = Math.floor(Math.random() * RITUAL_QUOTES.length);
+  var iconIdx = Math.floor(Math.random() * RITUAL_ICONS.length);
+  document.getElementById('ritualQuote').textContent = RITUAL_QUOTES[idx];
+  document.getElementById('ritualIcon').textContent = RITUAL_ICONS[iconIdx];
+  document.getElementById('ritualEvent').textContent = '📌 ' + eventName;
+  document.getElementById('ritualOverlay').classList.add('show');
+  // 撒花瓣
+  spawnPetals(18);
+}
+
+function closeRitual() {
+  document.getElementById('ritualOverlay').classList.remove('show');
+  // 检查是否有待显示的章节成就
+  if (pendingAchievement >= 0) {
+    setTimeout(function() { showAchievement(pendingAchievement); }, 300);
+  } else {
+    renderList();
+    updateProgress();
+  }
+}
+
+function spawnPetals(count) {
+  var petals = ['🌸','🏵️','💮','🪷','🌺','✿'];
+  for (var i = 0; i < count; i++) {
+    (function(delay) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.className = 'petal';
+        el.textContent = petals[Math.floor(Math.random() * petals.length)];
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.top = '-30px';
+        el.style.fontSize = (16 + Math.random() * 14) + 'px';
+        el.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+        el.style.animationDelay = '0s';
+        document.body.appendChild(el);
+        setTimeout(function() { el.remove(); }, 5000);
+      }, delay);
+    })(i * 80);
+  }
+}
+
+// ========== DAILY RECOMMEND ==========
+function pickDailyRecommend() {
+  var today = new Date().toISOString().split('T')[0];
+  var saved = localStorage.getItem('lifeCheckinDaily');
+  if (saved) {
+    try {
+      var obj = JSON.parse(saved);
+      if (obj.date === today && ALL_EVENTS.some(function(e) { return e.id === obj.id; })) {
+        // 检查今日推荐是否已完成，若完成则重新选
+        if (!checkinData[obj.id]) return obj.id;
+      }
+    } catch(e) {}
+  }
+  // 选一个未完成的
+  var pool = ALL_EVENTS.filter(function(e) { return !checkinData[e.id]; });
+  if (pool.length === 0) return null;
+  var pick = pool[Math.floor(Math.random() * pool.length)];
+  localStorage.setItem('lifeCheckinDaily', JSON.stringify({ date: today, id: pick.id }));
+  return pick.id;
+}
+
+// ========== CHAPTER ACHIEVEMENT ==========
+var pendingAchievement = -1;
+
+function checkChapterAchievement(chapterIdx) {
+  var ch = CHAPTERS[chapterIdx];
+  if (!ch) return;
+  var allDone = ch.events.every(function(_, ei) { return !!checkinData[chapterIdx + '-' + ei]; });
+  if (allDone) {
+    pendingAchievement = chapterIdx;
+  }
+}
+
+function showAchievement(chapterIdx) {
+  var ch = CHAPTERS[chapterIdx];
+  if (!ch) return;
+  document.getElementById('achievementIcon').textContent = ch.icon;
+  document.getElementById('achievementTitle').textContent = '🎊 章节圆满完成！';
+  document.getElementById('achievementSub').textContent = '「' + ch.title + '」的所有经历都已打卡，太了不起！';
+  document.getElementById('achievementOverlay').classList.add('show');
+  spawnStars(12);
+}
+
+function closeAchievement() {
+  document.getElementById('achievementOverlay').classList.remove('show');
+  pendingAchievement = -1;
+}
+
+function spawnStars(count) {
+  var stars = ['⭐','🌟','✨','💫','⚡','🔆'];
+  var centerX = window.innerWidth / 2;
+  var centerY = window.innerHeight / 2;
+  for (var i = 0; i < count; i++) {
+    (function(idx) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.className = 'achievement-star';
+        el.textContent = stars[Math.floor(Math.random() * stars.length)];
+        el.style.left = centerX + 'px';
+        el.style.top = centerY + 'px';
+        var angle = (idx / count) * Math.PI * 2 + Math.random() * 0.5;
+        var dist = 80 + Math.random() * 120;
+        el.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+        el.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+        document.body.appendChild(el);
+        setTimeout(function() { el.remove(); }, 1200);
+      }, idx * 60);
+    })(i);
+  }
+}
+
 // ========== TOAST ==========
 function showToast(msg) {
   var t = document.getElementById('toast');
@@ -2346,7 +3196,36 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 1800);
 }
 
+// ========== THEME TOOGLE ==========
+function toggleTheme() {
+  var html = document.documentElement;
+  var isDark = html.classList.contains('dark-theme');
+  // 添加过渡动画类
+  html.classList.add('theme-transitioning');
+  setTimeout(function() { html.classList.remove('theme-transitioning'); }, 500);
+
+  if (isDark) {
+    html.classList.remove('dark-theme');
+    document.getElementById('themeToggle').textContent = '🌙';
+    localStorage.setItem('lifeCheckinTheme', 'light');
+  } else {
+    html.classList.add('dark-theme');
+    document.getElementById('themeToggle').textContent = '☀️';
+    localStorage.setItem('lifeCheckinTheme', 'dark');
+  }
+}
+
+function loadTheme() {
+  var saved = localStorage.getItem('lifeCheckinTheme');
+  if (saved === 'dark') {
+    document.documentElement.classList.add('dark-theme');
+    var btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = '☀️';
+  }
+}
+
 // ========== START ==========
+loadTheme();
 init();
 </script>
 </body>
