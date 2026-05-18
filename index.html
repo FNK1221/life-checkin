@@ -2924,7 +2924,9 @@ function renderStats() {
     '<div class="stats-hero">' +
       '<div class="stats-hero-num">' + done + '</div>' +
       '<div class="stats-hero-label">共 ' + TOTAL + ' 个经历，已完成 ' + pct + '%</div>' +
+      '<div id="personalityTag" style="margin-top:8px;font-size:14px;opacity:0.9;"></div>' +
       '<div class="stats-hero-bar"><div class="stats-hero-fill" style="width:' + pct + '%"></div></div>' +
+      '<div id="nextMilestone" style="margin-top:6px;font-size:12px;opacity:0.8;"></div>' +
     '</div>' +
     '<div class="stats-card">' +
       '<div class="stats-card-title">📊 各章节完成度</div>' +
@@ -2969,6 +2971,16 @@ function renderStats() {
     
   // 生成热力图
   buildHeatmap(container);
+  
+  // 计算并显示个性标签
+  var tag = calculatePersonalityTag();
+  var tagEl = document.getElementById('personalityTag');
+  if (tagEl) tagEl.textContent = tag;
+  
+  // 计算并显示下一个里程碑
+  var milestone = calculateNextMilestone(done);
+  var msEl = document.getElementById('nextMilestone');
+  if (msEl) msEl.textContent = milestone;
 }
 
 function buildHeatmap(container) {
@@ -3418,6 +3430,54 @@ function downloadShareCard() {
 
 function closeShareCardModal() {
   document.getElementById('shareCardModal').classList.remove('show');
+}
+
+// ========== PERSONALITY TAG & MILESTONE ==========
+function calculatePersonalityTag() {
+  // 统计每个章节的完成数
+  var chapterCount = [];
+  CHAPTERS.forEach(function(ch, ci) {
+    var count = 0;
+    ch.events.forEach(function(_, ei) { if (checkinData[ci + '-' + ei]) count++; });
+    chapterCount.push({ index: ci, count: count, title: ch.title, icon: ch.icon });
+  });
+  
+  // 按完成数排序
+  chapterCount.sort(function(a, b) { return b.count - a.count; });
+  
+  // 根据最多的章节生成标签
+  var top = chapterCount[0];
+  if (top.count === 0) return '🌱 人生新芽';
+  
+  var tags = {
+    0: ['🌱 童年回忆家', '📸 纯真岁月'],
+    1: ['📚 求学追梦人', '🎓 知识探索者'],
+    2: ['💼 职场奋斗者', '🚀 事业打拼家'],
+    3: ['❤️ 温暖家人', '💑 感情丰富家'],
+    4: ['🏠 生活家', '🍳 居家能手'],
+    5: ['🌍 冒险家', '✈️ 世界探索者'],
+    6: ['🎉 仪式感达人', '📷 回忆收藏家'],
+    7: ['🕰️ 人生智者', '🌟 岁月沉淀家']
+  };
+  
+  var options = tags[top.index] || ['🌟 人生体验家'];
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+function calculateNextMilestone(done) {
+  var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
+  var milestones = [25, 50, 75, 100];
+  
+  for (var i = 0; i < milestones.length; i++) {
+    if (pct < milestones[i]) {
+      var target = milestones[i];
+      var needed = Math.ceil(target / 100 * TOTAL) - done;
+      if (needed <= 0) needed = 1;
+      return '🎯 再完成 ' + needed + ' 个体验，就能达到 ' + target + '%！';
+    }
+  }
+  
+  return '🎊 恭喜你，已完成所有里程碑！';
 }
 
 // ========== TOAST ==========
