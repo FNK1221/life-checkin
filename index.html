@@ -1191,7 +1191,7 @@
 })();
 
 // ========== DATA ==========
-const CHAPTERS = [
+var CHAPTERS = [
   {
     icon: "🍼",
     title: "成长时光",
@@ -1361,18 +1361,18 @@ const CHAPTERS = [
   }
 ];
 
-const ALL_EVENTS = [];
-CHAPTERS.forEach((ch, ci) => {
-  ch.events.forEach((ev, ei) => {
+var ALL_EVENTS = [];
+CHAPTERS.forEach(function(ch, ci) {
+  ch.events.forEach(function(ev, ei) {
     ALL_EVENTS.push({ id: ci + '-' + ei, chapter: ci, name: ev });
   });
 });
-const TOTAL = ALL_EVENTS.length;
+var TOTAL = ALL_EVENTS.length;
 
 // ========== STATE ==========
-let checkinData = {};
-let currentEventId = null;
-let tempPhotoData = null;
+var checkinData = {};
+var currentEventId = null;
+var tempPhotoData = null;
 
 // ========== INIT ==========
 function init() {
