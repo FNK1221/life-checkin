@@ -5,237 +5,337 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>人生经历打卡</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* ========== LOADING SCREEN ========== */
+  #loadingScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #1a0e0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease;
+  }
+  #loadingScreen.fade-out { opacity: 0; pointer-events: none; }
+  #loadingCanvas { display: block; }
+  #loadingText {
+    position: absolute;
+    bottom: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fce8d8;
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.5s;
+    text-align: center;
+    white-space: nowrap;
+    text-shadow: 0 0 12px rgba(255,200,150,0.5);
+    letter-spacing: 2px;
+  }
+  #loadingText.show { opacity: 1; }
+  #loadingHint {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(252,232,216,0.4);
+    font-size: 12px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
   :root {
-    --warm-bg: #fdf6ee;
-    --card-bg: #ffffff;
-    --primary: #e8947a;
-    --primary-dark: #d4795f;
-    --accent: #f5cba7;
-    --text: #4a3728;
-    --text-light: #8b7355;
-    --border: #f0d9c5;
-    --success: #7cc47f;
-    --danger: #e88080;
-    --shadow: 0 2px 12px rgba(180, 140, 100, 0.12);
+    --bg: #fdf8f4;
+    --card: #ffffff;
+    --card-alt: #fefaf6;
+    --primary: #c47a5e;
+    --primary-light: #d4957a;
+    --primary-dark: #a8624a;
+    --accent: #fce8d8;
+    --accent2: #f5d8c5;
+    --text: #3e2d23;
+    --text-light: #8b6f5e;
+    --text-muted: #b5a090;
+    --border: #f0ddd0;
+    --success: #7cb89a;
+    --danger: #d4837a;
+    --danger-bg: #fdf0ef;
+    --shadow: 0 2px 16px rgba(180, 140, 100, 0.10);
+    --shadow-hover: 0 4px 20px rgba(180, 140, 100, 0.18);
     --radius: 16px;
+    --radius-sm: 10px;
   }
   
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    background: var(--warm-bg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     padding-bottom: 80px;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
   }
   
-  /* Header */
+  /* ========== HEADER ========== */
   .header {
-    background: linear-gradient(135deg, #f5d5c5 0%, #e8947a 100%);
-    padding: 20px 16px 24px;
+    background: linear-gradient(145deg, #d4a574 0%, #c47a5e 50%, #b86248 100%);
+    padding: 24px 16px 28px;
     text-align: center;
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 16px rgba(180, 120, 80, 0.2);
+    box-shadow: 0 4px 20px rgba(160, 100, 60, 0.25);
   }
   .header h1 {
     font-size: 22px;
+    font-weight: 700;
     color: #fff;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    margin-bottom: 10px;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.12);
   }
-  .progress-bar-wrap {
-    background: rgba(255,255,255,0.35);
+  .progress-outer {
+    background: rgba(255,255,255,0.22);
     border-radius: 20px;
-    height: 14px;
+    height: 12px;
     overflow: hidden;
-    margin: 0 auto;
-    max-width: 320px;
+    margin: 0 auto 8px;
+    max-width: 300px;
+    backdrop-filter: blur(4px);
   }
-  .progress-bar-fill {
+  .progress-inner {
     height: 100%;
-    background: linear-gradient(90deg, #fff5ee, #fff);
     border-radius: 20px;
-    transition: width 0.5s ease;
+    background: linear-gradient(90deg, #fce8d8, #ffffff);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     width: 0%;
+    position: relative;
+  }
+  .progress-inner::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 30px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+    border-radius: 20px;
   }
   .progress-text {
-    font-size: 13px;
-    color: rgba(255,255,255,0.95);
-    margin-top: 6px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.92);
     font-weight: 500;
+    letter-spacing: 0.5px;
   }
   
-  /* Chapter */
+  /* ========== CHAPTER ========== */
   .chapter {
-    margin: 12px 12px 0;
+    margin: 14px 12px 0;
     border-radius: var(--radius);
-    background: var(--card-bg);
+    background: var(--card);
     box-shadow: var(--shadow);
     overflow: hidden;
+    transition: box-shadow 0.2s;
   }
+  .chapter:first-child { margin-top: 12px; }
   .chapter-header {
     display: flex;
     align-items: center;
-    padding: 14px 16px;
+    padding: 15px 16px;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
     transition: background 0.2s;
   }
-  .chapter-header:active { background: #fef6f0; }
+  .chapter-header:active { background: var(--card-alt); }
   .chapter-icon {
-    font-size: 24px;
-    margin-right: 10px;
+    font-size: 22px;
+    margin-right: 11px;
     flex-shrink: 0;
+    width: 28px;
+    text-align: center;
   }
+  .chapter-body { flex: 1; min-width: 0; }
   .chapter-title {
-    flex: 1;
     font-size: 15px;
     font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .chapter-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .chapter-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: 8px;
   }
   .chapter-count {
     font-size: 12px;
-    color: var(--text-light);
-    margin-right: 8px;
+    color: var(--primary);
+    font-weight: 600;
+    background: var(--accent);
+    padding: 2px 9px;
+    border-radius: 20px;
   }
   .chapter-arrow {
-    font-size: 12px;
-    color: var(--text-light);
-    transition: transform 0.3s;
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
   }
   .chapter.open .chapter-arrow { transform: rotate(180deg); }
   .chapter-items {
     display: none;
-    padding: 0 12px 12px;
+    padding: 0 10px 10px;
   }
   .chapter.open .chapter-items { display: block; }
   
-  /* Event Item */
+  /* ========== EVENT ITEM ========== */
   .event-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     padding: 12px 10px;
-    border-radius: 12px;
-    margin-bottom: 6px;
-    transition: background 0.2s;
+    border-radius: var(--radius-sm);
+    margin-bottom: 4px;
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, transform 0.1s;
   }
-  .event-item:active { background: #fef6f0; }
+  .event-item:active { background: var(--accent); transform: scale(0.985); }
   .event-check {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    border: 2.5px solid var(--border);
+    border: 2.2px solid var(--border);
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 10px;
+    margin-top: 1px;
     transition: all 0.3s;
-    font-size: 14px;
+    font-size: 13px;
+    background: var(--card);
   }
   .event-item.checked .event-check {
     background: var(--primary);
     border-color: var(--primary);
     color: #fff;
+    box-shadow: 0 2px 8px rgba(196, 122, 94, 0.35);
   }
-  .event-info { flex: 1; min-width: 0; }
+  .event-info { flex: 1; min-width: 0; padding-top: 1px; }
   .event-name {
     font-size: 14px;
-    line-height: 1.4;
-    word-break: break-all;
+    line-height: 1.5;
+    color: var(--text);
   }
   .event-item.checked .event-name {
-    color: var(--text-light);
+    color: var(--text-muted);
     text-decoration: line-through;
     text-decoration-color: var(--border);
+    text-decoration-thickness: 1.5px;
   }
   .event-meta {
     font-size: 11px;
-    color: var(--text-light);
-    margin-top: 3px;
+    color: var(--text-muted);
+    margin-top: 4px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
   }
-  .event-meta .photo-icon { font-size: 13px; }
+  .event-meta span { white-space: nowrap; }
   
-  /* Modal Overlay */
+  /* ========== MODAL ========== */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.45);
+    background: rgba(62, 45, 35, 0.45);
     z-index: 1000;
     align-items: flex-end;
     justify-content: center;
-    padding: 0 0 0 0;
+    backdrop-filter: blur(2px);
   }
   .modal-overlay.show { display: flex; }
   .modal {
-    background: #fff;
-    border-radius: 20px 20px 0 0;
+    background: var(--card);
+    border-radius: 22px 22px 0 0;
     width: 100%;
-    max-width: 480px;
-    max-height: 85vh;
+    max-width: 500px;
+    max-height: 88vh;
     overflow-y: auto;
-    padding: 24px 20px 32px;
-    animation: slideUp 0.3s ease;
+    padding: 28px 20px 36px;
+    animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-overflow-scrolling: touch;
   }
   @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from { transform: translateY(100%); opacity: 0.8; }
+    to { transform: translateY(0); opacity: 1; }
   }
   .modal-title {
-    font-size: 17px;
-    font-weight: 600;
-    margin-bottom: 18px;
+    font-size: 18px;
+    font-weight: 700;
     text-align: center;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .modal-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 20px;
   }
   .modal-event-name {
     font-size: 15px;
-    color: var(--primary-dark);
+    font-weight: 600;
+    color: var(--primary);
     text-align: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background: #fef6f0;
-    border-radius: 10px;
+    margin-bottom: 22px;
+    padding: 12px 14px;
+    background: var(--accent);
+    border-radius: 12px;
+    line-height: 1.5;
   }
   
-  /* Form */
-  .form-group {
-    margin-bottom: 18px;
-  }
+  /* ========== FORM ========== */
+  .form-group { margin-bottom: 18px; }
   .form-label {
     font-size: 13px;
+    font-weight: 600;
     color: var(--text-light);
-    margin-bottom: 6px;
+    margin-bottom: 7px;
     display: block;
+    padding-left: 2px;
   }
   .form-input {
     width: 100%;
-    padding: 10px 12px;
+    padding: 11px 14px;
     border: 1.5px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 15px;
     color: var(--text);
-    background: #fefcf9;
+    background: var(--card-alt);
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    -webkit-appearance: none;
   }
-  .form-input:focus { border-color: var(--primary); }
+  .form-input:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(196, 122, 94, 0.12);
+  }
   
-  /* Photo Upload */
+  /* ========== PHOTO UPLOAD ========== */
   .photo-upload {
     width: 100%;
-    min-height: 120px;
+    min-height: 130px;
     border: 2px dashed var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -244,81 +344,81 @@
     transition: border-color 0.2s, background 0.2s;
     overflow: hidden;
     position: relative;
+    background: var(--card-alt);
   }
-  .photo-upload:active { background: #fef6f0; }
-  .photo-upload.has-photo { border-style: solid; }
-  .photo-upload-icon { font-size: 32px; opacity: 0.4; }
-  .photo-upload-text { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+  .photo-upload:active { background: var(--accent); }
+  .photo-upload.has-photo { border-style: solid; border-color: var(--accent2); }
+  .photo-upload-icon { font-size: 30px; opacity: 0.35; }
+  .photo-upload-text { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
   .photo-preview {
     width: 100%;
-    height: 200px;
+    height: 210px;
     object-fit: cover;
     display: none;
+    border-radius: 12px;
   }
   .photo-upload.has-photo .photo-preview { display: block; }
   .photo-upload.has-photo .photo-upload-icon,
   .photo-upload.has-photo .photo-upload-text { display: none; }
   .photo-remove {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    background: rgba(0,0,0,0.55);
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background: rgba(62, 45, 35, 0.6);
     color: #fff;
     border: none;
     border-radius: 50%;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
     display: none;
     align-items: center;
     justify-content: center;
+    backdrop-filter: blur(4px);
   }
   .photo-upload.has-photo .photo-remove { display: flex; }
   
-  /* Buttons */
-  .btn-row {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-  }
+  /* ========== BUTTONS ========== */
+  .btn-row { display: flex; gap: 12px; margin-top: 22px; }
   .btn {
     flex: 1;
-    padding: 12px 0;
+    padding: 13px 0;
     border: none;
-    border-radius: 12px;
+    border-radius: 13px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: opacity 0.15s, transform 0.1s;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
   }
-  .btn:active { opacity: 0.75; }
-  .btn-cancel {
-    background: #f5f0eb;
-    color: var(--text-light);
-  }
+  .btn:active { opacity: 0.75; transform: scale(0.97); }
+  .btn-cancel { background: var(--card-alt); color: var(--text-light); border: 1.5px solid var(--border); }
   .btn-primary {
-    background: linear-gradient(135deg, #e8947a, #d4795f);
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-dark));
     color: #fff;
+    box-shadow: 0 4px 14px rgba(196, 122, 94, 0.3);
   }
-  .btn-danger {
-    background: #f5f0eb;
-    color: var(--danger);
-  }
+  .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1.5px solid #f0d0cc; }
+  .btn-delete-wrap { margin-top: 12px; }
   
-  /* Bottom Bar */
+  /* ========== BOTTOM BAR ========== */
   .bottom-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--card-bg);
-    box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 -1px 12px rgba(0,0,0,0.05);
     display: flex;
     justify-content: space-around;
-    padding: 10px 8px;
+    padding: 10px 6px;
     padding-bottom: calc(10px + env(safe-area-inset-bottom));
     z-index: 100;
+    border-top: 1px solid rgba(240, 221, 208, 0.5);
   }
   .bottom-btn {
     display: flex;
@@ -326,22 +426,22 @@
     align-items: center;
     background: none;
     border: none;
-    color: var(--text-light);
-    font-size: 11px;
+    color: var(--text-muted);
+    font-size: 10px;
     cursor: pointer;
-    padding: 4px 12px;
-    border-radius: 8px;
-    transition: background 0.2s, color 0.2s;
+    padding: 5px 14px;
+    border-radius: 10px;
+    transition: all 0.2s;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
   }
-  .bottom-btn:active { background: #fef6f0; }
-  .bottom-btn .icon { font-size: 20px; margin-bottom: 2px; }
-  .bottom-btn.active { color: var(--primary-dark); }
+  .bottom-btn:active { background: var(--accent); }
+  .bottom-btn .icon { font-size: 20px; margin-bottom: 2px; line-height: 1; }
+  .bottom-btn.active { color: var(--primary); }
+  .bottom-btn.active .icon { filter: drop-shadow(0 1px 2px rgba(196,122,94,0.3)); }
   
-  /* Timeline View */
-  .timeline-view {
-    display: none;
-    padding: 12px;
-  }
+  /* ========== TIMELINE VIEW ========== */
+  .timeline-view { display: none; padding: 12px; }
   .timeline-view.show { display: block; }
   .main-list { display: block; }
   .main-list.hidden { display: none; }
@@ -349,67 +449,100 @@
   .timeline-item {
     display: flex;
     gap: 12px;
-    margin-bottom: 16px;
-    background: var(--card-bg);
+    margin-bottom: 14px;
+    background: var(--card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding: 14px;
+    transition: box-shadow 0.2s;
   }
+  .timeline-item:active { box-shadow: var(--shadow-hover); }
   .timeline-date {
     flex-shrink: 0;
-    width: 52px;
+    width: 54px;
     text-align: center;
-    background: #fef6f0;
-    border-radius: 10px;
-    padding: 8px 4px;
+    background: var(--accent);
+    border-radius: 12px;
+    padding: 10px 4px;
   }
-  .timeline-date .day { font-size: 22px; font-weight: 700; color: var(--primary-dark); }
-  .timeline-date .month { font-size: 11px; color: var(--text-light); }
+  .timeline-day { font-size: 24px; font-weight: 800; color: var(--primary); line-height: 1; }
+  .timeline-month { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
   .timeline-info { flex: 1; min-width: 0; }
-  .timeline-chapter { font-size: 11px; color: var(--primary); margin-bottom: 3px; }
-  .timeline-name { font-size: 14px; line-height: 1.4; }
+  .timeline-chapter { font-size: 11px; color: var(--primary-light); margin-bottom: 4px; font-weight: 500; }
+  .timeline-name { font-size: 14px; line-height: 1.5; color: var(--text); }
+  .timeline-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: var(--card-alt);
+    border-radius: 8px;
+    line-height: 1.5;
+  }
   .timeline-photo {
     width: 100%;
-    max-height: 180px;
+    max-height: 190px;
     object-fit: cover;
-    border-radius: 8px;
-    margin-top: 8px;
+    border-radius: 10px;
+    margin-top: 10px;
   }
   .timeline-empty {
     text-align: center;
-    padding: 40px 20px;
-    color: var(--text-light);
+    padding: 60px 20px;
+    color: var(--text-muted);
     font-size: 14px;
+    line-height: 1.8;
   }
   
-  /* Stats View */
-  .stats-view {
-    display: none;
-    padding: 12px;
-  }
+  /* ========== STATS VIEW ========== */
+  .stats-view { display: none; padding: 12px; }
   .stats-view.show { display: block; }
+  
+  .stats-hero {
+    background: linear-gradient(145deg, #d4a574, #c47a5e, #b86248);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 6px 24px rgba(160, 100, 60, 0.3);
+    margin-bottom: 14px;
+  }
+  .stats-hero-num { font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+  .stats-hero-label { font-size: 13px; opacity: 0.85; margin-top: 6px; }
+  .stats-hero-bar {
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    height: 8px;
+    margin: 16px auto 0;
+    max-width: 220px;
+    overflow: hidden;
+  }
+  .stats-hero-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: #fff;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
   .stats-card {
-    background: var(--card-bg);
+    background: var(--card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 20px;
+    padding: 18px;
     margin-bottom: 12px;
-    text-align: center;
   }
-  .stats-number {
-    font-size: 42px;
-    font-weight: 700;
-    color: var(--primary);
-    line-height: 1;
+  .stats-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 14px;
   }
-  .stats-label { font-size: 13px; color: var(--text-light); margin-top: 6px; }
   .stats-chart {
     display: flex;
     align-items: flex-end;
-    gap: 6px;
-    height: 120px;
-    margin-top: 16px;
-    padding: 0 4px;
+    gap: 5px;
+    height: 110px;
+    padding: 0 2px;
   }
   .stats-bar-wrap {
     flex: 1;
@@ -421,120 +554,171 @@
   }
   .stats-bar {
     width: 100%;
-    max-width: 32px;
-    background: linear-gradient(0deg, var(--primary), var(--accent));
+    max-width: 30px;
     border-radius: 6px 6px 0 0;
-    min-height: 4px;
-    transition: height 0.5s ease;
+    min-height: 3px;
+    background: linear-gradient(0deg, var(--primary), var(--primary-light));
+    transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .stats-bar-label {
-    font-size: 10px;
-    color: var(--text-light);
-    margin-top: 4px;
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-top: 5px;
     text-align: center;
+    line-height: 1.2;
   }
   
-  /* Data Management */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+  .stats-grid-item { padding: 10px 4px; }
+  .stats-grid-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .stats-grid-label { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+  
+  /* ========== DATA PANEL ========== */
   .data-section {
-    background: var(--card-bg);
+    background: var(--card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 16px;
+    padding: 20px 16px;
     margin: 12px;
   }
   .data-section h3 {
-    font-size: 15px;
-    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .data-section-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    line-height: 1.6;
   }
   .data-btn {
     display: block;
     width: 100%;
-    padding: 12px;
+    padding: 13px;
     border: 1.5px solid var(--border);
-    border-radius: 10px;
-    background: #fefcf9;
+    border-radius: 12px;
+    background: var(--card-alt);
     color: var(--text);
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     margin-bottom: 10px;
     text-align: center;
-    transition: background 0.2s;
+    transition: all 0.15s;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
   }
-  .data-btn:active { background: #fef6f0; }
+  .data-btn:active { background: var(--accent); transform: scale(0.98); }
   .data-btn.primary {
-    background: linear-gradient(135deg, #e8947a, #d4795f);
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-dark));
     color: #fff;
     border-color: transparent;
+    box-shadow: 0 4px 14px rgba(196,122,94,0.3);
+  }
+  .data-btn.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: #f0d0cc;
   }
   
-  /* Toast */
-  .toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.75);
-    color: #fff;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-size: 14px;
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; }
-  
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 0; }
-  
-  /* Photo viewer modal */
+  /* ========== PHOTO VIEWER ========== */
   .photo-viewer {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.92);
+    background: rgba(30, 20, 15, 0.95);
     z-index: 2000;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    backdrop-filter: blur(8px);
   }
   .photo-viewer.show { display: flex; }
   .photo-viewer img {
     max-width: 100%;
     max-height: 85vh;
-    border-radius: 8px;
+    border-radius: 10px;
     object-fit: contain;
   }
+  .photo-viewer-hint {
+    position: absolute;
+    bottom: 40px;
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+  }
+  
+  /* ========== TOAST ========== */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(62, 45, 35, 0.88);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    padding: 12px 26px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+  
+  /* ========== SCROLLBAR ========== */
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  * { scrollbar-width: none; }
 </style>
 </head>
 <body>
 
-<!-- Header -->
+<!-- ========== LOADING SCREEN ========== -->
+<div id="loadingScreen">
+  <canvas id="loadingCanvas"></canvas>
+  <div id="loadingText"></div>
+  <div id="loadingHint">正在孕育生命…</div>
+</div>
+
+<!-- HEADER -->
 <div class="header">
   <h1>🌅 人生经历打卡</h1>
-  <div class="progress-bar-wrap">
-    <div class="progress-bar-fill" id="progressFill"></div>
+  <div class="progress-outer">
+    <div class="progress-inner" id="progressFill"></div>
   </div>
   <div class="progress-text" id="progressText">已点亮 0 / 96 个经历</div>
 </div>
 
-<!-- Main List View -->
+<!-- MAIN LIST -->
 <div class="main-list" id="mainList"></div>
 
-<!-- Timeline View -->
+<!-- TIMELINE VIEW -->
 <div class="timeline-view" id="timelineView"></div>
 
-<!-- Stats View -->
+<!-- STATS VIEW -->
 <div class="stats-view" id="statsView"></div>
 
-<!-- Bottom Bar -->
+<!-- BOTTOM BAR -->
 <div class="bottom-bar">
   <button class="bottom-btn active" onclick="switchTab('list')" id="tabList">
     <span class="icon">📋</span>清单
   </button>
   <button class="bottom-btn" onclick="switchTab('timeline')" id="tabTimeline">
-    <span class="icon">📅</span>时光轴
+    <span class="icon">🗓️</span>时光轴
   </button>
   <button class="bottom-btn" onclick="switchTab('stats')" id="tabStats">
     <span class="icon">📊</span>统计
@@ -544,17 +728,18 @@
   </button>
 </div>
 
-<!-- Check-in Modal -->
+<!-- CHECK-IN MODAL -->
 <div class="modal-overlay" id="checkinModal">
   <div class="modal">
     <div class="modal-title">✅ 打卡记录</div>
+    <div class="modal-subtitle">记录这一刻，属于你的人生</div>
     <div class="modal-event-name" id="modalEventName"></div>
     <div class="form-group">
-      <label class="form-label">打卡日期</label>
+      <label class="form-label">📅 打卡日期</label>
       <input type="date" class="form-input" id="checkinDate">
     </div>
     <div class="form-group">
-      <label class="form-label">记录照片（可选）</label>
+      <label class="form-label">📷 记录照片（可选）</label>
       <div class="photo-upload" id="photoUpload" onclick="document.getElementById('photoInput').click()">
         <span class="photo-upload-icon">📷</span>
         <span class="photo-upload-text">点击上传照片</span>
@@ -564,45 +749,234 @@
       <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
     </div>
     <div class="form-group">
-      <label class="form-label">心情备注（可选）</label>
+      <label class="form-label">💬 心情备注（可选）</label>
       <input type="text" class="form-input" id="checkinNote" placeholder="写点什么吧…" maxlength="100">
     </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="submitCheckin()">完成打卡</button>
     </div>
-    <div class="btn-row" id="deleteBtnRow" style="display:none">
-      <button class="btn btn-danger" onclick="deleteCheckin()">删除此打卡</button>
+    <div class="btn-delete-wrap" id="deleteBtnWrap" style="display:none;">
+      <button class="btn btn-danger" onclick="deleteCheckin()">🗑️ 删除此打卡记录</button>
     </div>
   </div>
 </div>
 
-<!-- Photo Viewer -->
-<div class="photo-viewer" id="photoViewer" onclick="closePhotoViewer()">
-  <img id="photoViewerImg">
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
-<!-- Data Panel (inline) -->
+<!-- DATA MODAL -->
 <div class="modal-overlay" id="dataModal">
   <div class="modal">
     <div class="modal-title">⚙️ 数据管理</div>
-    <p style="font-size:13px;color:var(--text-light);text-align:center;margin-bottom:18px;">
-      数据仅保存在本设备，导出备份后可换设备导入恢复
-    </p>
-    <button class="data-btn primary" onclick="exportData()">📤 导出数据（JSON文件）</button>
-    <button class="data-btn" onclick="document.getElementById('importInput').click()">📥 导入数据（JSON文件）</button>
-    <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
-    <button class="data-btn" style="color:var(--danger);border-color:var(--danger);" onclick="confirmClearData()">🗑️ 清除所有数据</button>
-    <div class="btn-row" style="margin-top:12px;">
+    <div class="modal-subtitle">数据仅保存在本设备浏览器中</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:18px;">
+      <button class="data-btn primary" onclick="exportData()">📤 导出数据（JSON 文件备份）</button>
+      <button class="data-btn" onclick="document.getElementById('importInput').click()">📥 导入数据（恢复备份）</button>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="data-btn danger" onclick="confirmClearData()">🗑️ 清除所有打卡数据</button>
+    </div>
+    <div class="btn-row" style="margin-top:18px;">
       <button class="btn btn-cancel" onclick="closeDataPanel()">关闭</button>
     </div>
   </div>
 </div>
 
+<!-- PHOTO VIEWER -->
+<div class="photo-viewer" id="photoViewer" onclick="closePhotoViewer()">
+  <img id="photoViewerImg">
+  <div class="photo-viewer-hint">点击任意位置关闭</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
+// ========== LOADING ANIMATION ==========
+(function(){
+  const canvas = document.getElementById('loadingCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const screen = document.getElementById('loadingScreen');
+  const textEl = document.getElementById('loadingText');
+
+  function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let frame = 0;
+  let animDone = false;
+
+  function loop(){
+    if(animDone) return;
+    frame++;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2;
+
+    if(frame < 100){
+      // Phase 1: two dots approach from left and right
+      const t = 1 - Math.pow(1 - frame/100, 3);
+      const xLeft = -30 + (cx - 60 + 30) * t;
+      const xRight = w + 30 - (w + 30 - (cx + 60)) * t;
+      const dotY = cy;
+
+      // Left dot (blue/purple - Yin)
+      ctx.save();
+      const g1 = ctx.createRadialGradient(xLeft, dotY, 0, xLeft, dotY, 30);
+      g1.addColorStop(0, 'rgba(150,180,255,0.9)');
+      g1.addColorStop(0.5, 'rgba(150,180,255,0.3)');
+      g1.addColorStop(1, 'rgba(150,180,255,0)');
+      ctx.fillStyle = g1;
+      ctx.beginPath(); ctx.arc(xLeft, dotY, 30, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(150,180,255,0.95)';
+      ctx.shadowColor = 'rgba(150,180,255,0.8)';
+      ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(xLeft, dotY, 11, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // Right dot (orange/warm - Yang)
+      ctx.save();
+      const g2 = ctx.createRadialGradient(xRight, dotY, 0, xRight, dotY, 30);
+      g2.addColorStop(0, 'rgba(255,180,100,0.9)');
+      g2.addColorStop(0.5, 'rgba(255,180,100,0.3)');
+      g2.addColorStop(1, 'rgba(255,180,100,0)');
+      ctx.fillStyle = g2;
+      ctx.beginPath(); ctx.arc(xRight, dotY, 30, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,180,100,0.95)';
+      ctx.shadowColor = 'rgba(255,180,100,0.8)';
+      ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(xRight, dotY, 11, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+    } else if(frame < 170){
+      // Phase 2: merge + flash
+      const t = (frame - 100) / 70;
+      const flash = Math.sin(t * Math.PI);
+      ctx.save();
+      const g3 = ctx.createRadialGradient(cx, cy, 0, cx, cy, 80 + flash * 60);
+      g3.addColorStop(0, 'rgba(255,220,170,0.9)');
+      g3.addColorStop(0.4, 'rgba(255,200,140,0.4)');
+      g3.addColorStop(1, 'rgba(255,200,140,0)');
+      ctx.fillStyle = g3;
+      ctx.beginPath(); ctx.arc(cx, cy, 80 + flash * 60, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,220,170,0.95)';
+      ctx.shadowColor = 'rgba(255,200,140,0.8)';
+      ctx.shadowBlur = 25 + flash * 20;
+      ctx.beginPath(); ctx.arc(cx, cy, 18 + flash * 16, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // Sparkles
+      if(frame % 3 === 0){
+        for(let i = 0; i < 3; i++){
+          const angle = Math.random() * Math.PI * 2;
+          const dist = 15 + Math.random() * 50;
+          ctx.fillStyle = `rgba(255,${180+Math.random()*60|0},${100+Math.random()*80|0},${0.3+Math.random()*0.4})`;
+          ctx.beginPath(); ctx.arc(cx + Math.cos(angle)*dist, cy + Math.sin(angle)*dist, 2+Math.random()*3, 0, Math.PI*2); ctx.fill();
+        }
+      }
+
+    } else if(frame < 280){
+      // Phase 3: glowing ball grows, embryo shape emerges
+      const t = (frame - 170) / 110;
+      const ballR = 20 + t * 55;
+      const glowR = ballR * (2.2 + Math.sin(frame * 0.06) * 0.6);
+
+      ctx.save();
+      const g4 = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
+      g4.addColorStop(0, 'rgba(255,220,170,0.35)');
+      g4.addColorStop(1, 'rgba(255,220,170,0)');
+      ctx.fillStyle = g4;
+      ctx.beginPath(); ctx.arc(cx, cy, glowR, 0, Math.PI*2); ctx.fill();
+
+      ctx.fillStyle = 'rgba(255,215,170,0.95)';
+      ctx.shadowColor = 'rgba(255,200,140,0.7)';
+      ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.arc(cx, cy, ballR, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // Embryo shape
+      if(t > 0.25){
+        const es = (t - 0.25) / 0.75;
+        ctx.save();
+        ctx.globalAlpha = es * 0.6;
+        ctx.fillStyle = 'rgba(252,232,216,0.7)';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 5, 22 + es*8, 28 + es*10, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+    } else if(frame < 370){
+      // Phase 4: child appears
+      const t = (frame - 280) / 90;
+      const cs = 0.2 + t * 0.85;
+      const ca = t < 0.35 ? t / 0.35 : 1;
+
+      ctx.save();
+      ctx.globalAlpha = ca;
+      ctx.translate(cx, cy + 20);
+      ctx.scale(cs, cs);
+
+      // Head
+      ctx.fillStyle = '#fce8d8';
+      ctx.beginPath(); ctx.arc(0, -45, 26, 0, Math.PI*2); ctx.fill();
+      // Eyes
+      ctx.fillStyle = '#3e2d23';
+      ctx.beginPath(); ctx.arc(-9, -49, 3.2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(9, -49, 3.2, 0, Math.PI*2); ctx.fill();
+      // Smile
+      ctx.strokeStyle = '#3e2d23'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(0, -43, 9, 0.15, Math.PI - 0.15); ctx.stroke();
+      // Body
+      ctx.fillStyle = '#fce8d8';
+      ctx.beginPath();
+      ctx.moveTo(-20, -8);
+      ctx.lineTo(-26, 48);
+      ctx.lineTo(26, 48);
+      ctx.lineTo(20, -8);
+      ctx.closePath(); ctx.fill();
+      // Arms
+      ctx.strokeStyle = '#fce8d8'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-20, -3); ctx.lineTo(-36, 18); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(20, -3); ctx.lineTo(36, 18); ctx.stroke();
+      // Legs
+      ctx.beginPath(); ctx.moveTo(-11, 48); ctx.lineTo(-14, 86); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(11, 48); ctx.lineTo(14, 86); ctx.stroke();
+      ctx.restore();
+
+      if(t > 0.5 && textEl && !textEl.classList.contains('show')){
+        textEl.textContent = '我tm来了';
+        textEl.classList.add('show');
+      }
+
+      // Particles around child
+      if(frame % 4 === 0){
+        const px = cx + (Math.random()-0.5) * 110;
+        const py = cy + 20 + (Math.random()-0.5) * 100;
+        ctx.fillStyle = `hsl(${25+Math.random()*35|0},${65}%,${72+Math.random()*18|0}%)`;
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.arc(px, py, 2+Math.random()*3, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+    } else {
+      // Phase 5: fade out
+      const t = Math.min(1, (frame - 370) / 30);
+      if(screen) screen.style.opacity = 1 - t;
+      if(t >= 1){
+        animDone = true;
+        if(screen){
+          screen.classList.add('fade-out');
+          setTimeout(()=>{ screen.style.display = 'none'; }, 800);
+        }
+        return;
+      }
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  setTimeout(()=> requestAnimationFrame(loop), 100);
+})();
+
 // ========== DATA ==========
 const CHAPTERS = [
   {
@@ -641,7 +1015,7 @@ const CHAPTERS = [
       "第一次实习，被同事使唤得团团转",
       "大学毕业典礼，穿着学士服拍照",
       "第一次找工作被拒绝，投了几十份简历都没回音",
-      "收到第一份正式工作offer",
+      "收到第一份正式工作 offer",
       "第一次租房独居，自己组装家具",
       "第一次给自己做一整桌饭，虽然卖相一般"
     ]
@@ -720,7 +1094,7 @@ const CHAPTERS = [
       "第一次看海，被那种广阔震撼到",
       "第一次爬一座名山，爬到腿软但登顶那一刻值了",
       "第一次独自旅行，发现自己也能照顾好自己",
-      "第一次看演唱会/livehouse演出，全场一起唱",
+      "第一次看演唱会/livehouse 演出，全场一起唱",
       "第一次学会一项新技能（画画/吉他/做饭/滑雪等）",
       "第一次参加志愿者活动，被需要感觉很好",
       "第一次在特别的地方看日出/日落",
@@ -774,17 +1148,16 @@ const CHAPTERS = [
   }
 ];
 
-// Generate event IDs
 const ALL_EVENTS = [];
 CHAPTERS.forEach((ch, ci) => {
   ch.events.forEach((ev, ei) => {
-    ALL_EVENTS.push({ id: `${ci}-${ei}`, chapter: ci, name: ev });
+    ALL_EVENTS.push({ id: ci + '-' + ei, chapter: ci, name: ev });
   });
 });
 const TOTAL = ALL_EVENTS.length;
 
 // ========== STATE ==========
-let checkinData = {};  // { eventId: { date, photo (base64), note, timestamp } }
+let checkinData = {};
 let currentEventId = null;
 let tempPhotoData = null;
 
@@ -793,14 +1166,12 @@ function init() {
   loadData();
   renderList();
   updateProgress();
-  // Set default date
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('checkinDate').value = today;
+  document.getElementById('checkinDate').value = new Date().toISOString().split('T')[0];
 }
 
 function loadData() {
   try {
-    const raw = localStorage.getItem('lifeCheckinData');
+    var raw = localStorage.getItem('lifeCheckinData');
     if (raw) checkinData = JSON.parse(raw);
   } catch(e) { checkinData = {}; }
 }
@@ -811,72 +1182,86 @@ function saveData() {
 
 // ========== RENDER LIST ==========
 function renderList() {
-  const container = document.getElementById('mainList');
+  var container = document.getElementById('mainList');
   container.innerHTML = '';
-  CHAPTERS.forEach((ch, ci) => {
-    const chapterDiv = document.createElement('div');
+  CHAPTERS.forEach(function(ch, ci) {
+    var chapterDiv = document.createElement('div');
     chapterDiv.className = 'chapter open';
-    chapterDiv.id = `chapter-${ci}`;
-    
-    const checkedCount = ch.events.filter((_, ei) => checkinData[`${ci}-${ei}`]).length;
-    
-    chapterDiv.innerHTML = `
-      <div class="chapter-header" onclick="toggleChapter(${ci})">
-        <span class="chapter-icon">${ch.icon}</span>
-        <span class="chapter-title">${ch.title}</span>
-        <span class="chapter-count">${checkedCount}/${ch.events.length}</span>
-        <span class="chapter-arrow">▼</span>
-      </div>
-      <div class="chapter-items">
-        ${ch.events.map((ev, ei) => {
-          const id = `${ci}-${ei}`;
-          const checked = checkinData[id];
-          const meta = checked ? formatMeta(checked) : '';
-          return `
-            <div class="event-item ${checked ? 'checked' : ''}" onclick="openCheckin('${id}')">
-              <div class="event-check">${checked ? '✓' : ''}</div>
-              <div class="event-info">
-                <div class="event-name">${ev}</div>
-                ${meta ? `<div class="event-meta">${meta}</div>` : ''}
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    `;
+    chapterDiv.id = 'chapter-' + ci;
+
+    var checkedCount = 0;
+    ch.events.forEach(function(_, ei) {
+      if (checkinData[ci + '-' + ei]) checkedCount++;
+    });
+
+    chapterDiv.innerHTML =
+      '<div class="chapter-header" onclick="toggleChapter(' + ci + ')">' +
+        '<span class="chapter-icon">' + ch.icon + '</span>' +
+        '<div class="chapter-body">' +
+          '<div class="chapter-title">' + escapeHtml(ch.title) + '</div>' +
+          '<div class="chapter-sub">' + escapeHtml(ch.subtitle) + '</div>' +
+        '</div>' +
+        '<div class="chapter-right">' +
+          '<span class="chapter-count">' + checkedCount + '/' + ch.events.length + '</span>' +
+          '<span class="chapter-arrow">▼</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="chapter-items">' +
+        ch.events.map(function(ev, ei) {
+          var id = ci + '-' + ei;
+          var checked = checkinData[id];
+          var metaHtml = checked ? renderMeta(checked) : '';
+          return '' +
+            '<div class="event-item' + (checked ? ' checked' : '') + '" onclick="openCheckin(\'' + id + '\')">' +
+              '<div class="event-check">' + (checked ? '✓' : '') + '</div>' +
+              '<div class="event-info">' +
+                '<div class="event-name">' + escapeHtml(ev) + '</div>' +
+                metaHtml +
+              '</div>' +
+            '</div>';
+        }).join('') +
+      '</div>';
+
     container.appendChild(chapterDiv);
   });
 }
 
-function formatMeta(data) {
-  let parts = [];
-  if (data.date) parts.push(`📅 ${data.date}`);
+function renderMeta(data) {
+  var parts = [];
+  if (data.date) parts.push('📅 ' + data.date);
   if (data.photo) parts.push('📷 有照片');
-  if (data.note) parts.push(`💬 ${data.note}`);
-  return parts.join(' &nbsp;·&nbsp; ');
+  if (data.note) parts.push('💬 ' + escapeHtml(data.note.substring(0, 15)) + (data.note.length > 15 ? '…' : ''));
+  if (parts.length === 0) return '';
+  return '<div class="event-meta"><span>' + parts.join('</span><span>·</span><span>') + '</span></div>';
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
 }
 
 function toggleChapter(ci) {
-  const el = document.getElementById(`chapter-${ci}`);
+  var el = document.getElementById('chapter-' + ci);
   el.classList.toggle('open');
 }
 
 // ========== PROGRESS ==========
 function updateProgress() {
-  const done = Object.keys(checkinData).length;
-  const pct = Math.round(done / TOTAL * 100);
+  var done = Object.keys(checkinData).length;
+  var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
   document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressText').textContent = `已点亮 ${done} / ${TOTAL} 个经历（${pct}%）`;
+  document.getElementById('progressText').textContent = '已点亮 ' + done + ' / ' + TOTAL + ' 个经历（' + pct + '%）';
 }
 
 // ========== MODAL ==========
 function openCheckin(eventId) {
   currentEventId = eventId;
   tempPhotoData = null;
-  const ev = ALL_EVENTS.find(e => e.id === eventId);
+  var ev = ALL_EVENTS.find(function(e) { return e.id === eventId; });
   document.getElementById('modalEventName').textContent = ev.name;
-  
-  const existing = checkinData[eventId];
+
+  var existing = checkinData[eventId];
   if (existing) {
     document.getElementById('checkinDate').value = existing.date || new Date().toISOString().split('T')[0];
     document.getElementById('checkinNote').value = existing.note || '';
@@ -885,14 +1270,14 @@ function openCheckin(eventId) {
     } else {
       clearPhotoPreview();
     }
-    document.getElementById('deleteBtnRow').style.display = 'flex';
+    document.getElementById('deleteBtnWrap').style.display = 'block';
   } else {
     document.getElementById('checkinDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('checkinNote').value = '';
     clearPhotoPreview();
-    document.getElementById('deleteBtnRow').style.display = 'none';
+    document.getElementById('deleteBtnWrap').style.display = 'none';
   }
-  
+
   document.getElementById('checkinModal').classList.add('show');
 }
 
@@ -904,16 +1289,16 @@ function closeModal() {
 
 function submitCheckin() {
   if (!currentEventId) return;
-  const date = document.getElementById('checkinDate').value;
-  const note = document.getElementById('checkinNote').value.trim();
-  
+  var date = document.getElementById('checkinDate').value;
+  var note = document.getElementById('checkinNote').value.trim();
+
   checkinData[currentEventId] = {
     date: date,
     photo: tempPhotoData,
     note: note,
     timestamp: Date.now()
   };
-  
+
   saveData();
   closeModal();
   renderList();
@@ -933,16 +1318,15 @@ function deleteCheckin() {
 
 // ========== PHOTO ==========
 function handlePhoto(e) {
-  const file = e.target.files[0];
+  var file = e.target.files[0];
   if (!file) return;
   if (file.size > 5 * 1024 * 1024) {
-    showToast('⚠️ 照片不能超过5MB');
+    showToast('⚠️ 照片不能超过 5MB');
     return;
   }
-  const reader = new FileReader();
+  var reader = new FileReader();
   reader.onload = function(ev) {
-    // Compress
-    compressImage(ev.target.result, 600, 0.7).then(compressed => {
+    compressImage(ev.target.result, 600, 0.65).then(function(compressed) {
       tempPhotoData = compressed;
       showPhotoPreview(compressed);
     });
@@ -951,12 +1335,12 @@ function handlePhoto(e) {
 }
 
 function compressImage(dataUrl, maxW, quality) {
-  return new Promise(resolve => {
-    const img = new Image();
+  return new Promise(function(resolve) {
+    var img = new Image();
     img.onload = function() {
-      const canvas = document.createElement('canvas');
-      let w = img.width, h = img.height;
-      if (w > maxW) { h = h * maxW / w; w = maxW; }
+      var w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      var canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL('image/jpeg', quality));
@@ -966,15 +1350,15 @@ function compressImage(dataUrl, maxW, quality) {
 }
 
 function showPhotoPreview(dataUrl) {
-  const upload = document.getElementById('photoUpload');
-  const preview = document.getElementById('photoPreview');
+  var upload = document.getElementById('photoUpload');
+  var preview = document.getElementById('photoPreview');
   preview.src = dataUrl;
   upload.classList.add('has-photo');
 }
 
 function clearPhotoPreview() {
-  const upload = document.getElementById('photoUpload');
-  const preview = document.getElementById('photoPreview');
+  var upload = document.getElementById('photoUpload');
+  var preview = document.getElementById('photoPreview');
   preview.src = '';
   upload.classList.remove('has-photo');
   document.getElementById('photoInput').value = '';
@@ -996,53 +1380,56 @@ function switchTab(tab) {
   document.getElementById('tabTimeline').classList.toggle('active', tab === 'timeline');
   document.getElementById('tabStats').classList.toggle('active', tab === 'stats');
   document.getElementById('tabData').classList.toggle('active', false);
-  
+
   if (tab === 'timeline') renderTimeline();
   if (tab === 'stats') renderStats();
 }
 
 // ========== TIMELINE ==========
 function renderTimeline() {
-  const container = document.getElementById('timelineView');
-  const entries = [];
-  ALL_EVENTS.forEach(ev => {
-    const data = checkinData[ev.id];
+  var container = document.getElementById('timelineView');
+  var entries = [];
+  ALL_EVENTS.forEach(function(ev) {
+    var data = checkinData[ev.id];
     if (data && data.date) {
-      entries.push({ ...ev, ...data });
+      entries.push({ id: ev.id, chapter: ev.chapter, name: ev.name, date: data.date, photo: data.photo, note: data.note });
     }
   });
-  
-  entries.sort((a, b) => (a.date > b.date ? -1 : a.date < b.date ? 1 : 0));
-  
+
+  entries.sort(function(a, b) {
+    if (a.date > b.date) return -1;
+    if (a.date < b.date) return 1;
+    return 0;
+  });
+
   if (entries.length === 0) {
-    container.innerHTML = '<div class="timeline-empty">还没有打卡记录<br>去清单里点亮你的第一个经历吧 🌟</div>';
+    container.innerHTML = '<div class="timeline-empty">🌱<br>还没有打卡记录<br>去清单里点亮你的第一个经历吧</div>';
     return;
   }
-  
-  container.innerHTML = entries.map(ev => {
-    const ch = CHAPTERS[ev.chapter];
-    const photoHtml = ev.photo ? `<img class="timeline-photo" src="${ev.photo}" onclick="viewPhoto('${ev.id}')">` : '';
-    const noteHtml = ev.note ? `<div style="font-size:12px;color:var(--text-light);margin-top:4px;">💬 ${ev.note}</div>` : '';
-    const dateParts = ev.date.split('-');
-    return `
-      <div class="timeline-item">
-        <div class="timeline-date">
-          <div class="day">${dateParts[2]}</div>
-          <div class="month">${dateParts[0]}年${parseInt(dateParts[1])}月</div>
-        </div>
-        <div class="timeline-info">
-          <div class="timeline-chapter">${ch.icon} ${ch.title}</div>
-          <div class="timeline-name">${ev.name}</div>
-          ${noteHtml}
-          ${photoHtml}
-        </div>
-      </div>
-    `;
+
+  container.innerHTML = entries.map(function(ev) {
+    var ch = CHAPTERS[ev.chapter];
+    var dateParts = ev.date.split('-');
+    var photoHtml = ev.photo ? '<img class="timeline-photo" src="' + ev.photo + '" onclick="viewPhoto(\'' + ev.id + '\')">' : '';
+    var noteHtml = ev.note ? '<div class="timeline-note">💬 ' + escapeHtml(ev.note) + '</div>' : '';
+    return '' +
+      '<div class="timeline-item">' +
+        '<div class="timeline-date">' +
+          '<div class="timeline-day">' + parseInt(dateParts[2]) + '</div>' +
+          '<div class="timeline-month">' + dateParts[0] + '年' + parseInt(dateParts[1]) + '月</div>' +
+        '</div>' +
+        '<div class="timeline-info">' +
+          '<div class="timeline-chapter">' + ch.icon + ' ' + ch.title + '</div>' +
+          '<div class="timeline-name">' + escapeHtml(ev.name) + '</div>' +
+          noteHtml +
+          photoHtml +
+        '</div>' +
+      '</div>';
   }).join('');
 }
 
 function viewPhoto(eventId) {
-  const data = checkinData[eventId];
+  var data = checkinData[eventId];
   if (data && data.photo) {
     document.getElementById('photoViewerImg').src = data.photo;
     document.getElementById('photoViewer').classList.add('show');
@@ -1055,61 +1442,63 @@ function closePhotoViewer() {
 
 // ========== STATS ==========
 function renderStats() {
-  const container = document.getElementById('statsView');
-  const done = Object.keys(checkinData).length;
-  const pct = Math.round(done / TOTAL * 100);
-  
-  // Chapter stats
-  const chapterStats = CHAPTERS.map((ch, ci) => {
-    const count = ch.events.filter((_, ei) => checkinData[`${ci}-${ei}`]).length;
-    return { title: ch.title, icon: ch.icon, count, total: ch.events.length };
+  var container = document.getElementById('statsView');
+  var done = Object.keys(checkinData).length;
+  var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
+
+  var chapterStats = CHAPTERS.map(function(ch, ci) {
+    var count = 0;
+    ch.events.forEach(function(_, ei) { if (checkinData[ci + '-' + ei]) count++; });
+    return { title: ch.title, icon: ch.icon, count: count, total: ch.events.length };
   });
-  
-  // Find most recent checkin
-  let recentDate = '';
-  Object.values(checkinData).forEach(d => {
-    if (d.date && (!recentDate || d.date > recentDate)) recentDate = d.date;
+
+  var photoCount = 0;
+  Object.keys(checkinData).forEach(function(k) { if (checkinData[k].photo) photoCount++; });
+
+  var recentDate = '';
+  Object.keys(checkinData).forEach(function(k) {
+    var d = checkinData[k].date;
+    if (d && (!recentDate || d > recentDate)) recentDate = d;
   });
-  
-  // Photo count
-  const photoCount = Object.values(checkinData).filter(d => d.photo).length;
-  
-  container.innerHTML = `
-    <div class="stats-card">
-      <div class="stats-number">${done}</div>
-      <div class="stats-label">共打卡 ${TOTAL} 个经历，完成 ${pct}%</div>
-    </div>
-    <div class="stats-card">
-      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">📊 各章节完成度</div>
-      <div class="stats-chart">
-        ${chapterStats.map(s => {
-          const h = Math.max(4, Math.round(s.count / s.total * 100));
-          return `
-            <div class="stats-bar-wrap">
-              <div class="stats-bar" style="height:${h}px;"></div>
-              <div class="stats-bar-label">${s.icon}</div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    </div>
-    <div class="stats-card">
-      <div style="display:flex;justify-content:space-around;text-align:center;">
-        <div>
-          <div style="font-size:22px;font-weight:700;color:var(--primary);">${photoCount}</div>
-          <div style="font-size:12px;color:var(--text-light);">照片记录</div>
-        </div>
-        <div>
-          <div style="font-size:22px;font-weight:700;color:var(--primary);">${recentDate ? recentDate.split('-').join('.') : '-'}</div>
-          <div style="font-size:12px;color:var(--text-light);">最近打卡</div>
-        </div>
-        <div>
-          <div style="font-size:22px;font-weight:700;color:var(--primary);">${done > 0 ? Math.round(chapterStats.filter(s => s.count === s.total).length) : 0}</div>
-          <div style="font-size:12px;color:var(--text-light);">已完成章节</div>
-        </div>
-      </div>
-    </div>
-  `;
+
+  var completedChapters = 0;
+  chapterStats.forEach(function(s) { if (s.count === s.total) completedChapters++; });
+
+  container.innerHTML = '' +
+    '<div class="stats-hero">' +
+      '<div class="stats-hero-num">' + done + '</div>' +
+      '<div class="stats-hero-label">共 ' + TOTAL + ' 个经历，已完成 ' + pct + '%</div>' +
+      '<div class="stats-hero-bar"><div class="stats-hero-fill" style="width:' + pct + '%"></div></div>' +
+    '</div>' +
+    '<div class="stats-card">' +
+      '<div class="stats-card-title">📊 各章节完成度</div>' +
+      '<div class="stats-chart">' +
+        chapterStats.map(function(s) {
+          var h = s.total > 0 ? Math.max(4, Math.round(s.count / s.total * 90)) : 4;
+          return '' +
+            '<div class="stats-bar-wrap">' +
+              '<div class="stats-bar" style="height:' + h + 'px"></div>' +
+              '<div class="stats-bar-label">' + s.icon + '<br>' + s.count + '/' + s.total + '</div>' +
+            '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+    '<div class="stats-card">' +
+      '<div class="stats-grid">' +
+        '<div class="stats-grid-item">' +
+          '<div class="stats-grid-num">' + photoCount + '</div>' +
+          '<div class="stats-grid-label">照片记录</div>' +
+        '</div>' +
+        '<div class="stats-grid-item">' +
+          '<div class="stats-grid-num">' + (recentDate ? recentDate.replace(/-/g, '.') : '-') + '</div>' +
+          '<div class="stats-grid-label">最近打卡</div>' +
+        '</div>' +
+        '<div class="stats-grid-item">' +
+          '<div class="stats-grid-num">' + completedChapters + '</div>' +
+          '<div class="stats-grid-label">已完成章节</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
 }
 
 // ========== DATA MANAGEMENT ==========
@@ -1121,29 +1510,29 @@ function closeDataPanel() {
 }
 
 function exportData() {
-  const dataStr = JSON.stringify(checkinData, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  var dataStr = JSON.stringify(checkinData, null, 2);
+  var blob = new Blob([dataStr], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
   a.href = url;
-  a.download = `人生打卡备份_${new Date().toISOString().split('T')[0]}.json`;
+  a.download = '人生打卡备份_' + new Date().toISOString().split('T')[0] + '.json';
   a.click();
   URL.revokeObjectURL(url);
   showToast('📤 数据已导出');
 }
 
 function importData(e) {
-  const file = e.target.files[0];
+  var file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
+  var reader = new FileReader();
   reader.onload = function(ev) {
     try {
-      const imported = JSON.parse(ev.target.result);
-      if (confirm(`即将导入 ${Object.keys(imported).length} 条打卡记录，是否覆盖当前数据？\n（取消则合并数据）`)) {
+      var imported = JSON.parse(ev.target.result);
+      var count = Object.keys(imported).length;
+      if (confirm('即将导入 ' + count + ' 条打卡记录\n\n确定 = 覆盖当前数据\n取消 = 合并数据')) {
         checkinData = imported;
       } else {
-        // Merge
-        Object.assign(checkinData, imported);
+        Object.keys(imported).forEach(function(k) { checkinData[k] = imported[k]; });
       }
       saveData();
       renderList();
@@ -1159,7 +1548,7 @@ function importData(e) {
 }
 
 function confirmClearData() {
-  if (confirm('确定要清除所有打卡数据吗？此操作不可恢复！')) {
+  if (confirm('确定要清除所有打卡数据吗？\n\n此操作不可恢复！')) {
     checkinData = {};
     saveData();
     renderList();
@@ -1171,10 +1560,10 @@ function confirmClearData() {
 
 // ========== TOAST ==========
 function showToast(msg) {
-  const t = document.getElementById('toast');
+  var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 1800);
+  setTimeout(function() { t.classList.remove('show'); }, 1800);
 }
 
 // ========== START ==========
