@@ -890,7 +890,6 @@
       ctx.beginPath(); ctx.arc(xRight, orbY, 18, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "rgba(255,255,200,0.85)";
       ctx.beginPath(); ctx.arc(xRight, orbY, 7, 0, Math.PI*2); ctx.fill();
-    }
     } else if(frame < 200){
       // ===== Phase 2: Merge + Golden Flash (阴阳融合 -> 金丹初成) =====
       var t = (frame - 120) / 80;
@@ -960,7 +959,6 @@
           return "hsl("+(35+Math.random()*25)+","+(80+Math.random()*20)+"%,"+(65+Math.random()*20)+"%)";
         }, 1.5+Math.random()*2, 40+Math.random()*20);
       }
-    }
     } else if(frame < 340){
       // ===== Phase 3: Golden Dan charges, rotates, cracks (金丹蕴养) =====
       var t = (frame - 200) / 140;
@@ -1043,7 +1041,6 @@
         ctx.beginPath(); ctx.arc(cx(), cy(), coreR*(1.5+intensity*0.8), 0, Math.PI*2); ctx.fill();
         ctx.restore();
       }
-    }
     } else if(frame < 500){
       // ===== Phase 4: Golden Dan shatters, Yuan Ying emerges (金丹破碎,元婴出世) =====
       var t = (frame - 340) / 160;
@@ -1164,7 +1161,6 @@
           textEl.classList.add("show");
         }
       }
-    }
     } else {
       // ===== Phase 5: Fade out =====
       var t = Math.min(1, (frame - 500) / 40);
