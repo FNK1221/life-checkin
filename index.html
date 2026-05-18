@@ -902,6 +902,48 @@
     text-align: center;
     padding: 60px 20px;
     color: var(--text-muted);
+  }
+  
+  /* 年份指示器 - 固定在顶部 */
+  .timeline-year-indicator {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 20px;
+    z-index: 98;
+    box-shadow: 0 4px 15px rgba(196,122,94,0.3);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  .timeline-year-indicator.show {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
+  
+  .tl-photo-container {
+    width: 100%;
+    min-height: 100px;
+    margin-top: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--accent2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tl-photo-placeholder {
+    font-size: 14px;
+    opacity: 0.7;
+    padding: 20px;
+    text-align: center;
+  }
 
     font-size: 14px;
     line-height: 1.8;
@@ -2702,11 +2744,7 @@ function switchTab(tab) {
 
 // ========== TIMELINE ==========
 var timelineObserver = null;
-var lazyImageObserver = null;
 var allTimelineEntries = []; // 存储所有时间线条目
-var renderedTimelineCount = 0; // 已渲染的条目数
-var isLoadingTimeline = false; // 是否正在加载
-var TIMELINE_BATCH_SIZE = 15; // 每次渲染的条目数
 var currentTimelineYear = ''; // 当前查看的年份
 
 function setupTimelineObserver() {
@@ -2787,18 +2825,23 @@ function setupImageLazyLoad() {
 function renderTimeline() {
   var container = document.getElementById('timelineView');
   var river = container.querySelector('.timeline-river');
-  // 清空非 river 的内容
+  // 清空容器但保留河流
   var children = Array.from(container.children);
   children.forEach(function(c) {
-    if (!c.classList.contains('timeline-river')) c.remove();
+    if (!c.classList.contains('timeline-river') && !c.classList.contains('timeline-year-indicator')) c.remove();
   });
+  
+  // 清空年份指示器
+  var indicator = document.getElementById('timelineYearIndicator');
+  if (indicator) indicator.classList.remove('show');
+  currentTimelineYear = '';
 
   // 准备所有条目
   allTimelineEntries = [];
   ALL_EVENTS.forEach(function(ev) {
     var data = checkinData[ev.id];
     if (data && data.date) {
-      allTimelineEntries.push({ id: ev.id, chapter: ev.chapter, name: ev.name, date: data.date, photo: data.photo, note: data.note, hasAudio: !!data.hasAudio, hasVideo: !!data.hasVideo, hasPhoto: !!data.photo });
+      allTimelineEntries.push({ id: ev.id, chapter: ev.chapter, name: ev.name, date: data.date, note: data.note, hasPhoto: !!data.photo, hasAudio: !!data.hasAudio, hasVideo: !!data.hasVideo });
     }
   });
 
@@ -2813,15 +2856,108 @@ function renderTimeline() {
     return;
   }
 
-  // 重置渲染计数
-  renderedTimelineCount = 0;
-  isLoadingTimeline = false;
+  // 直接渲染所有条目（简化版本）
+  var htmlParts = [];
+  
+  allTimelineEntries.forEach(function(ev, idx) {
+    var year = ev.date.split('-')[0];
+    var lastYear = idx > 0 ? allTimelineEntries[idx-1].date.split('-')[0] : '';
+    
+    if (year !== lastYear) {
+      htmlParts.push('<div class="timeline-year-marker">' + year + ' 年</div>');
+    }
+    
+    var ch = CHAPTERS[ev.chapter];
+    var dateParts = ev.date.split('-');
+    var side = (idx % 2 === 0) ? 'left' : 'right';
+    var hasMedia = ev.hasPhoto || ev.hasAudio || ev.hasVideo;
+    var mediaClass = hasMedia ? 'has-media' : 'no-media';
+    
+    var noteHtml = ev.note ? '<div class="tl-note">💬 ' + escapeHtml(ev.note) + '</div>' : '';
+    var photoHtml = ev.hasPhoto ? '<div class="tl-photo-container" id="tl-photo-' + ev.id + '"><div class="tl-photo-placeholder">📷 加载中...</div></div>' : '';
+    var fleetingMsg = (!hasMedia) ? '<div class="fleeting-msg">「这一刻，只存在于记忆里」<br><span style="font-size:10px;opacity:0.5;">谁的人生没点遗憾呢</span></div>' : '';
+    var mediaDivId = 'tl-media-' + ev.id;
+    
+    htmlParts.push(
+      '<div class="tl-item ' + side + ' ' + mediaClass + '" id="tl-item-' + ev.id + '" data-year="' + year + '">' +
+        '<div class="tl-card">' +
+          '<div class="tl-date">' + dateParts[0] + '.' + parseInt(dateParts[1]) + '.' + parseInt(dateParts[2]) + '</div>' +
+          '<div class="tl-chapter">' + ch.icon + ' ' + ch.title + '</div>' +
+          '<div class="tl-name">' + escapeHtml(ev.name) + '</div>' +
+          noteHtml +
+          photoHtml +
+          '<div class="tl-media-wrap" id="' + mediaDivId + '"></div>' +
+          fleetingMsg +
+        '</div>' +
+      '</div>'
+    );
+  });
+  
+  container.insertAdjacentHTML('beforeend', htmlParts.join('\n'));
+  
+  // 异步加载所有媒体
+  loadTimelineMedia();
+}
 
-  // 渲染第一批
-  renderTimelineBatch(container);
-
-  // 添加哨兵元素用于无限滚动
-  addTimelineSentinel(container);
+// 加载时光轴中的所有媒体
+function loadTimelineMedia() {
+  allTimelineEntries.forEach(function(ev) {
+    if (ev.hasPhoto || ev.hasAudio || ev.hasVideo) {
+      getMediaForEvent(ev.id, function(media) {
+        // 处理照片
+        if (ev.hasPhoto && media.photo) {
+          var photoContainer = document.getElementById('tl-photo-' + ev.id);
+          if (photoContainer) {
+            var img = document.createElement('img');
+            img.className = 'tl-photo';
+            img.dataset.eventId = ev.id;
+            img.alt = ev.name;
+            img.src = media.photo; // base64 字符串直接使用
+            img.onclick = function() { viewPhoto(this.dataset.eventId); };
+            
+            photoContainer.innerHTML = '';
+            photoContainer.appendChild(img);
+          }
+        }
+        
+        // 处理音频
+        if (media.audio) {
+          var mediaDiv = document.getElementById('tl-media-' + ev.id);
+          if (mediaDiv) {
+            var audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = URL.createObjectURL(media.audio);
+            mediaDiv.appendChild(audio);
+          }
+        }
+        
+        // 处理视频
+        if (media.video) {
+          var mediaDiv = document.getElementById('tl-media-' + ev.id);
+          if (mediaDiv) {
+            var video = document.createElement('video');
+            video.controls = true;
+            video.src = URL.createObjectURL(media.video);
+            mediaDiv.appendChild(video);
+          }
+        }
+        
+        // 设置 IntersectionObserver
+        setupTimelineObserver();
+        var el = document.getElementById('tl-item-' + ev.id);
+        if (el && timelineObserver) {
+          timelineObserver.observe(el);
+        }
+      });
+    } else {
+      // 没有媒体，只设置 IntersectionObserver
+      setupTimelineObserver();
+      var el = document.getElementById('tl-item-' + ev.id);
+      if (el && timelineObserver) {
+        timelineObserver.observe(el);
+      }
+    }
+  });
 }
 
 function renderTimelineBatch(container) {
@@ -2896,12 +3032,12 @@ function renderTimelineBatch(container) {
           if (!photoContainer) return;
           
           if (media.photo) {
-            // 创建图片元素
+            // 照片是 base64 字符串，直接使用
             var img = document.createElement('img');
             img.className = 'tl-photo';
             img.dataset.eventId = ev.id;
             img.alt = ev.name;
-            img.src = URL.createObjectURL(media.photo);
+            img.src = media.photo; // base64 字符串直接使用
             img.onclick = function() { viewPhoto(this.dataset.eventId); };
             
             // 替换占位符
@@ -2916,14 +3052,14 @@ function renderTimelineBatch(container) {
           if (media.audio) {
             var audio = document.createElement('audio');
             audio.controls = true;
-            audio.preload = 'none';
+            audio.preload = 'metadata';
             audio.src = URL.createObjectURL(media.audio);
             mediaDiv.appendChild(audio);
           }
           if (media.video) {
             var video = document.createElement('video');
             video.controls = true;
-            video.preload = 'none';
+            video.preload = 'metadata';
             video.src = URL.createObjectURL(media.video);
             mediaDiv.appendChild(video);
           }
@@ -2941,14 +3077,14 @@ function renderTimelineBatch(container) {
           if (media.audio) {
             var audio = document.createElement('audio');
             audio.controls = true;
-            audio.preload = 'none';
+            audio.preload = 'metadata';
             audio.src = URL.createObjectURL(media.audio);
             mediaDiv.appendChild(audio);
           }
           if (media.video) {
             var video = document.createElement('video');
             video.controls = true;
-            video.preload = 'none';
+            video.preload = 'metadata';
             video.src = URL.createObjectURL(media.video);
             mediaDiv.appendChild(video);
           }
