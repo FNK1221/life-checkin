@@ -378,7 +378,34 @@
     backdrop-filter: blur(4px);
   }
   .photo-upload.has-photo .photo-remove { display: flex; }
-  
+
+  /* ========== MEDIA UPLOAD ========== */
+  .media-upload-box {
+    width: 100%;
+    min-height: 80px;
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    position: relative;
+    background: var(--card-alt);
+    padding: 14px 0;
+  }
+  .media-upload-box:active { background: var(--accent); }
+  .media-upload-icon { font-size: 26px; opacity: 0.35; }
+  .media-upload-text { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .audio-review { width: 100%; margin-top: 8px; display: none; }
+  .video-review { width: 100%; border-radius: 12px; margin-top: 8px; display: none; }
+  .media-upload-box.has-media .audio-review,
+  .media-upload-box.has-media .video-review { display: block; }
+  .media-upload-box.has-media .media-upload-icon,
+  .media-upload-box.has-media .media-upload-text { display: none; }
+
   /* ========== BUTTONS ========== */
   .btn-row { display: flex; gap: 12px; margin-top: 22px; }
   .btn {
@@ -683,6 +710,65 @@
   /* ========== SCROLLBAR ========== */
   ::-webkit-scrollbar { width: 0; height: 0; }
   * { scrollbar-width: none; }
+
+  /* ========== MEDIA CONFIRM MODAL ========== */
+  #mediaConfirmModal {
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #mediaConfirmModal.show { display: flex; }
+  .media-confirm-modal {
+    background: var(--card);
+    border-radius: 22px;
+    padding: 36px 28px 28px;
+    text-align: center;
+    max-width: 340px;
+    width: 85%;
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes scaleIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .media-confirm-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .media-confirm-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+  .media-confirm-btns {
+    display: flex;
+    gap: 12px;
+  }
+  .media-confirm-btn {
+    flex: 1;
+    padding: 14px 0;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .media-confirm-btn:active { opacity: 0.75; transform: scale(0.97); }
+  .media-confirm-btn.yes {
+    background: linear-gradient(145deg, var(--primary-light), var(--primary-dark));
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(196, 122, 94, 0.3);
+  }
+  .media-confirm-btn.no {
+    background: var(--card-alt);
+    color: var(--text-light);
+    border: 1.5px solid var(--border);
+  }
 </style>
 </head>
 <body>
@@ -748,6 +834,26 @@
       </div>
       <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">
     </div>
+    <div class="form-group media-upload" id="audioUploadWrap">
+      <label class="form-label">🎵 上传音频（可选）</label>
+      <input type="file" id="audioInput" accept="audio/*" style="display:none" onchange="handleAudio(event)">
+      <div class="media-upload-box" onclick="document.getElementById('audioInput').click()">
+        <span class="media-upload-icon">🎵</span>
+        <span class="media-upload-text">点击上传音频</span>
+        <audio id="audioPreview" class="audio-preview" controls preload="metadata"></audio>
+        <button class="photo-remove" onclick="removeAudio(event)">✕</button>
+      </div>
+    </div>
+    <div class="form-group media-upload" id="videoUploadWrap">
+      <label class="form-label">🎬 上传视频（可选）</label>
+      <input type="file" id="videoInput" accept="video/*" style="display:none" onchange="handleVideo(event)">
+      <div class="media-upload-box" onclick="document.getElementById('videoInput').click()">
+        <span class="media-upload-icon">🎬</span>
+        <span class="media-upload-text">点击上传视频</span>
+        <video id="videoPreview" class="video-preview" controls preload="metadata"></video>
+        <button class="photo-remove" onclick="removeVideo(event)">✕</button>
+      </div>
+    </div>
     <div class="form-group">
       <label class="form-label">💬 心情备注（可选）</label>
       <input type="text" class="form-input" id="checkinNote" placeholder="写点什么吧…" maxlength="100">
@@ -762,12 +868,25 @@
   </div>
 </div>
 
+<!-- MEDIA CONFIRM MODAL -->
+<div class="modal-overlay" id="mediaConfirmModal">
+  <div class="media-confirm-modal">
+    <div class="media-confirm-title">📎 是否有美好记录上传？</div>
+    <div class="media-confirm-subtitle">照片、音频或视频</div>
+    <div class="media-confirm-btns">
+      <button class="media-confirm-btn yes" onclick="handleMediaConfirm(true)">是，上传记录</button>
+      <button class="media-confirm-btn no" onclick="handleMediaConfirm(false)">否，只点亮</button>
+    </div>
+  </div>
+</div>
+
 <!-- DATA MODAL -->
 <div class="modal-overlay" id="dataModal">
   <div class="modal">
     <div class="modal-title">⚙️ 数据管理</div>
     <div class="modal-subtitle">数据仅保存在本设备浏览器中</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:18px;">
+    <div id="storageInfo" style="margin-bottom:12px;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
       <button class="data-btn primary" onclick="exportData()">📤 导出数据（JSON 文件备份）</button>
       <button class="data-btn" onclick="document.getElementById('importInput').click()">📥 导入数据（恢复备份）</button>
       <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
@@ -1116,6 +1235,116 @@
 })();
 
 
+
+// ========== INDEXEDDB HELPERS ==========
+var mediaDB = null;
+function openMediaDB() {
+  if (mediaDB) return Promise.resolve(mediaDB);
+  return new Promise(function(resolve, reject) {
+    var req = indexedDB.open('lifeCheckinMedia', 1);
+    req.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains('media')) {
+        db.createObjectStore('media', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = function(e) { mediaDB = e.target.result; resolve(mediaDB); };
+    req.onerror = function() { reject(req.error); };
+  });
+}
+
+function saveMediaToD(eventId, callback) {
+  openMediaDB().then(function(db) {
+    var tx = db.transaction(['media'], 'readwrite');
+    var store = tx.objectStore('media');
+    // 删除该 eventId 的旧媒体
+    var idx = store.index('eventId');
+    if (!idx) {
+      // 如果没有 eventId 索引，遍历删除
+      store.openCursor().onsuccess = function(e) {
+        var cursor = e.target.result;
+        if (cursor) {
+          if (cursor.value.eventId === eventId) store.delete(cursor.primaryKey);
+          cursor.continue();
+        } else {
+          // 删除完毕，开始写入新媒体
+          writeNewMedia();
+        }
+      };
+    } else {
+      idx.openCursor(IDBKeyRange.only(eventId)).onsuccess = function(e) {
+        var cursor = e.target.result;
+        if (cursor) { cursor.delete(); cursor.continue(); }
+      };
+      tx.oncomplete = function() { writeNewMedia(); };
+    }
+    function writeNewMedia() {
+      var tx2 = db.transaction(['media'], 'readwrite');
+      var store2 = tx2.objectStore('media');
+      var count = 0;
+      function done() { count++; if (count >= 3 && callback) callback(); }
+      if (tempPhotoData) {
+        store2.add({ eventId: eventId, type: 'photo', data: tempPhotoData, timestamp: Date.now() });
+        count++;
+      }
+      if (tempAudioData) { store2.add({ eventId: eventId, type: 'audio', data: tempAudioData, timestamp: Date.now() }); count++; }
+      if (tempVideoData) { store2.add({ eventId: eventId, type: 'video', data: tempVideoData, timestamp: Date.now() }); count++; }
+      if (callback && count === 0) callback();
+    }
+  }).catch(function(err) { if (callback) callback(); });
+}
+
+function getMediaForEvent(eventId, callback) {
+  openMediaDB().then(function(db) {
+    var tx = db.transaction(['media'], 'readonly');
+    var store = tx.objectStore('media');
+    var result = { photo: null, audio: null, video: null };
+    store.openCursor().onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        if (cursor.value.eventId === eventId) {
+          result[cursor.value.type] = cursor.value.data;
+        }
+        cursor.continue();
+      } else {
+        callback(result);
+      }
+    };
+  }).catch(function() { callback({ photo: null, audio: null, video: null }); });
+}
+
+function deleteMediaForEvent(eventId, callback) {
+  openMediaDB().then(function(db) {
+    var tx = db.transaction(['media'], 'readwrite');
+    var store = tx.objectStore('media');
+    store.openCursor().onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        if (cursor.value.eventId === eventId) store.delete(cursor.primaryKey);
+        cursor.continue();
+      } else {
+        if (callback) callback();
+      }
+    };
+  }).catch(function() { if (callback) callback(); });
+}
+
+function getStorageUsage(callback) {
+  if (navigator.storage && navigator.storage.estimate) {
+    navigator.storage.estimate().then(function(estimate) {
+      callback({
+        localStorage: JSON.stringify(checkinData).length,
+        indexedDB: estimate.usage || 0,
+        quota: estimate.quota || 0
+      });
+    });
+  } else {
+    var size = JSON.stringify(checkinData).length;
+    callback({ localStorage: size, indexedDB: 0, quota: 0 });
+  }
+}
+// ===============================================
+
 // ========== DATA ==========
 var CHAPTERS = [
   {
@@ -1299,6 +1528,8 @@ var TOTAL = ALL_EVENTS.length;
 var checkinData = {};
 var currentEventId = null;
 var tempPhotoData = null;
+var tempAudioData = null;
+var tempVideoData = null;
 
 // ========== INIT ==========
 function init() {
@@ -1351,7 +1582,7 @@ function renderList() {
           var checked = checkinData[id];
           var metaHtml = checked ? renderMeta(checked) : '';
           return '' +
-            '<div class="event-item' + (checked ? ' checked' : '') + '" onclick="openCheckin(\'' + id + '\')">' +
+            '<div class="event-item' + (checked ? ' checked' : '') + '" onclick="confirmMediaUpload(\'' + id + '\')">' +
               '<div class="event-check">' + (checked ? '✓' : '') + '</div>' +
               '<div class="event-info">' +
                 '<div class="event-name">' + escapeHtml(ev) + '</div>' +
@@ -1394,7 +1625,17 @@ function updateProgress() {
 }
 
 // ========== MODAL ==========
-function openCheckin(eventId) {
+function confirmMediaUpload(eventId) {
+  currentEventId = eventId;
+  document.getElementById('mediaConfirmModal').classList.add('show');
+}
+
+function handleMediaConfirm(isMedia) {
+  document.getElementById('mediaConfirmModal').classList.remove('show');
+  openCheckinModal(currentEventId, isMedia);
+}
+
+function openCheckinModal(eventId, withMedia) {
   currentEventId = eventId;
   tempPhotoData = null;
   var ev = ALL_EVENTS.find(function(e) { return e.id === eventId; });
@@ -1410,10 +1651,16 @@ function openCheckin(eventId) {
       clearPhotoPreview();
     }
     document.getElementById('deleteBtnWrap').style.display = 'block';
+    // 根据 withMedia 显示/隐藏媒体上传区
+    var mediaWraps = document.querySelectorAll('.media-upload');
+    for (var i = 0; i < mediaWraps.length; i++) {
+      mediaWraps[i].style.display = withMedia ? '' : 'none';
+    }
   } else {
     document.getElementById('checkinDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('checkinNote').value = '';
     clearPhotoPreview();
+    clearMediaPreview();
     document.getElementById('deleteBtnWrap').style.display = 'none';
   }
 
@@ -1434,25 +1681,31 @@ function submitCheckin() {
   checkinData[currentEventId] = {
     date: date,
     photo: tempPhotoData,
+    hasAudio: !!tempAudioData,
+    hasVideo: !!tempVideoData,
     note: note,
     timestamp: Date.now()
   };
 
   saveData();
-  closeModal();
-  renderList();
-  updateProgress();
-  showToast('🌟 打卡成功！');
+  saveMediaToDB(currentEventId, function() {
+    closeModal();
+    renderList();
+    updateProgress();
+    showToast('🌟 打卡成功！');
+  });
 }
 
 function deleteCheckin() {
   if (!currentEventId) return;
-  delete checkinData[currentEventId];
-  saveData();
-  closeModal();
-  renderList();
-  updateProgress();
-  showToast('已删除打卡记录');
+  deleteMediaForEvent(currentEventId, function() {
+    delete checkinData[currentEventId];
+    saveData();
+    closeModal();
+    renderList();
+    updateProgress();
+    showToast('已删除打卡记录');
+  });
 }
 
 // ========== PHOTO ==========
@@ -1510,6 +1763,63 @@ function removePhoto(e) {
   clearPhotoPreview();
 }
 
+function clearMediaPreview() {
+  var audioBox = document.getElementById('audioUploadWrap');
+  var videoBox = document.getElementById('videoUploadWrap');
+  var audioPreview = document.getElementById('audioPreview');
+  var videoPreview = document.getElementById('videoPreview');
+  if (audioPreview) { audioPreview.src = ''; audioPreview.style.display = 'none'; }
+  if (videoPreview) { videoPreview.src = ''; videoPreview.style.display = 'none'; }
+  if (audioBox) audioBox.classList.remove('has-media');
+  if (videoBox) videoBox.classList.remove('has-media');
+  document.getElementById('audioInput').value = '';
+  document.getElementById('videoInput').value = '';
+  tempAudioData = null;
+  tempVideoData = null;
+}
+
+function handleAudio(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { showToast('⚠️ 音频不能超过 10MB'); return; }
+  tempAudioData = file;
+  var preview = document.getElementById('audioPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+  document.getElementById('audioUploadWrap').classList.add('has-media');
+}
+
+function handleVideo(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) { showToast('⚠️ 视频不能超过 20MB'); return; }
+  tempVideoData = file;
+  var preview = document.getElementById('videoPreview');
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+  document.getElementById('videoUploadWrap').classList.add('has-media');
+}
+
+function removeAudio(e) {
+  e.stopPropagation();
+  tempAudioData = null;
+  var preview = document.getElementById('audioPreview');
+  preview.src = '';
+  preview.style.display = 'none';
+  document.getElementById('audioUploadWrap').classList.remove('has-media');
+  document.getElementById('audioInput').value = '';
+}
+
+function removeVideo(e) {
+  e.stopPropagation();
+  tempVideoData = null;
+  var preview = document.getElementById('videoPreview');
+  preview.src = '';
+  preview.style.display = 'none';
+  document.getElementById('videoUploadWrap').classList.remove('has-media');
+  document.getElementById('videoInput').value = '';
+}
+
 // ========== TABS ==========
 function switchTab(tab) {
   document.getElementById('mainList').classList.toggle('hidden', tab !== 'list');
@@ -1531,7 +1841,7 @@ function renderTimeline() {
   ALL_EVENTS.forEach(function(ev) {
     var data = checkinData[ev.id];
     if (data && data.date) {
-      entries.push({ id: ev.id, chapter: ev.chapter, name: ev.name, date: data.date, photo: data.photo, note: data.note });
+      entries.push({ id: ev.id, chapter: ev.chapter, name: ev.name, date: data.date, photo: data.photo, note: data.note, hasAudio: !!data.hasAudio, hasVideo: !!data.hasVideo });
     }
   });
 
@@ -1549,10 +1859,10 @@ function renderTimeline() {
   container.innerHTML = entries.map(function(ev) {
     var ch = CHAPTERS[ev.chapter];
     var dateParts = ev.date.split('-');
-    var photoHtml = ev.photo ? '<img class="timeline-photo" src="' + ev.photo + '" onclick="viewPhoto(\'' + ev.id + '\')">' : '';
     var noteHtml = ev.note ? '<div class="timeline-note">💬 ' + escapeHtml(ev.note) + '</div>' : '';
+    var photoHtml = ev.photo ? '<img class="timeline-photo" data-event-id="' + ev.id + '">' : '';
     return '' +
-      '<div class="timeline-item">' +
+      '<div class="timeline-item" id="tl-item-' + ev.id + '">' +
         '<div class="timeline-date">' +
           '<div class="timeline-day">' + parseInt(dateParts[2]) + '</div>' +
           '<div class="timeline-month">' + dateParts[0] + '年' + parseInt(dateParts[1]) + '月</div>' +
@@ -1562,9 +1872,47 @@ function renderTimeline() {
           '<div class="timeline-name">' + escapeHtml(ev.name) + '</div>' +
           noteHtml +
           photoHtml +
+          '<div class="tl-media" id="tl-media-' + ev.id + '"></div>' +
         '</div>' +
       '</div>';
   }).join('');
+
+  // 为照片绑定点击事件（事件委托）
+  var photos = container.querySelectorAll('.timeline-photo');
+  photos.forEach(function(img) {
+    img.addEventListener('click', function() {
+      viewPhoto(this.getAttribute('data-event-id'));
+    });
+  });
+
+  // 异步加载 IndexedDB 中的音视频
+  entries.forEach(function(ev) {
+    if (ev.hasAudio || ev.hasVideo) {
+      getMediaForEvent(ev.id, function(media) {
+        var mediaDiv = document.getElementById('tl-media-' + ev.id);
+        if (!mediaDiv) return;
+        if (media.audio) {
+          var audio = document.createElement('audio');
+          audio.controls = true;
+          audio.preload = 'metadata';
+          audio.src = URL.createObjectURL(media.audio);
+          audio.style.width = '100%';
+          audio.style.marginTop = '8px';
+          mediaDiv.appendChild(audio);
+        }
+        if (media.video) {
+          var video = document.createElement('video');
+          video.controls = true;
+          video.preload = 'metadata';
+          video.src = URL.createObjectURL(media.video);
+          video.style.width = '100%';
+          video.style.borderRadius = '12px';
+          video.style.marginTop = '8px';
+          mediaDiv.appendChild(video);
+        }
+      });
+    }
+  });
 }
 
 function viewPhoto(eventId) {
@@ -1643,6 +1991,25 @@ function renderStats() {
 // ========== DATA MANAGEMENT ==========
 function showDataPanel() {
   document.getElementById('dataModal').classList.add('show');
+  updateStorageDisplay();
+}
+function updateStorageDisplay() {
+  getStorageUsage(function(info) {
+    var lsKB = (info.localStorage / 1024).toFixed(1);
+    var idbMB = (info.indexedDB / 1024 / 1024).toFixed(1);
+    var quotaMB = info.quota ? (info.quota / 1024 / 1024).toFixed(0) : '未知';
+    var el = document.getElementById('storageInfo');
+    if (el) {
+      el.innerHTML = '<div style="font-size:13px;color:var(--text-muted);line-height:2;">' +
+        '<div>localStorage 占用：<b>' + lsKB + ' KB</b></div>' +
+        '<div>媒体存储占用：<b>' + idbMB + ' MB</b></div>' +
+        '<div>可用存储空间：<b>' + quotaMB + ' MB</b></div>' +
+        '<div style="margin-top:8px;height:6px;background:var(--accent);border-radius:3px;overflow:hidden;">' +
+          '<div style="height:100%;width:' + Math.min(100, info.indexedDB / info.quota * 100 || 0) + '%;background:var(--primary);border-radius:3px;"></div>' +
+        '</div>' +
+      '</div>';
+    }
+  });
 }
 function closeDataPanel() {
   document.getElementById('dataModal').classList.remove('show');
