@@ -693,8 +693,15 @@
   }
 
   /* ========== STATS VIEW ========== */
-  .stats-view { display: none; padding: 12px; }
-  .stats-view.show { display: block; }
+  #statsView { display: none; padding: 12px; }
+  #statsView.show { display: block; }
+
+  /* ========== VIEW VISIBILITY (fix: tabs were broken) ========== */
+  .hidden { display: none !important; }
+  #mainList { display: block; }
+  #timelineView { display: none; }
+  #timelineView.show { display: block; position: relative; min-height: 60vh; }
+  #statsView.show { display: block; }
   
   .stats-hero {
     background: linear-gradient(145deg, #d4a574, #c47a5e, #b86248);
