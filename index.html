@@ -794,15 +794,34 @@
     line-height: 1.5;
     margin-top: 6px;
   }
-  .tl-photo {
-    width: 100%;
-    max-height: 180px;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-top: 8px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
+.tl-photo {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.tl-photo[data-lazy="true"] {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.tl-photo.loaded {
+  opacity: 1;
+}
+.tl-photo-placeholder {
+  width: 100%;
+  height: 180px;
+  background: var(--accent2);
+  border-radius: 10px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  opacity: 0.5;
+}
   .tl-photo:active { transform: scale(0.97); }
   .tl-media-wrap {
     margin-top: 8px;
@@ -2636,6 +2655,11 @@ function switchTab(tab) {
 
 // ========== TIMELINE ==========
 var timelineObserver = null;
+var lazyImageObserver = null;
+var allTimelineEntries = []; // 存储所有时间线条目
+var renderedTimelineCount = 0; // 已渲染的条目数
+var isLoadingTimeline = false; // 是否正在加载
+var TIMELINE_BATCH_SIZE = 15; // 每次渲染的条目数
 
 function setupTimelineObserver() {
   if (timelineObserver) return;
@@ -2659,6 +2683,27 @@ function setupTimelineObserver() {
   }, { threshold: 0.5 });
 }
 
+// 图片懒加载观察器
+var lazyImageObserver = null;
+function setupImageLazyLoad() {
+  if (lazyImageObserver) return;
+  lazyImageObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var img = entry.target;
+        var dataSrc = img.getAttribute('data-src');
+        if (dataSrc && !img.src) {
+          img.src = dataSrc;
+          img.removeAttribute('data-src');
+          img.removeAttribute('data-lazy');
+          img.classList.add('loaded');
+        }
+        lazyImageObserver.unobserve(img);
+      }
+    });
+  }, { rootMargin: '100px' });
+}
+
 function renderTimeline() {
   var container = document.getElementById('timelineView');
   var river = container.querySelector('.timeline-river');
@@ -2668,49 +2713,66 @@ function renderTimeline() {
     if (!c.classList.contains('timeline-river')) c.remove();
   });
 
-  var entries = [];
+  // 准备所有条目
+  allTimelineEntries = [];
   ALL_EVENTS.forEach(function(ev) {
     var data = checkinData[ev.id];
     if (data && data.date) {
-      entries.push({ id: ev.id, chapter: ev.chapter, name: ev.name, date: data.date, photo: data.photo, note: data.note, hasAudio: !!data.hasAudio, hasVideo: !!data.hasVideo, hasPhoto: !!data.photo });
+      allTimelineEntries.push({ id: ev.id, chapter: ev.chapter, name: ev.name, date: data.date, photo: data.photo, note: data.note, hasAudio: !!data.hasAudio, hasVideo: !!data.hasVideo, hasPhoto: !!data.photo });
     }
   });
 
-  entries.sort(function(a, b) {
+  allTimelineEntries.sort(function(a, b) {
     if (a.date > b.date) return -1;
     if (a.date < b.date) return 1;
     return 0;
   });
 
-  if (entries.length === 0) {
+  if (allTimelineEntries.length === 0) {
     container.innerHTML = '<div class="timeline-empty">🌱<br>还没有打卡记录<br>去清单里点亮你的第一个经历吧</div>';
     return;
   }
 
-  // 提取年份列表，插入年份刻度
-  var lastYear = '';
-  var htmlParts = [];
+  // 重置渲染计数
+  renderedTimelineCount = 0;
+  isLoadingTimeline = false;
 
-  entries.forEach(function(ev, idx) {
+  // 渲染第一批
+  renderTimelineBatch(container);
+
+  // 添加哨兵元素用于无限滚动
+  addTimelineSentinel(container);
+}
+
+function renderTimelineBatch(container) {
+  if (isLoadingTimeline || renderedTimelineCount >= allTimelineEntries.length) return;
+  
+  isLoadingTimeline = true;
+  var end = Math.min(renderedTimelineCount + TIMELINE_BATCH_SIZE, allTimelineEntries.length);
+  var htmlParts = [];
+  
+  for (var i = renderedTimelineCount; i < end; i++) {
+    var ev = allTimelineEntries[i];
     var year = ev.date.split('-')[0];
+    var lastYear = i > 0 ? allTimelineEntries[i-1].date.split('-')[0] : '';
+    
     if (year !== lastYear) {
-      lastYear = year;
       htmlParts.push('<div class="timeline-year-marker" style="top:auto;position:relative;display:inline-block;left:50%;transform:translateX(-50%);margin:18px auto;">' + year + ' 年</div>');
     }
-
+    
     var ch = CHAPTERS[ev.chapter];
     var dateParts = ev.date.split('-');
-    var side = (idx % 2 === 0) ? 'left' : 'right';
+    var side = (i % 2 === 0) ? 'left' : 'right';
     var hasMedia = ev.hasPhoto || ev.hasAudio || ev.hasVideo;
     var mediaClass = hasMedia ? 'has-media' : 'no-media';
-
+    
     var noteHtml = ev.note ? '<div class="tl-note">💬 ' + escapeHtml(ev.note) + '</div>' : '';
-    var photoHtml = ev.photo ? '<img class="tl-photo" data-event-id="' + ev.id + '" src="' + ev.photo + '">' : '';
+    var photoHtml = ev.photo ? '<div class="tl-photo-placeholder">📷</div><img class="tl-photo" data-event-id="' + ev.id + '" data-src="' + ev.photo + '" data-lazy="true" alt="' + escapeHtml(ev.name) + '">' : '';
     var fleetingMsg = (!hasMedia) ? '<div class="fleeting-msg">「这一刻，只存在于记忆里」<br><span style="font-size:10px;opacity:0.5;">谁的人生没点遗憾呢</span></div>' : '';
     var mediaDivId = 'tl-media-' + ev.id;
-
+    
     htmlParts.push(
-      '<div class="tl-item ' + side + ' ' + mediaClass + '" id="tl-item-' + ev.id + '" style="animation-delay:' + (idx * 0.08) + 's">' +
+      '<div class="tl-item ' + side + ' ' + mediaClass + '" id="tl-item-' + ev.id + '">' +
         '<div class="tl-card">' +
           '<div class="tl-date">' + dateParts[0] + '.' + parseInt(dateParts[1]) + '.' + parseInt(dateParts[2]) + '</div>' +
           '<div class="tl-chapter">' + ch.icon + ' ' + ch.title + '</div>' +
@@ -2722,23 +2784,31 @@ function renderTimeline() {
         '</div>' +
       '</div>'
     );
-  });
-
-  // 使用 fragment 批量插入
+  }
+  
   container.insertAdjacentHTML('beforeend', htmlParts.join('\n'));
-
+  renderedTimelineCount = end;
+  isLoadingTimeline = false;
+  
+  // 设置图片懒加载
+  setupImageLazyLoad();
+  container.querySelectorAll('.tl-photo[data-lazy="true"]').forEach(function(img) {
+    if (lazyImageObserver) lazyImageObserver.observe(img);
+  });
+  
   // 照片点击查看大图
   container.querySelectorAll('.tl-photo').forEach(function(img) {
     img.addEventListener('click', function() {
       viewPhoto(this.getAttribute('data-event-id'));
     });
   });
-
+  
   // 异步加载 IndexedDB 中的音视频
-  entries.forEach(function(ev) {
+  for (var j = renderedTimelineCount - TIMELINE_BATCH_SIZE; j < end; j++) {
+    var ev = allTimelineEntries[j];
     if (ev.hasAudio || ev.hasVideo) {
-      getMediaForEvent(ev.id, function(media) {
-        var mediaDiv = document.getElementById('tl-media-' + ev.id);
+      getMediaForEvent(ev.id, function(media, eventId) {
+        var mediaDiv = document.getElementById('tl-media-' + eventId);
         if (!mediaDiv) return;
         if (media.audio) {
           var audio = document.createElement('audio');
@@ -2754,20 +2824,44 @@ function renderTimeline() {
           video.src = URL.createObjectURL(media.video);
           mediaDiv.appendChild(video);
         }
-        // 媒体加载完毕后，设置观察器
         setupTimelineObserver();
-        var el = document.getElementById('tl-item-' + ev.id);
+        var el = document.getElementById('tl-item-' + eventId);
         if (el && timelineObserver) timelineObserver.observe(el);
-      });
+      }.bind(null, ev.id));
     } else {
-      // 无媒体的也要观察（给 playing 类用）
       setupTimelineObserver();
       var el = document.getElementById('tl-item-' + ev.id);
       if (el && timelineObserver) timelineObserver.observe(el);
     }
-  });
+  }
+  
+  // 如果还有更多条目，添加哨兵元素
+  if (renderedTimelineCount < allTimelineEntries.length) {
+    addTimelineSentinel(container);
+  }
 }
 
+function addTimelineSentinel(container) {
+  // 移除旧的哨兵
+  var oldSentinel = document.getElementById('timeline-sentinel');
+  if (oldSentinel) oldSentinel.remove();
+  
+  // 添加新哨兵
+  var sentinel = document.createElement('div');
+  sentinel.id = 'timeline-sentinel';
+  sentinel.style.height = '1px';
+  container.appendChild(sentinel);
+  
+  if (window.timelineSentinelObserver) window.timelineSentinelObserver.disconnect();
+  
+  window.timelineSentinelObserver = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) {
+      renderTimelineBatch(container);
+    }
+  }, { rootMargin: '200px' });
+  
+  window.timelineSentinelObserver.observe(sentinel);
+}
 
 
 function viewPhoto(eventId) {
