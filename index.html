@@ -1155,13 +1155,6 @@
     if(animDone) { finishLoading(); return; }
     ctx.clearRect(0, 0, W(), H());
 
-    textEl.classList.add("show");
-    if(frame > 60 && frame < 400){
-      textEl.textContent = "孕育中…";
-    } else if(frame >= 400){
-      textEl.textContent = "即将破茧…";
-    }
-
     // ===== Phase 1: Two orbs approach (Milky White + Light Yellow) =====
     if(frame < 120){
       var t = frame / 120;
