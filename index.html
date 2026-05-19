@@ -1951,6 +1951,117 @@
   }
   .muyu-click-count.show { opacity: 1; }
 
+  /* ========== DAY MODE CLOUDS ========== */
+  .day-clouds { display: block; }
+  html.dark-theme .day-clouds { display: none; }
+  .cloud {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.55;
+    filter: blur(0.5px);
+    transition: opacity 0.6s ease;
+  }
+  .cloud-puff {
+    position: absolute;
+    background: radial-gradient(ellipse at 40% 60%, rgba(255,255,255,0.95), rgba(255,255,255,0.6) 60%, rgba(255,255,255,0) 100%);
+    border-radius: 50%;
+  }
+  /* 云朵1：左上，小 */
+  .cloud-1 { top: 18px; left: 70px; width: 60px; height: 28px; animation: cloudFloat1 8s ease-in-out infinite; }
+  .cloud-1 .cloud-puff:nth-child(1) { width: 28px; height: 22px; top: 6px; left: 4px; }
+  .cloud-1 .cloud-puff:nth-child(2) { width: 34px; height: 26px; top: 2px; left: 16px; }
+  .cloud-1 .cloud-puff:nth-child(3) { width: 24px; height: 20px; top: 8px; left: 36px; }
+
+  /* 云朵2：右上，中 */
+  .cloud-2 { top: 12px; right: 60px; width: 80px; height: 34px; animation: cloudFloat2 10s ease-in-out infinite; }
+  .cloud-2 .cloud-puff:nth-child(1) { width: 34px; height: 26px; top: 8px; left: 6px; }
+  .cloud-2 .cloud-puff:nth-child(2) { width: 42px; height: 30px; top: 2px; left: 22px; }
+  .cloud-2 .cloud-puff:nth-child(3) { width: 30px; height: 24px; top: 6px; left: 48px; }
+  .cloud-2 .cloud-puff:nth-child(4) { width: 20px; height: 18px; top: 12px; left: 64px; }
+
+  /* 云朵3：进度圈下方左侧，小 */
+  .cloud-3 { bottom: 38px; left: 20px; width: 50px; height: 22px; animation: cloudFloat3 9s ease-in-out infinite; opacity: 0.4; }
+  .cloud-3 .cloud-puff:nth-child(1) { width: 22px; height: 18px; top: 4px; left: 2px; }
+  .cloud-3 .cloud-puff:nth-child(2) { width: 28px; height: 20px; top: 1px; left: 14px; }
+  .cloud-3 .cloud-puff:nth-child(3) { width: 20px; height: 16px; top: 5px; left: 32px; }
+
+  /* 云朵4：进度圈下方右侧，中 */
+  .cloud-4 { bottom: 42px; right: 16px; width: 70px; height: 30px; animation: cloudFloat4 11s ease-in-out infinite; opacity: 0.45; }
+  .cloud-4 .cloud-puff:nth-child(1) { width: 30px; height: 24px; top: 6px; left: 4px; }
+  .cloud-4 .cloud-puff:nth-child(2) { width: 38px; height: 28px; top: 1px; left: 20px; }
+  .cloud-4 .cloud-puff:nth-child(3) { width: 26px; height: 20px; top: 8px; left: 46px; }
+
+  @keyframes cloudFloat1 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(8px, -4px); }
+  }
+  @keyframes cloudFloat2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-10px, 5px); }
+  }
+  @keyframes cloudFloat3 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(6px, 3px); }
+  }
+  @keyframes cloudFloat4 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-7px, -3px); }
+  }
+
+  /* 移动端云朵尺寸缩小 */
+  @media (max-width: 640px) {
+    .cloud-1 { top: 14px; left: 58px; width: 42px; height: 20px; }
+    .cloud-1 .cloud-puff:nth-child(1) { width: 20px; height: 16px; }
+    .cloud-1 .cloud-puff:nth-child(2) { width: 24px; height: 18px; left: 12px; }
+    .cloud-1 .cloud-puff:nth-child(3) { width: 18px; height: 14px; left: 26px; }
+    .cloud-2 { top: 10px; right: 50px; width: 56px; height: 24px; }
+    .cloud-2 .cloud-puff:nth-child(1) { width: 24px; height: 18px; }
+    .cloud-2 .cloud-puff:nth-child(2) { width: 30px; height: 22px; left: 16px; }
+    .cloud-2 .cloud-puff:nth-child(3) { width: 22px; height: 17px; left: 36px; }
+    .cloud-2 .cloud-puff:nth-child(4) { width: 16px; height: 13px; left: 48px; }
+    .cloud-3 { bottom: 32px; left: 8px; width: 36px; height: 16px; }
+    .cloud-3 .cloud-puff:nth-child(1) { width: 16px; height: 13px; }
+    .cloud-3 .cloud-puff:nth-child(2) { width: 20px; height: 15px; left: 10px; }
+    .cloud-3 .cloud-puff:nth-child(3) { width: 14px; height: 11px; left: 24px; }
+    .cloud-4 { bottom: 36px; right: 8px; width: 48px; height: 21px; }
+    .cloud-4 .cloud-puff:nth-child(1) { width: 22px; height: 17px; }
+    .cloud-4 .cloud-puff:nth-child(2) { width: 26px; height: 20px; left: 14px; }
+    .cloud-4 .cloud-puff:nth-child(3) { width: 18px; height: 14px; left: 32px; }
+  }
+  @media (max-width: 380px) {
+    .cloud-1 { left: 50px; width: 36px; height: 17px; }
+    .cloud-2 { right: 40px; width: 46px; height: 20px; }
+    .cloud-3 { display: none; }
+    .cloud-4 { display: none; }
+  }
+
+  /* ========== NIGHT MODE STARS ========== */
+  .night-stars { display: none; }
+  html.dark-theme .night-stars { display: block; }
+  .star {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    animation: starTwinkle var(--dur) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+  .star svg { display: block; }
+
+  @keyframes starTwinkle {
+    0%, 100% { opacity: var(--o1, 0.3); transform: scale(1); }
+    50% { opacity: var(--o2, 0.95); transform: scale(1.25); }
+  }
+
+  /* 流星 */
+  .shooting-star {
+    position: fixed;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+  }
+  .shooting-star svg { display: block; }
+
   /* ========== PHILOSOPHY POPUP ========== */
   .phil-overlay {
     display: none;
@@ -2117,6 +2228,32 @@
     </div>
   </div>
   <div class="header-decoration"></div>
+  <!-- 白天云朵 -->
+  <div class="day-clouds">
+    <div class="cloud cloud-1">
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+    </div>
+    <div class="cloud cloud-2">
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+    </div>
+    <div class="cloud cloud-3">
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+    </div>
+    <div class="cloud cloud-4">
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+      <div class="cloud-puff"></div>
+    </div>
+  </div>
+  <!-- 夜晚星星容器 -->
+  <div class="night-stars" id="nightStars"></div>
 </div>
 
 <!-- SEARCH BOX -->
@@ -4962,7 +5099,6 @@ function showToast(msg) {
 function toggleTheme() {
   var html = document.documentElement;
   var isDark = html.classList.contains('dark-theme');
-  // 添加过渡动画类
   html.classList.add('theme-transitioning');
   setTimeout(function() { html.classList.remove('theme-transitioning'); }, 500);
 
@@ -4970,10 +5106,12 @@ function toggleTheme() {
     html.classList.remove('dark-theme');
     document.getElementById('themeToggle').textContent = '🌙';
     localStorage.setItem('lifeCheckinTheme', 'light');
+    destroyNightEffects();
   } else {
     html.classList.add('dark-theme');
     document.getElementById('themeToggle').textContent = '☀️';
     localStorage.setItem('lifeCheckinTheme', 'dark');
+    setTimeout(initNightEffects, 100);
   }
 }
 
@@ -4983,6 +5121,7 @@ function loadTheme() {
     document.documentElement.classList.add('dark-theme');
     var btn = document.getElementById('themeToggle');
     if (btn) btn.textContent = '☀️';
+    setTimeout(initNightEffects, 300);
   }
 }
 
@@ -5114,9 +5253,115 @@ function initMuyu() {
   MUYU_TARGET = Math.floor(Math.random() * 6) + 3; // 3~8 次
 }
 
+// ========== NIGHT EFFECTS (星星 + 流星) ==========
+var nightEffectsActive = false;
+var shootingStarTimer = null;
+var shootingStarKeyframesDefined = false;
+
+function initNightEffects() {
+  if (nightEffectsActive) return;
+  nightEffectsActive = true;
+
+  if (!shootingStarKeyframesDefined) {
+    shootingStarKeyframesDefined = true;
+    var style = document.createElement('style');
+    style.id = 'shooting-star-keyframes';
+    style.textContent =
+      '@keyframes shootingStarFly {' +
+        '0% { opacity:0; }' +
+        '12% { opacity:1; }' +
+        '100% { opacity:0; transform: translate(-220px, 110px) scale(0.2); }' +
+      '}';
+    document.head.appendChild(style);
+  }
+
+  generateStars();
+  scheduleShootingStar();
+}
+
+function destroyNightEffects() {
+  nightEffectsActive = false;
+  if (shootingStarTimer) { clearTimeout(shootingStarTimer); shootingStarTimer = null; }
+  var starContainer = document.getElementById('nightStars');
+  if (starContainer) starContainer.innerHTML = '';
+  var ssContainer = document.getElementById('shootingStarsContainer');
+  if (ssContainer) ssContainer.innerHTML = '';
+}
+
+function generateStars() {
+  var starContainer = document.getElementById('nightStars');
+  var header = document.getElementById('mainHeader');
+  if (!starContainer || !header) return;
+  starContainer.innerHTML = '';
+  var rect = header.getBoundingClientRect();
+  var count = 18 + Math.floor(Math.random() * 10);
+  for (var i = 0; i < count; i++) {
+    var star = document.createElement('div');
+    star.className = 'star';
+    var size = 2 + Math.random() * 3.5;
+    var x = Math.random() * Math.max(rect.width - size, 1);
+    var y = Math.random() * Math.max(rect.height - size, 1);
+    var dur = (1.2 + Math.random() * 2.8) + 's';
+    var delay = (Math.random() * 3.5) + 's';
+    var o1 = (0.25 + Math.random() * 0.35).toFixed(2);
+    var o2 = (0.65 + Math.random() * 0.35).toFixed(2);
+    star.style.left = x + 'px';
+    star.style.top = y + 'px';
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.setProperty('--dur', dur);
+    star.style.setProperty('--delay', delay);
+    star.style.setProperty('--o1', o1);
+    star.style.setProperty('--o2', o2);
+    star.style.borderRadius = '50%';
+    star.style.background = 'radial-gradient(circle, rgba(255,255,255,' + o2 + '), rgba(255,255,255,0) 70%)';
+    star.style.boxShadow = '0 0 ' + (size + 2) + 'px rgba(255,255,255,' + (parseFloat(o2) * 0.5) + ')';
+    starContainer.appendChild(star);
+  }
+}
+
+function scheduleShootingStar() {
+  if (!nightEffectsActive) return;
+  var delay = 3000 + Math.random() * 6000;
+  shootingStarTimer = setTimeout(function() {
+    createShootingStar();
+    scheduleShootingStar();
+  }, delay);
+}
+
+function createShootingStar() {
+  var container = document.getElementById('shootingStarsContainer');
+  if (!container) return;
+  var star = document.createElement('div');
+  star.className = 'shooting-star';
+
+  var startX, startY;
+  if (Math.random() > 0.4) {
+    startX = window.innerWidth * 0.5 + Math.random() * window.innerWidth * 0.5;
+    startY = -10;
+  } else {
+    startX = window.innerWidth + 10;
+    startY = Math.random() * window.innerHeight * 0.4;
+  }
+
+  var len = 60 + Math.random() * 80;
+  var dur = (0.5 + Math.random() * 0.5).toFixed(2); // 0.5~1.0s
+
+  star.style.cssText =
+    'position:fixed;left:' + startX + 'px;top:' + startY + 'px;' +
+    'width:' + len + 'px;height:1.5px;' +
+    'background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,0.9) 60%,#fff);' +
+    'border-radius:1px;pointer-events:none;z-index:3;' +
+    'opacity:0;animation:shootingStarFly ' + dur + 's ease-out forwards;';
+
+  container.appendChild(star);
+  setTimeout(function() { if (star.parentNode) star.remove(); }, 1200);
+}
+
 // ========== START ==========
 loadTheme();
 init();
 </script>
+<div id="shootingStarsContainer" style="position:fixed;inset:0;pointer-events:none;z-index:3;"></div>
 </body>
 </html>
