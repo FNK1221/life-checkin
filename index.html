@@ -2240,8 +2240,8 @@
   }
 </style>
 
-  <!-- 载入音乐 -->
-  <audio id="loadingAudio" src="loading_music.mp3" preload="auto" muted></audio>
+  <!-- 载入音乐：静音自动播放，然后立即取消静音 -->
+  <audio id="loadingAudio" src="loading_music.mp3" autoplay muted></audio>
 </head>
 <body>
 
@@ -2672,7 +2672,7 @@
   // 音色：晶莹水滴（正弦波+高频瞬态），河水声（滤波噪声）
   
 
-  // ===== 载入音乐系统（简单可靠）=====
+  // ===== 载入音乐系统（尝试无交互自动播放）=====
   var loadingAudio = null;
   var audioUnlocked = false;
   
@@ -2683,24 +2683,58 @@
       console.warn('[audio] 找不到 audio 元素');
       return;
     }
-    loadingAudio.load();  // 预加载
-    console.log('[audio] 音频已初始化');
-  }
-  
-  function tryPlayLoadingMusic() {
-    if (!loadingAudio || audioUnlocked) return;
     
-    var playPromise = loadingAudio.play();
-    if (playPromise !== undefined) {
-      playPromise.then(function() {
+    // 技巧1: 监听 play 事件（即使静音也会触发）
+    loadingAudio.addEventListener('play', function onPlay() {
+      if (audioUnlocked) return;
+      console.log('[audio] play 事件触发，尝试取消静音...');
+      loadingAudio.muted = false;
+      loadingAudio.volume = 1.0;
+      // 再次尝试播放（取消静音后）
+      loadingAudio.play().then(function() {
         audioUnlocked = true;
-        console.log('[audio] 音乐已开始播放');
-      }).catch(function(err) {
-        console.log('[audio] 自动播放被阻止，等待用户交互...');
-        // 监听用户交互，解锁音频
-        unlockAudioOnInteraction();
+        console.log('[audio] ✅ 音乐已成功播放（无交互）');
+      }).catch(function(e) {
+        console.log('[audio] 取消静音后播放失败:', e.message);
       });
-    }
+      loadingAudio.removeEventListener('play', onPlay);
+    });
+    
+    // 技巧2: 监听 canplay 事件
+    loadingAudio.addEventListener('canplay', function onCanPlay() {
+      if (audioUnlocked) return;
+      console.log('[audio] canplay 事件触发，尝试播放...');
+      loadingAudio.muted = false;
+      loadingAudio.volume = 1.0;
+      loadingAudio.play().then(function() {
+        audioUnlocked = true;
+        console.log('[audio] ✅ 音乐已通过 canplay 事件播放');
+      }).catch(function(e) {
+        console.log('[audio] canplay 事件播放失败:', e.message);
+      });
+      loadingAudio.removeEventListener('canplay', onCanPlay);
+    });
+    
+    // 技巧3: 立即尝试取消静音并播放
+    setTimeout(function() {
+      if (audioUnlocked) return;
+      console.log('[audio] 尝试技巧3: 延迟播放...');
+      loadingAudio.muted = false;
+      loadingAudio.volume = 1.0;
+      loadingAudio.play().then(function() {
+        audioUnlocked = true;
+        console.log('[audio] ✅ 音乐已通过延迟播放成功');
+      }).catch(function(e) {
+        console.log('[audio] 延迟播放失败:', e.message);
+        // 最后备用：等待用户交互
+        if (!audioUnlocked) {
+          console.log('[audio] 所有自动播放尝试失败，等待用户交互...');
+          unlockAudioOnInteraction();
+        }
+      });
+    }, 100);
+    
+    console.log('[audio] 音频已初始化，尝试自动播放...');
   }
   
   function unlockAudioOnInteraction() {
@@ -2708,10 +2742,12 @@
     var handler = function() {
       if (audioUnlocked) return;
       audioUnlocked = true;
+      loadingAudio.muted = false;
+      loadingAudio.volume = 1.0;
       loadingAudio.play().then(function() {
         console.log('[audio] 音乐已通过用户交互开始播放');
       }).catch(function(e) {
-        console.warn('[audio] 播放失败:', e);
+        console.warn('[audio] 用户交互后播放失败:', e);
       });
       events.forEach(function(evt) {
         document.removeEventListener(evt, handler);
@@ -2721,8 +2757,6 @@
       document.addEventListener(evt, handler, { once: true, passive: true });
     });
   }
-  
-  function fadeOutLoadingMusic() {
     if (!loadingAudio) return;
     
     var audio = loadingAudio;
