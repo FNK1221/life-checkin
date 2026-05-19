@@ -1031,9 +1031,6 @@
     opacity: 0.7;
     padding: 20px;
     text-align: center;
-  }
-
-    font-size: 14px;
     line-height: 1.8;
   }
 
@@ -1614,7 +1611,10 @@
     .header { padding: 18px 12px 22px; }
     .header h1 { font-size: 19px; }
     .progress-circle-wrap { width: 130px; height: 130px; }
+    .progress-circle-text { white-space: nowrap; }
     .progress-circle-text .pct { font-size: 30px; }
+    .progress-circle-text .pct-label { font-size: 10px; letter-spacing: 1px; }
+    .progress-circle-text .pct-count { font-size: 11px; margin-top: 2px; }
     .header-stats { gap: 14px; }
     .header-stat-num { font-size: 16px; }
     .header-stat-label { font-size: 9px; }
@@ -1640,7 +1640,10 @@
   @media (max-width: 380px) {
     .header h1 { font-size: 17px; }
     .progress-circle-wrap { width: 110px; height: 110px; }
-    .progress-circle-text .pct { font-size: 26px; }
+    .progress-circle-text { white-space: nowrap; }
+    .progress-circle-text .pct { font-size: 24px; }
+    .progress-circle-text .pct-label { font-size: 9px; letter-spacing: 0.5px; }
+    .progress-circle-text .pct-count { font-size: 10px; margin-top: 1px; }
     .header-stats { gap: 8px; }
     .tl-item { padding-left: 32px !important; }
   }
@@ -2945,9 +2948,20 @@ function removeVideo(e) {
 // ========== TABS ==========
 function switchTab(tab) {
   try {
-    document.getElementById('mainList').classList.toggle('hidden', tab !== 'list');
-    document.getElementById('timelineView').classList.toggle('show', tab === 'timeline');
-    document.getElementById('statsView').classList.toggle('show', tab === 'stats');
+    var mainList = document.getElementById('mainList');
+    var timelineView = document.getElementById('timelineView');
+    var statsView = document.getElementById('statsView');
+
+    // 显式设置 display 确保互斥显示（内联样式优先级最高，不受CSS解析错误影响）
+    if (mainList) mainList.style.display = tab === 'list' ? 'block' : 'none';
+    if (timelineView) timelineView.style.display = tab === 'timeline' ? 'block' : 'none';
+    if (statsView) statsView.style.display = tab === 'stats' ? 'block' : 'none';
+
+    // 同时更新类名保持样式一致性
+    if (mainList) mainList.classList.toggle('hidden', tab !== 'list');
+    if (timelineView) timelineView.classList.toggle('show', tab === 'timeline');
+    if (statsView) statsView.classList.toggle('show', tab === 'stats');
+
     document.getElementById('tabList').classList.toggle('active', tab === 'list');
     document.getElementById('tabTimeline').classList.toggle('active', tab === 'timeline');
     document.getElementById('tabStats').classList.toggle('active', tab === 'stats');
@@ -2955,8 +2969,10 @@ function switchTab(tab) {
 
     if (tab === 'timeline') renderTimeline();
     if (tab === 'stats') renderStats();
+
+    // 切换标签后平滑滚动回顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch(e) {
-    alert('Tab切换出错: ' + e.message);
     console.error('switchTab error:', e);
   }
 }
@@ -3072,7 +3088,15 @@ function renderTimeline() {
   });
 
   if (allTimelineEntries.length === 0) {
-    container.innerHTML = '<div class="timeline-empty">🌱<br>还没有打卡记录<br>去清单里点亮你的第一个经历吧</div>';
+    // 安全清空：保留河流和年份指示器
+    var children = Array.from(container.children);
+    children.forEach(function(c) {
+      if (!c.classList.contains('timeline-river') && !c.classList.contains('timeline-year-indicator')) c.remove();
+    });
+    var emptyDiv = document.createElement('div');
+    emptyDiv.className = 'timeline-empty';
+    emptyDiv.innerHTML = '🌱<br>还没有打卡记录<br>去清单里点亮你的第一个经历吧';
+    container.appendChild(emptyDiv);
     return;
   }
 
