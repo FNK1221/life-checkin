@@ -127,6 +127,10 @@
     transition: background 0.6s ease, box-shadow 0.6s ease;
     overflow: hidden;
   }
+  .header-inner {
+    position: relative;
+    z-index: 1;
+  }
   .header[data-tab="timeline"] {
     background: linear-gradient(145deg, #0f1a2e 0%, #1a2744 50%, #0d1520 100%);
     box-shadow: 0 4px 20px rgba(0, 20, 60, 0.35);
@@ -1109,10 +1113,8 @@
   }
 
   /* ========== STATS VIEW ========== */
-  #statsView { display: none; padding: 12px; }
-  #statsView.show { display: block; }
-
-  /* ========== VIEW VISIBILITY (fix: tabs were broken) ========== */
+  #statsView { display: none !important; padding: 12px; }
+  #statsView.show { display: block !important; }
   .hidden { display: none !important; }
   #mainList { display: block; }
   #timelineView { display: none !important; }
@@ -2250,7 +2252,7 @@
 </div>
 
 <!-- HEADER -->
-<div class="header" id="mainHeader">
+<div class="header" id="mainHeader"><div class="header-inner">
   <!-- 木鱼按钮已移至搜索框上方 -->
   <h1>🌅 人生体验卡</h1>
   <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">🌙</button>
@@ -2432,6 +2434,7 @@
   </div>
   <!-- 夜晚星星容器 -->
   <div class="night-stars" id="nightStars"></div>
+  </div>
 </div>
 
 <!-- SEARCH BOX -->
@@ -3379,6 +3382,13 @@ function saveData() {
 
 // ========== RENDER LIST ==========
 function renderList() {
+  // 保存章节展开/收起状态
+  var chapterStates = [];
+  CHAPTERS.forEach(function(ch, ci) {
+    var el = document.getElementById('chapter-' + ci);
+    chapterStates[ci] = el ? el.classList.contains('open') : !ch.events.every(function(_, ei) { return !!checkinData[ci + '-' + ei]; });
+  });
+
   var container = document.getElementById('mainList');
   container.innerHTML = '';
 
@@ -3479,6 +3489,17 @@ function renderList() {
       '</div>';
 
     container.appendChild(chapterDiv);
+  });
+
+  // 恢复章节展开/收起状态
+  CHAPTERS.forEach(function(ch, ci) {
+    var el = document.getElementById('chapter-' + ci);
+    if (!el) return;
+    if (chapterStates[ci]) {
+      el.classList.add('open');
+    } else {
+      el.classList.remove('open');
+    }
   });
 }
 
