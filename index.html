@@ -1847,79 +1847,69 @@
   /* ========== MOBILE: FAB ========== */
   @media (max-width: 640px) {
     .fab-btn { bottom: calc(76px + env(safe-area-inset-bottom)); right: 16px; width: 50px; height: 50px; font-size: 24px; }
-  /* ========== MUYU (木鱼) BUTTON ========== */
-  .muyu-btn {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: none;
-    background: radial-gradient(circle at 35% 35%, #e8d5b0, #c8960b 50%, #8b6914 100%);
-    box-shadow:
-      0 3px 12px rgba(139,105,20,0.35),
-      inset 0 2px 6px rgba(255,255,200,0.35),
-      inset 0 -2px 6px rgba(0,0,0,0.2);
-    font-size: 0;
-    cursor: pointer;
-    z-index: 101;
+  /* ========== MUYU (木鱼) WRAPPER ========== */
+  .muyu-wrapper {
     display: flex;
     align-items: center;
+    gap: 8px;
+    padding: 10px 12px 4px;
+    position: relative;
+  }
+  /* ========== MUYU (木鱼) BUTTON – 新设计 ========== */
+  .muyu-btn-new {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    gap: 1px;
     transition: transform 0.08s;
     -webkit-tap-highlight-color: transparent;
-    /* 木鱼纹理 */
-    background-image:
-      radial-gradient(circle at 50% 40%, rgba(255,255,200,0.2) 0%, transparent 60%),
-      radial-gradient(circle at 30% 70%, rgba(0,0,0,0.1) 0%, transparent 50%);
-  }
-  .muyu-btn:active { transform: scale(0.85); }
-  /* 木鱼主体造型 */
-  .muyu-btn .fish-body {
-    width: 36px;
-    height: 30px;
-    background: radial-gradient(ellipse at 50% 40%, #d4a845, #a07818 70%, #6b4a10 100%);
-    border-radius: 50% 50% 52% 52% / 42% 42% 58% 58%;
     position: relative;
-    box-shadow: inset 0 2px 4px rgba(255,255,200,0.3), inset 0 -1px 3px rgba(0,0,0,0.25);
+    /* 精致木质渐变 */
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,220,140,0.45) 0%, transparent 55%),
+      radial-gradient(circle at 65% 70%, rgba(120,60,10,0.35) 0%, transparent 50%),
+      linear-gradient(145deg, #d4a843 0%, #b8922a 40%, #8b6914 100%);
+    box-shadow:
+      0 3px 10px rgba(100,60,10,0.35),
+      0 1px 3px rgba(100,60,10,0.25),
+      inset 0 2px 5px rgba(255,220,140,0.4),
+      inset 0 -2px 5px rgba(60,30,5,0.4);
   }
-  /* 木鱼嘴巴 */
-  .muyu-btn .fish-body::before {
+  .muyu-btn-new:active { transform: scale(0.82); }
+  /* 木鱼按钮光泽 */
+  .muyu-btn-new::before {
     content: '';
     position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 10px;
-    height: 6px;
-    background: #5a4010;
-    border-radius: 0 0 50% 50%;
+    top: 6px; left: 10px;
+    width: 16px; height: 8px;
+    background: rgba(255,240,180,0.3);
+    border-radius: 50%;
+    transform: rotate(-25deg);
+    pointer-events: none;
   }
-  /* 木鱼顶部按钮（敲击处）*/
-  .muyu-btn .fish-head {
-    position: absolute;
-    top: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 14px;
-    height: 10px;
-    background: radial-gradient(circle at 50% 30%, #e8c870, #a07818 100%);
-    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  .muyu-emoji {
+    font-size: 22px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+    position: relative;
+    z-index: 1;
   }
-  /* 木鱼两侧纹路 */
-  .muyu-btn .fish-body::after {
-    content: '';
-    position: absolute;
-    top: 7px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 2px;
-    background: rgba(80,60,10,0.35);
-    border-radius: 1px;
-    box-shadow: 0 5px 0 rgba(80,60,10,0.25), 0 10px 0 rgba(80,60,10,0.15);
+  .muyu-label {
+    font-size: 9px;
+    color: rgba(255,240,200,0.85);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 1;
   }
   .muyu-ripple {
     position: fixed;
@@ -1934,9 +1924,6 @@
     100% { transform: scale(2.5); opacity: 0; }
   }
   .muyu-click-count {
-    position: absolute;
-    top: 14px;
-    left: 58px;
     font-size: 11px;
     color: var(--primary);
     background: var(--card);
@@ -2155,25 +2142,16 @@
 
   /* ========== MOBILE: 木鱼 + 哲理弹窗 ========== */
   @media (max-width: 640px) {
-    .muyu-btn {
-      top: 10px;
-      left: 10px;
-      width: 40px;
-      height: 40px;
+    .muyu-wrapper { padding: 8px 10px 2px; }
+    .muyu-btn-new {
+      width: 44px;
+      height: 44px;
     }
-    .muyu-btn .fish-head {
-      width: 10px;
-      height: 8px;
-      top: -3px;
-    }
-    .muyu-btn .fish-body {
-      width: 30px;
-      height: 25px;
-    }
+    .muyu-emoji { font-size: 18px; }
+    .muyu-label { font-size: 8px; }
     .muyu-click-count {
-      top: 10px;
-      left: 50px;
       font-size: 10px;
+      padding: 2px 8px;
     }
     .phil-card { padding: 32px 20px 28px; border-radius: 22px; }
     .phil-quote { font-size: 15px; }
@@ -2191,11 +2169,7 @@
 
 <!-- HEADER -->
 <div class="header" id="mainHeader">
-  <button class="muyu-btn" id="muyuBtn" onclick="clickMuyu(event)" title="敲木鱼积功德">
-    <div class="fish-head"></div>
-    <div class="fish-body"></div>
-  </button>
-  <div class="muyu-click-count" id="muyuClickCount"></div>
+  <!-- 木鱼按钮已移至搜索框上方 -->
   <h1>🌅 人生体验卡</h1>
   <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">🌙</button>
   <div class="progress-circle-wrap">
@@ -2254,6 +2228,15 @@
   </div>
   <!-- 夜晚星星容器 -->
   <div class="night-stars" id="nightStars"></div>
+</div>
+
+<!-- 木鱼按钮：搜索框上方左侧 -->
+<div class="muyu-wrapper" id="muyuWrapper">
+  <button class="muyu-btn-new" id="muyuBtn" onclick="clickMuyu(event)" title="敲木鱼积功德">
+    <span class="muyu-emoji">🪘</span>
+    <span class="muyu-label">积功德</span>
+  </button>
+  <div class="muyu-click-count" id="muyuClickCount"></div>
 </div>
 
 <!-- SEARCH BOX -->
