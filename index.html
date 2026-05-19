@@ -1847,70 +1847,7 @@
   /* ========== MOBILE: FAB ========== */
   @media (max-width: 640px) {
     .fab-btn { bottom: calc(76px + env(safe-area-inset-bottom)); right: 16px; width: 50px; height: 50px; font-size: 24px; }
-  /* ========== MUYU (木鱼) WRAPPER ========== */
-  .muyu-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px 4px;
-    position: relative;
-  }
-  /* ========== MUYU (木鱼) BUTTON – 新设计 ========== */
-  .muyu-btn-new {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    z-index: 99;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
-    transition: transform 0.08s;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-    /* 精致木质渐变 */
-    background:
-      radial-gradient(circle at 35% 30%, rgba(255,220,140,0.45) 0%, transparent 55%),
-      radial-gradient(circle at 65% 70%, rgba(120,60,10,0.35) 0%, transparent 50%),
-      linear-gradient(145deg, #d4a843 0%, #b8922a 40%, #8b6914 100%);
-    box-shadow:
-      0 3px 10px rgba(100,60,10,0.35),
-      0 1px 3px rgba(100,60,10,0.25),
-      inset 0 2px 5px rgba(255,220,140,0.4),
-      inset 0 -2px 5px rgba(60,30,5,0.4);
-  }
-  .muyu-btn-new:active { transform: scale(0.82); }
-  /* 木鱼按钮光泽 */
-  .muyu-btn-new::before {
-    content: '';
-    position: absolute;
-    top: 6px; left: 10px;
-    width: 16px; height: 8px;
-    background: rgba(255,240,180,0.3);
-    border-radius: 50%;
-    transform: rotate(-25deg);
-    pointer-events: none;
-  }
-  .muyu-emoji {
-    font-size: 22px;
-    line-height: 1;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-    position: relative;
-    z-index: 1;
-  }
-  .muyu-label {
-    font-size: 9px;
-    color: rgba(255,240,200,0.85);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    line-height: 1;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    position: relative;
-    z-index: 1;
-  }
+  /* ========== MUYU (木鱼) RIPPLE ========== */
   .muyu-ripple {
     position: fixed;
     border-radius: 50%;
@@ -1923,20 +1860,6 @@
     0% { transform: scale(0.5); opacity: 1; }
     100% { transform: scale(2.5); opacity: 0; }
   }
-  .muyu-click-count {
-    font-size: 11px;
-    color: var(--primary);
-    background: var(--card);
-    padding: 3px 10px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    z-index: 101;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  .muyu-click-count.show { opacity: 1; }
 
   /* ========== DAY MODE CLOUDS ========== */
   .day-clouds { display: block; }
@@ -2167,31 +2090,47 @@
     transition: transform 0.08s;
     -webkit-tap-highlight-color: transparent;
     position: relative;
+    overflow: visible;
   }
-  .muyu-btn-svg:active { transform: scale(0.82); }
-  .muyu-svg { width: 44px; height: 44px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
-  .muyu-label-svg {
-    font-size: 9px;
-    color: var(--primary);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    opacity: 0.8;
+  .muyu-btn-svg:active { transform: scale(0.92); }
+  .muyu-svg { width: 50px; height: 44px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); position: relative; z-index: 1; }
+  /* 木槌 */
+  .muyu-mallet {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    top: -10px;
+    right: -6px;
+    z-index: 2;
+    pointer-events: none;
+    transform-origin: 70% 80%;
+    transform: rotate(0deg);
+    transition: transform 0.15s ease-out;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  }
+  .muyu-btn-svg.tapping .muyu-mallet {
+    animation: malletTap 0.3s ease-in-out;
+  }
+  @keyframes malletTap {
+    0%   { transform: rotate(0deg) translate(0, 0); }
+    40%  { transform: rotate(-28deg) translate(-2px, 4px); }
+    60%  { transform: rotate(-22deg) translate(-1px, 2px); }
+    100% { transform: rotate(0deg) translate(0, 0); }
+  }
+  /* 木鱼被敲击时的微震动 */
+  .muyu-btn-svg.tapping .muyu-svg {
+    animation: muyuShake 0.3s ease-in-out;
+  }
+  @keyframes muyuShake {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(0, 1px); }
+    50%  { transform: translate(0, -1px); }
+    75%  { transform: translate(0, 0.5px); }
+    100% { transform: translate(0, 0); }
   }
   .muyu-click-count {
-    font-size: 10px;
-    color: var(--primary);
-    background: var(--card);
-    padding: 2px 8px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    z-index: 101;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
+    display: none !important;
   }
-  .muyu-click-count.show { opacity: 1; }
   .muyu-ripple {
     position: fixed;
     border-radius: 50%;
@@ -2214,12 +2153,9 @@
       width: 48px;
       height: 48px;
     }
-    .muyu-svg { width: 34px; height: 34px; }
-    .muyu-label-svg { font-size: 8px; }
-    .muyu-click-count {
-      font-size: 9px;
-      padding: 1px 6px;
-    }
+    .muyu-svg { width: 40px; height: 36px; }
+    .muyu-mallet { width: 26px; height: 26px; top: -8px; right: -4px; }
+    .muyu-click-count { display: none !important; }
     .phil-card { padding: 32px 20px 28px; border-radius: 22px; }
     .phil-quote { font-size: 15px; }
   }
@@ -2230,6 +2166,9 @@
       bottom: 8px;
       transform: none;
     }
+    .muyu-btn-svg { width: 42px; height: 42px; }
+    .muyu-svg { width: 34px; height: 30px; }
+    .muyu-mallet { width: 22px; height: 22px; top: -6px; right: -3px; }
   }
 </style>
 </head>
@@ -2264,44 +2203,63 @@
   </div>
   <!-- 木鱼按钮：进度圈左侧 -->
   <div class="muyu-by-progress" id="muyuByProgress">
-    <button class="muyu-btn-svg" id="muyuBtn" onclick="clickMuyu(event)" title="敲木鱼积功德">
-      <svg class="muyu-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <button class="muyu-btn-svg" id="muyuBtn" onclick="clickMuyu(event)" title="敲木鱼">
+      <svg class="muyu-svg" viewBox="0 0 80 70" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="muyuBody" cx="40%" cy="35%">
-            <stop offset="0%" stop-color="#f5deb3"/>
-            <stop offset="50%" stop-color="#d2b48c"/>
-            <stop offset="100%" stop-color="#8b6914"/>
+          <!-- 木鱼主体木质渐变 -->
+          <radialGradient id="muyuWood" cx="45%" cy="30%" r="65%">
+            <stop offset="0%" stop-color="#e8c896"/>
+            <stop offset="35%" stop-color="#c9a065"/>
+            <stop offset="70%" stop-color="#a0783a"/>
+            <stop offset="100%" stop-color="#7a5a20"/>
           </radialGradient>
-          <radialGradient id="muyuTop" cx="40%" cy="25%">
-            <stop offset="0%" stop-color="#fff8dc"/>
-            <stop offset="100%" stop-color="#c8960b"/>
+          <!-- 木鱼高光 -->
+          <radialGradient id="muyuHighlight" cx="35%" cy="25%" r="40%">
+            <stop offset="0%" stop-color="rgba(255,245,220,0.45)"/>
+            <stop offset="100%" stop-color="rgba(255,245,220,0)"/>
           </radialGradient>
+          <!-- 裂缝内部阴影 -->
+          <linearGradient id="muyuSlit" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#4a3010"/>
+            <stop offset="50%" stop-color="#2a1a08"/>
+            <stop offset="100%" stop-color="#4a3010"/>
+          </linearGradient>
         </defs>
-        <!-- 木鱼主体：椭圆 -->
-        <ellipse cx="32" cy="36" rx="24" ry="16" fill="url(#muyuBody)" stroke="#6b4a10" stroke-width="1.2"/>
-        <!-- 鱼头（左侧） -->
-        <path d="M8 36 Q4 28 12 22 Q18 16 26 22 Q24 30 22 36" fill="#c8960b" stroke="#6b4a10" stroke-width="0.8"/>
-        <circle cx="16" cy="26" r="1.8" fill="#5a3000"/>
-        <!-- 鱼尾（右侧装饰） -->
-        <path d="M56 36 Q60 28 56 22" fill="none" stroke="#6b4a10" stroke-width="0.8" opacity="0.4"/>
-        <path d="M56 36 Q60 44 56 50" fill="none" stroke="#6b4a10" stroke-width="0.8" opacity="0.4"/>
-        <!-- 鱼鳞纹路 -->
-        <path d="M20 30 Q23 27 26 30" fill="none" stroke="#6b4a10" stroke-width="0.4" opacity="0.35"/>
-        <path d="M26 34 Q29 31 32 34" fill="none" stroke="#6b4a10" stroke-width="0.4" opacity="0.35"/>
-        <path d="M32 30 Q35 27 38 30" fill="none" stroke="#6b4a10" stroke-width="0.4" opacity="0.35"/>
-        <path d="M38 35 Q41 32 44 35" fill="none" stroke="#6b4a10" stroke-width="0.4" opacity="0.35"/>
-        <!-- 顶部敲击钮 -->
-        <circle cx="32" cy="18" r="5.5" fill="url(#muyuTop)" stroke="#6b4a10" stroke-width="0.8"/>
-        <circle cx="30.5" cy="16.5" r="1.2" fill="rgba(255,255,220,0.5)"/>
-        <!-- 中间裂缝（发声口） -->
-        <line x1="32" y1="22" x2="32" y2="50" stroke="#5a3000" stroke-width="1.2" opacity="0.5"/>
-        <ellipse cx="32" cy="36" rx="1.5" ry="14" fill="#5a3000" opacity="0.25"/>
+        <!-- 底部小柄 -->
+        <ellipse cx="18" cy="58" rx="6" ry="4" fill="#8b6914" opacity="0.8"/>
+        <path d="M14 58 Q18 64 22 58" fill="none" stroke="#6b4a10" stroke-width="1" opacity="0.5"/>
+        <!-- 木鱼主体：倾斜椭球形 -->
+        <path d="M18 30 Q14 45 22 55 Q30 62 48 58 Q64 52 68 38 Q72 24 62 16 Q50 8 34 14 Q22 18 18 30Z" fill="url(#muyuWood)" stroke="#6b4a10" stroke-width="1"/>
+        <!-- 高光层 -->
+        <path d="M22 26 Q20 38 26 48 Q34 54 48 50 Q60 46 62 34 Q64 24 56 18 Q46 14 32 18 Q24 20 22 26Z" fill="url(#muyuHighlight)"/>
+        <!-- 中间裂缝（发声口）- 弯曲的月牙形 -->
+        <path d="M28 32 Q38 38 52 30 Q54 29 53 32 Q38 42 26 35 Q24 33 28 32Z" fill="url(#muyuSlit)"/>
+        <!-- 裂缝边缘高光 -->
+        <path d="M28 31 Q38 37 52 29" fill="none" stroke="rgba(255,230,180,0.4)" stroke-width="0.8"/>
+        <!-- 木质纹理线条 -->
+        <path d="M24 24 Q36 20 52 22" fill="none" stroke="rgba(107,74,16,0.15)" stroke-width="0.6"/>
+        <path d="M22 36 Q34 34 56 32" fill="none" stroke="rgba(107,74,16,0.12)" stroke-width="0.5"/>
+        <path d="M26 46 Q38 48 54 44" fill="none" stroke="rgba(107,74,16,0.1)" stroke-width="0.5"/>
         <!-- 底部阴影 -->
-        <ellipse cx="32" cy="54" rx="16" ry="2.5" fill="rgba(90,50,0,0.12)"/>
+        <ellipse cx="44" cy="60" rx="22" ry="3" fill="rgba(90,50,0,0.15)"/>
       </svg>
-      <span class="muyu-label-svg">积功德</span>
+      <!-- 木槌 -->
+      <svg class="muyu-mallet" id="muyuMallet" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="malletHead" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#d4a843"/>
+            <stop offset="100%" stop-color="#8b6914"/>
+          </linearGradient>
+        </defs>
+        <!-- 槌柄 -->
+        <line x1="32" y1="4" x2="20" y2="28" stroke="#a0783a" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- 槌头 -->
+        <ellipse cx="34" cy="6" rx="7" ry="5" fill="url(#malletHead)" stroke="#6b4a10" stroke-width="0.8" transform="rotate(-25 34 6)"/>
+        <!-- 槌头高光 -->
+        <ellipse cx="32" cy="4" rx="3" ry="2" fill="rgba(255,240,200,0.4)" transform="rotate(-25 32 4)"/>
+      </svg>
     </button>
-    <div class="muyu-click-count" id="muyuClickCount"></div>
+    <div class="muyu-click-count" id="muyuClickCount" style="display:none;"></div>
   </div>
   <div class="header-stats" id="headerStats">
     <div class="header-stat-item">
@@ -5217,6 +5175,8 @@ function toggleTheme() {
     document.getElementById('themeToggle').textContent = '🌙';
     localStorage.setItem('lifeCheckinTheme', 'light');
     destroyNightEffects();
+    // 切换到白天后重新随机云朵位置
+    setTimeout(randomizeClouds, 100);
   } else {
     html.classList.add('dark-theme');
     document.getElementById('themeToggle').textContent = '☀️';
@@ -5295,24 +5255,20 @@ function createMuyuRipple(x, y) {
 var MUYU_TIMEOUT = null;
 
 function clickMuyu(e) {
-  MUYU_CLICKS++;
   playMuyuSound();
   if (e) createMuyuRipple(e.clientX, e.clientY);
 
-  var remain = MUYU_TARGET - MUYU_CLICKS;
-  var countEl = document.getElementById('muyuClickCount');
-  if (countEl) {
-    if (remain > 0) {
-      countEl.textContent = '🪵 功德 +1（再 ' + remain + ' 次）';
-      countEl.classList.add('show');
-      clearTimeout(MUYU_TIMEOUT);
-      MUYU_TIMEOUT = setTimeout(function() { countEl.classList.remove('show'); }, 1800);
-    }
+  // 木槌敲击动画
+  var btn = document.getElementById('muyuBtn');
+  if (btn) {
+    btn.classList.remove('tapping');
+    void btn.offsetWidth; // 强制重绘
+    btn.classList.add('tapping');
+    setTimeout(function() { btn.classList.remove('tapping'); }, 350);
   }
 
-  if (MUYU_CLICKS >= MUYU_TARGET) {
-    setTimeout(function() { showPhilPopup(); }, 400);
-  }
+  // 直接显示随机名言（无需积累次数）
+  setTimeout(function() { showPhilPopup(); }, 300);
 }
 
 // ========== PHILOSOPHY QUOTES LIBRARY ==========
@@ -5345,7 +5301,6 @@ var MUYU_QUOTES = [
 ];
 
 function showPhilPopup() {
-  initMuyu(); // 重置，为下次做准备
   var pick = MUYU_QUOTES[Math.floor(Math.random() * MUYU_QUOTES.length)];
   document.getElementById('philIcon').textContent = pick.icon;
   document.getElementById('philCategory').textContent = pick.cat;
@@ -5359,8 +5314,7 @@ function closePhilPopup() {
 }
 
 function initMuyu() {
-  MUYU_CLICKS = 0;
-  MUYU_TARGET = Math.floor(Math.random() * 6) + 3; // 3~8 次
+  // 已废弃：不再使用点击计数机制
 }
 
 // ========== NIGHT EFFECTS (星星 + 流星) ==========
