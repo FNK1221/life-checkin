@@ -110,6 +110,9 @@
     min-height: 100vh;
     padding-bottom: 80px;
     -webkit-font-smoothing: antialiased;
+    max-width: 640px;
+    margin: 0 auto;
+    position: relative;
   }
   
   /* ========== HEADER ========== */
@@ -699,8 +702,10 @@
   .bottom-bar {
     position: fixed;
     bottom: 0;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 640px;
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -801,7 +806,7 @@
   .timeline-year-indicator {
     position: fixed;
     top: 90px;
-    right: 20px;
+    right: max(20px, calc((100vw - 640px) / 2 + 20px));
     background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
     color: #fff;
     font-size: 18px;
@@ -1007,7 +1012,7 @@
   .timeline-year-indicator {
     position: fixed;
     top: 90px;
-    right: 20px;
+    right: max(20px, calc((100vw - 640px) / 2 + 20px));
     background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
     color: #fff;
     font-size: 18px;
@@ -1686,7 +1691,7 @@
   .fab-btn {
     position: fixed;
     bottom: calc(80px + env(safe-area-inset-bottom));
-    right: 20px;
+    right: max(20px, calc((100vw - 640px) / 2 + 20px));
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -2066,7 +2071,7 @@
   /* ========== MUYU (木鱼) 进度圈左侧 ========== */
   .muyu-by-progress {
     position: absolute;
-    left: max(8px, calc(50% - 130px));
+    left: max(8px, calc(50% - 170px));
     top: 50%;
     transform: translateY(-50%);
     z-index: 101;
