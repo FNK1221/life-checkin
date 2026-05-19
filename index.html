@@ -2664,126 +2664,229 @@
   }
 
   
-  // ===== 载入旋律（Web Audio 合成，五声音阶） =====
-  var _musicCtx = null;
-  var _musicReady = false;
+  // ===== 载入音乐：与动画同步，无需用户点击 =====
+  var _ctx = null;      // AudioContext
+  var _master = null;   // 主音量节点
+  var _musicStarted = false;
+  var _sources = [];    // 所有音源，用于淡出时断开
   
-  function _initMusic() {
-    if (_musicReady) return;
+  // 静默预热：页面加载时立即创建并激活 AudioContext（绕过浏览器自动播放策略）
+  function _warmupAudio() {
+    if (_ctx) return;
     try {
-      _musicCtx = new (window.AudioContext || window.webkitAudioContext)();
-      _musicReady = true;
-    } catch(e) {}
+      _ctx = new (window.AudioContext || window.webkitAudioContext)();
+      _master = _ctx.createGain();
+      _master.gain.value = 0;  // 音量为0，静默预热
+      _master.connect(_ctx.destination);
+      
+      // 播放一个静默音，激活上下文
+      var osc = _ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 440;
+      var g = _ctx.createGain();
+      g.gain.value = 0;
+      osc.connect(g); g.connect(_master);
+      osc.start(_ctx.currentTime);
+      osc.stop(_ctx.currentTime + 0.1);
+      
+      // 稍微提高音量，准备播放音乐
+      setTimeout(function() {
+        if (_ctx && _ctx.state === 'suspended') _ctx.resume();
+        _master.gain.value = 0.18;
+      }, 100);
+      
+      console.log('[audio] 静默预热完成，音频上下文已激活');
+    } catch(e) { console.warn('[audio] 预热失败', e); }
   }
   
-  // 首次用户交互后激活音频（浏览器自动播放策略）
-  document.addEventListener('click', function _unlockAudio() {
-    _initMusic();
-    if (_musicCtx && _musicCtx.state === 'suspended') _musicCtx.resume();
-    document.removeEventListener('click', _unlockAudio);
-  }, { once: true });
-
-  // 用木鱼音色演奏一个音符（freq: 频率，t: currentTime，dur: 持续时间）
-  function _muyuNote(freq, t, dur) {
-    if (!_musicCtx) return;
-    var vol = 0.18; // 旋律音量，轻柔
+  // 页面加载时立即预热（不需要用户交互）
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _warmupAudio);
+  } else {
+    _warmupAudio();
+  }
+  // 同时也监听第一次交互（双重保险）
+  ['click','touchstart','mousedown','keydown'].forEach(function(evt) {
+    document.addEventListener(evt, function cb() {
+      _warmupAudio();
+      if (_ctx && _ctx.state === 'suspended') _ctx.resume();
+      document.removeEventListener(evt, cb);
+    }, { once: true, passive: true });
+  });
+  
+  // ===== 核心：播放一个木鱼音符 =====
+  function _muyuNote(freq, startTime, dur, vol) {
+    if (!_ctx || !_master) return;
+    vol = vol || 0.15;
+    var t = startTime;
     
-    // 1. 木鱼敲击瞬态（尖锐起音）
-    var cLen = Math.max(16, Math.floor(_musicCtx.sampleRate * 0.002));
-    var cBuf = _musicCtx.createBuffer(1, cLen, _musicCtx.sampleRate);
+    // 音高随机微调（±3%），模拟生命的不完美感
+    var fRand = freq * (1 + (Math.random() - 0.5) * 0.06);
+    
+    // 1. 木鱼敲击瞬态（尖锐起音，更柔和）
+    var cLen = Math.max(16, Math.floor(_ctx.sampleRate * 0.003));
+    var cBuf = _ctx.createBuffer(1, cLen, _ctx.sampleRate);
     var cData = cBuf.getChannelData(0);
     for (var ci = 0; ci < cLen; ci++) {
-      cData[ci] = (Math.random() * 2 - 1) * Math.exp(-ci / (cLen * 0.15));
+      cData[ci] = (Math.random() * 2 - 1) * Math.exp(-ci / (cLen * 0.12));
     }
-    var cSrc = _musicCtx.createBufferSource();
+    var cSrc = _ctx.createBufferSource();
     cSrc.buffer = cBuf;
-    var cF = _musicCtx.createBiquadFilter();
-    cF.type = 'bandpass'; cF.frequency.value = 3500; cF.Q.value = 18;
-    var cG = _musicCtx.createGain();
-    cG.gain.setValueAtTime(vol * 1.4, t);
-    cG.gain.exponentialRampToValueAtTime(0.001, t + 0.012);
-    cSrc.connect(cF); cF.connect(cG); cG.connect(_musicCtx.destination);
-    cSrc.start(t); cSrc.stop(t + 0.012);
-
-    // 2. 主共鸣（音高随 freq 变化，模拟木鱼不同音高）
-    var o1 = _musicCtx.createOscillator();
+    var cF = _ctx.createBiquadFilter();
+    cF.type = 'bandpass'; cF.frequency.value = 3200; cF.Q.value = 16;
+    var cG = _ctx.createGain();
+    cG.gain.setValueAtTime(vol * 1.2, t);
+    cG.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
+    cSrc.connect(cF); cF.connect(cG); cG.connect(_master);
+    cSrc.start(t); cSrc.stop(t + 0.015);
+    _sources.push(cSrc);
+    
+    // 2. 主共鸣（音高随 fRand 变化）
+    var o1 = _ctx.createOscillator();
     o1.type = 'sine';
-    o1.frequency.setValueAtTime(freq * 1.02, t);
-    o1.frequency.exponentialRampToValueAtTime(freq * 0.97, t + dur * 0.6);
-    var g1 = _musicCtx.createGain();
-    g1.gain.setValueAtTime(vol * 0.7, t);
+    o1.frequency.setValueAtTime(fRand * 1.01, t);
+    o1.frequency.exponentialRampToValueAtTime(fRand * 0.96, t + dur * 0.7);
+    var g1 = _ctx.createGain();
+    g1.gain.setValueAtTime(vol * 0.6, t);
     g1.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o1.connect(g1); g1.connect(_musicCtx.destination);
+    o1.connect(g1); g1.connect(_master);
     o1.start(t); o1.stop(t + dur + 0.05);
-
+    _sources.push(o1);
+    
     // 3. 空腔共鸣（木质感）
-    var o2 = _musicCtx.createOscillator();
+    var o2 = _ctx.createOscillator();
     o2.type = 'sine';
-    o2.frequency.setValueAtTime(freq * 0.43, t);
-    o2.frequency.exponentialRampToValueAtTime(freq * 0.38, t + dur * 0.8);
-    var g2 = _musicCtx.createGain();
-    g2.gain.setValueAtTime(vol * 0.35, t);
-    g2.gain.exponentialRampToValueAtTime(0.001, t + dur * 1.1);
-    o2.connect(g2); g2.connect(_musicCtx.destination);
-    o2.start(t); o2.stop(t + dur * 1.1 + 0.05);
-
-    // 4. 木质纹理（轻微噪声）
-    var tLen = Math.floor(_musicCtx.sampleRate * 0.015);
-    var tBuf = _musicCtx.createBuffer(1, tLen, _musicCtx.sampleRate);
-    var tData = tBuf.getChannelData(0);
-    for (var ti = 0; ti < tLen; ti++) {
-      tData[ti] = (Math.random() * 2 - 1) * Math.exp(-ti / (tLen * 0.25));
-    }
-    var tSrc = _musicCtx.createBufferSource();
-    tSrc.buffer = tBuf;
-    var tF = _musicCtx.createBiquadFilter();
-    tF.type = 'bandpass'; tF.frequency.value = 1800; tF.Q.value = 12;
-    var tG = _musicCtx.createGain();
-    tG.gain.setValueAtTime(vol * 0.15, t);
-    tG.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
-    tSrc.connect(tF); tF.connect(tG); tG.connect(_musicCtx.destination);
-    tSrc.start(t); tSrc.stop(t + 0.025);
+    o2.frequency.setValueAtTime(fRand * 0.42, t);
+    o2.frequency.exponentialRampToValueAtTime(fRand * 0.37, t + dur * 0.9);
+    var g2 = _ctx.createGain();
+    g2.gain.setValueAtTime(vol * 0.3, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + dur * 1.2);
+    o2.connect(g2); g2.connect(_master);
+    o2.start(t); o2.stop(t + dur * 1.2 + 0.05);
+    _sources.push(o2);
   }
-
-  // 「人生体验卡」主题旋律 — 五声音阶（D 小调五声：D E G A B）
-  // 音符：[频率Hz, 时值倍数]，BPM≈72，四分音符 ≈ 830ms
-  var _melody = [
-    // 第一句：上行，希望感（G4 E4 D4 A4）
-    [392.00, 1.0],  // G4  sol
-    [330.00, 0.8],  // E4  mi
-    [293.66, 1.2],  // D4  re
-    [440.00, 1.5],  // A4  la  （延長，过渡）
-    // 第二句：转折，诗意（G4 B4 A4 E4 D4）
-    [392.00, 0.8],  // G4
-    [493.88, 1.0],  // B4  si
-    [440.00, 0.8],  // A4
-    [330.00, 1.0],  // E4
-    [293.66, 1.8],  // D4  结尾延长，余韵
-  ];
-  var _noteLen = 0.72; // 每个音符基础时长（秒）
-
-  function _playMelody() {
-    if (!_musicCtx || _musicCtx.state !== 'running') return;
-    var t = _musicCtx.currentTime + 0.05;
-    var offset = 0;
-    for (var i = 0; i < _melody.length; i++) {
-      var freq = _melody[i][0];
-      var dur  = _melody[i][1] * _noteLen;
-      _muyuNote(freq, t + offset, dur);
-      offset += _melody[i][1] * _noteLen * 0.85; // 音符间稍有间隔
+  
+  // ===== 环境音：风声 =====
+  function _wind(startTime, dur) {
+    if (!_ctx || !_master) return;
+    var bufLen = Math.floor(_ctx.sampleRate * dur);
+    var buf = _ctx.createBuffer(1, bufLen, _ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < bufLen; i++) {
+      var env = 0.5 + 0.5 * Math.sin(Math.PI * 2 * 0.3 * i / _ctx.sampleRate);
+      data[i] = (Math.random() * 2 - 1) * env * Math.exp(-i / (bufLen * 0.7));
+    }
+    var src = _ctx.createBufferSource();
+    src.buffer = buf;
+    var f = _ctx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 800; f.Q.value = 1;
+    var g = _ctx.createGain();
+    g.gain.setValueAtTime(0.06, startTime);
+    g.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+    src.connect(f); f.connect(g); g.connect(_master);
+    src.start(startTime); src.stop(startTime + dur);
+    _sources.push(src);
+  }
+  
+  // ===== 环境音：水声 =====
+  function _water(startTime, dur) {
+    if (!_ctx || !_master) return;
+    var bufLen = Math.floor(_ctx.sampleRate * dur);
+    var buf = _ctx.createBuffer(1, bufLen, _ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < bufLen; i++) {
+      var mod = 0.3 + 0.7 * Math.abs(Math.sin(Math.PI * 2 * 0.5 * i / _ctx.sampleRate));
+      data[i] = (Math.random() * 2 - 1) * mod * Math.exp(-i / (bufLen * 0.5));
+    }
+    var src = _ctx.createBufferSource();
+    src.buffer = buf;
+    var f = _ctx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 400; f.Q.value = 0.5;
+    var g = _ctx.createGain();
+    g.gain.setValueAtTime(0.04, startTime);
+    g.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+    src.connect(f); f.connect(g); g.connect(_master);
+    src.start(startTime); src.stop(startTime + dur);
+    _sources.push(src);
+  }
+  
+  // ===== 主旋律：有生命感的五声音阶旋律 =====
+  // 五声音阶 D 小调：D E G A B → 频率
+  var _penta = [293.66, 330.00, 392.00, 440.00, 493.88];
+  
+  function _playLoadMusic() {
+    if (!_ctx || !_master || _musicStarted) return;
+    _musicStarted = true;
+    
+    var t = _ctx.currentTime + 0.05;
+    var totalDur = 7.5; // 音乐总时长，和动画同步
+    
+    // 环境音：风声 + 水声，贯穿全程
+    _wind(t, totalDur * 0.9);
+    _water(t + 1.0, totalDur * 0.7);
+    
+    // 主旋律：呼吸感，音符之间有空隙
+    var notes = [
+      // 引入（0-2s）：单个音符，轻柔
+      { freq: _penta[0], offset: 0.3, dur: 1.2, vol: 0.12 },
+      { freq: _penta[2], offset: 1.2, dur: 1.5, vol: 0.14 },
+      // 发展（2-5s）：旋律展开
+      { freq: _penta[1], offset: 2.5, dur: 0.9, vol: 0.13 },
+      { freq: _penta[3], offset: 3.4, dur: 1.1, vol: 0.15 },
+      { freq: _penta[2], offset: 4.2, dur: 1.3, vol: 0.14 },
+      // 高潮（5-7s）：旋律达到高点
+      { freq: _penta[4], offset: 5.0, dur: 1.0, vol: 0.16 },
+      { freq: _penta[3], offset: 5.8, dur: 1.4, vol: 0.15 },
+      // 结尾（7-8s）：回归宁静
+      { freq: _penta[0], offset: 6.8, dur: 2.0, vol: 0.12 },
+    ];
+    
+    for (var i = 0; i < notes.length; i++) {
+      var n = notes[i];
+      var durRand = n.dur * (1 + (Math.random() - 0.5) * 0.2);
+      _muyuNote(n.freq, t + n.offset, durRand, n.vol);
+    }
+    
+    // 和声：在几个关键点加入和声音符
+    var harmony = [
+      { freq: _penta[0] * 0.5, offset: 2.5, dur: 2.5, vol: 0.06 },
+      { freq: _penta[2] * 1.5, offset: 5.0, dur: 1.8, vol: 0.05 },
+    ];
+    for (var i = 0; i < harmony.length; i++) {
+      var h = harmony[i];
+      _muyuNote(h.freq, t + h.offset, h.dur, h.vol);
+    }
+    
+    console.log('[audio] 载入音乐已开始播放');
+  }
+  
+  // 动画开始时同步播放音乐（由动画循环调用一次）
+  var _musicStartedFlag = false;
+  function _tryStartMusic() {
+    if (_musicStartedFlag) return;
+    _musicStartedFlag = true;
+    // 确保音频上下文已激活
+    if (_ctx && _ctx.state === 'suspended') {
+      _ctx.resume().then(function() { _playLoadMusic(); }).catch(function() {});
+    } else {
+      _playLoadMusic();
     }
   }
-
-  // 加载动画期间循环播放旋律（最多 2 遍，避免过长）
-  var _melodyPlayed = 0;
-  var _melodyTimer = setInterval(function() {
-    if (_melodyPlayed >= 2) { clearInterval(_melodyTimer); return; }
-    _playMelody();
-    _melodyPlayed++;
-  }, 7000); // 旋律约 6.5s，间隔 7s 再循环一次
-
-  // 加载完成前停掉定时器
-  setTimeout(function() { clearInterval(_melodyTimer); }, 12000);
+  
+  // 淡出音乐（动画结束时调用）
+  function _fadeOutMusic() {
+    if (!_ctx || !_master) return;
+    var t = _ctx.currentTime;
+    _master.gain.cancelScheduledValues(t);
+    _master.gain.setValueAtTime(_master.gain.value, t);
+    _master.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+    console.log('[audio] 音乐已淡出');
+    // 0.8秒后断开连接
+    setTimeout(function() {
+      if (_master) { _master.disconnect(); _master = null; }
+      if (_ctx) { _ctx.close(); _ctx = null; }
+    }, 800);
+  }
   
   // ===== Particle system =====
   var particles = [];
@@ -2816,15 +2919,8 @@
   }
 
   function finishLoading(){
-    // 淡出背景音乐
-    if (_musicCtx && _musicCtx.state === 'running') {
-      var t = _musicCtx.currentTime;
-      var fade = _musicCtx.createGain();
-      fade.gain.setValueAtTime(0.18, t);
-      fade.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
-      // 没法直接淡出已触发的音符，但不再触发新音符
-      clearInterval(_melodyTimer);
-    }
+    // 淡出音乐，与动画同步结束
+    _fadeOutMusic();
     if(screen){
       screen.classList.add("fade-out");
       setTimeout(function(){ screen.style.display="none"; }, 800);
@@ -2836,6 +2932,7 @@
   var FPS = 60, SPD = 1000/FPS;
 
   function loop(){
+    _tryStartMusic(); // 动画开始同步播放音乐
     if(animDone) { finishLoading(); return; }
     ctx.clearRect(0, 0, W(), H());
 
