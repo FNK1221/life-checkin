@@ -2759,8 +2759,10 @@
   }
 
   // ===== 尝试播放载入音乐（在动画开始时调用）=====
+  var audioPlayAttempted = false;
   function tryPlayLoadingMusic() {
-    if (!loadingAudio || audioUnlocked) return;
+    if (!loadingAudio || audioUnlocked || audioPlayAttempted) return;
+    audioPlayAttempted = true;
     
     console.log('[audio] 尝试播放载入音乐...');
     loadingAudio.muted = false;
@@ -2774,7 +2776,7 @@
         console.log('[audio] ✅ 音乐已成功播放');
       }).catch(function(e) {
         console.log('[audio] 播放失败（可能需要交互）:', e.message);
-        // 如果失败，等待用户交互
+        // 如果失败，等待用户交互（只设置一次）
         if (!audioUnlocked) {
           unlockAudioOnInteraction();
         }
