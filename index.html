@@ -1119,8 +1119,6 @@
   #mainList { display: block; }
   #timelineView { display: none !important; }
   #timelineView.show { display: block !important; position: relative; min-height: 60vh; }
-  #statsView { display: none !important; }
-  #statsView.show { display: block !important; }
   
   .stats-hero {
     background: linear-gradient(145deg, #d4a574, #c47a5e, #b86248);
@@ -3524,12 +3522,24 @@ function toggleChapter(ci) {
 }
 
 // ========== SEARCH ==========
+// 搜索防抖：避免每次击键都触发完整搜索逻辑
+var _searchTimer = null;
+
 function handleSearch() {
+  // 清除上一次的延迟执行
+  if (_searchTimer) clearTimeout(_searchTimer);
+
+  // 300ms 后执行实际搜索，期间再次输入会取消上次搜索
+  _searchTimer = setTimeout(_doSearch, 300);
+}
+
+// 实际执行搜索的函数（被防抖调用）
+function _doSearch() {
   var input = document.getElementById('searchInput');
   var clearBtn = document.getElementById('searchClear');
   var resultDiv = document.getElementById('searchResult');
   var term = input.value.trim().toLowerCase();
-  
+
   if (term) {
     clearBtn.classList.add('show');
     resultDiv.classList.add('show');
@@ -3537,23 +3547,23 @@ function handleSearch() {
     clearBtn.classList.remove('show');
     resultDiv.classList.remove('show');
   }
-  
+
   // 遍历所有章节和事件
   var totalVisible = 0;
   var totalMatched = 0;
-  
+
   CHAPTERS.forEach(function(ch, ci) {
     var chapterEl = document.getElementById('chapter-' + ci);
     var items = chapterEl ? chapterEl.querySelectorAll('.event-item') : [];
     var chapterMatched = 0;
-    
+
     items.forEach(function(item) {
       var nameEl = item.querySelector('.event-name');
       if (!nameEl) return;
-      
+
       var name = nameEl.textContent.toLowerCase();
       var match = name.indexOf(term) !== -1;
-      
+
       if (match) {
         item.classList.remove('hidden-event');
         chapterMatched++;
@@ -3562,7 +3572,7 @@ function handleSearch() {
         item.classList.add('hidden-event');
       }
     });
-    
+
     // 显示/隐藏章节
     if (chapterMatched > 0 || !term) {
       chapterEl.classList.remove('hidden-chapter');
@@ -3571,7 +3581,7 @@ function handleSearch() {
       chapterEl.classList.add('hidden-chapter');
     }
   });
-  
+
   // 显示搜索结果统计
   if (term) {
     resultDiv.textContent = '找到 ' + totalMatched + ' 个匹配结果（共 ' + totalVisible + ' 个章节）';
@@ -3579,26 +3589,16 @@ function handleSearch() {
 }
 
 function clearSearch() {
+  // 复位搜索框和按钮
   var input = document.getElementById('searchInput');
-  var clearBtn = document.getElementById('searchClear');
-  var resultDiv = document.getElementById('searchResult');
-  
   input.value = '';
-  clearBtn.classList.remove('show');
+  document.getElementById('searchClear').classList.remove('show');
+  var resultDiv = document.getElementById('searchResult');
   resultDiv.classList.remove('show');
   resultDiv.textContent = '';
-  
-  // 显示所有章节和事件
-  CHAPTERS.forEach(function(ch, ci) {
-    var chapterEl = document.getElementById('chapter-' + ci);
-    if (chapterEl) {
-      chapterEl.classList.remove('hidden-chapter');
-      var items = chapterEl.querySelectorAll('.event-item');
-      items.forEach(function(item) {
-        item.classList.remove('hidden-event');
-      });
-    }
-  });
+
+  // 统一走渲染入口，避免和 renderList 状态不一致
+  renderList();
 }
 // ========== PROGRESS ==========
 var PROGRESS_CIRC = 2 * Math.PI * 64; // 圆周长 ≈ 402.124
@@ -4914,325 +4914,240 @@ var SHARE_CARD_THEMES = [
   { name:'珊瑚橘', bg:['#e07050','#c86040','#a85030','#883820'], glow:[255,180,140] }
 ];
 
+// ========== 分享卡片（重构版：每个小函数只做一件事） ==========
+
+// 主入口：生成分享卡片
 function generateShareCard() {
   var done = Object.keys(checkinData).length;
   var pct = TOTAL > 0 ? Math.round(done / TOTAL * 100) : 0;
   var tag = calculatePersonalityTag();
   var theme = SHARE_CARD_THEMES[Math.floor(Math.random() * SHARE_CARD_THEMES.length)];
 
-  // 计算章节统计
   var chapterStats = CHAPTERS.map(function(ch, ci) {
     var count = 0;
     ch.events.forEach(function(_, ei) { if (checkinData[ci + '-' + ei]) count++; });
-    return { title: ch.title, icon: ch.icon, count: count, total: ch.events.length, pct: Math.round(count / ch.events.length * 100) };
+    return { title: ch.title, icon: ch.icon, count: count, total: ch.events.length };
   });
 
-  // 创建Canvas - 竖版 750 x 1200
   var canvas = document.createElement('canvas');
   var W = 750, H = 1200;
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = W; canvas.height = H;
   var ctx = canvas.getContext('2d');
 
-  // ===== 背景层 =====
-  // 主渐变（根据随机主题）
-  var bgGrad = ctx.createLinearGradient(0, 0, W, H);
-  bgGrad.addColorStop(0, theme.bg[0]);
-  bgGrad.addColorStop(0.35, theme.bg[1]);
-  bgGrad.addColorStop(0.7, theme.bg[2]);
-  bgGrad.addColorStop(1, theme.bg[3]);
-  ctx.fillStyle = bgGrad;
+  // 按顺序绘制各区域（每个函数只负责一块，清晰易维护）
+  _shareBG(ctx, W, H, theme);       // 背景 + 装饰
+  _shareTitle(ctx, W);                // 标题区
+  _shareCircle(ctx, W, pct, done);   // 中央进度圆环
+  _shareTag(ctx, W, tag);            // 个性标签
+  var midY = _shareBars(ctx, W, chapterStats);  // 章节进度条
+  _shareStats(ctx, W, midY);         // 统计数字
+  _shareFooter(ctx, W, H);           // 底部
+
+  // 转成图片并显示
+  _shareShow(canvas.toDataURL('image/png'));
+}
+
+// 1. 背景：渐变 + 光晕 + 网格 + 装饰形状
+function _shareBG(ctx, W, H, theme) {
+  // 主渐变
+  var bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, theme.bg[0]);
+  bg.addColorStop(0.35, theme.bg[1]);
+  bg.addColorStop(0.7, theme.bg[2]);
+  bg.addColorStop(1, theme.bg[3]);
+  ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // 顶部光晕（根据随机主题）
+  // 顶部光晕
   var ga = theme.glow;
-  var topGlow = ctx.createRadialGradient(W*0.5, 0, 0, W*0.5, 100, 500);
-  topGlow.addColorStop(0, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0.25)');
-  topGlow.addColorStop(1, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0)');
-  ctx.fillStyle = topGlow;
+  var tg = ctx.createRadialGradient(W*0.5, 0, 0, W*0.5, 0, 500);
+  tg.addColorStop(0, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0.25)');
+  tg.addColorStop(1, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0)');
+  ctx.fillStyle = tg;
   ctx.fillRect(0, 0, W, 400);
 
-  // 底部光晕（根据随机主题）
-  var botGlow = ctx.createRadialGradient(W*0.5, H, 0, W*0.5, H-100, 400);
-  botGlow.addColorStop(0, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0.15)');
-  botGlow.addColorStop(1, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0)');
-  ctx.fillStyle = botGlow;
+  // 底部光晕
+  var bglow = ctx.createRadialGradient(W*0.5, H, 0, W*0.5, H, 400);
+  bglow.addColorStop(0, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0.15)');
+  bglow.addColorStop(1, 'rgba(' + ga[0] + ',' + ga[1] + ',' + ga[2] + ',0)');
+  ctx.fillStyle = bglow;
   ctx.fillRect(0, H-400, W, 400);
 
-  //  subtle 网格纹理
+  // 网格纹理（极低存在感）
   ctx.save();
   ctx.strokeStyle = 'rgba(255,255,255,0.03)';
   ctx.lineWidth = 1;
-  for (var gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke(); }
-  for (var gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke(); }
+  for (var gx = 0; gx < W; gx += 40) { ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+  for (var gy = 0; gy < H; gy += 40) { ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
   ctx.restore();
 
-  // 浮动几何装饰
-  drawFloatingShapes(ctx, W, H);
+  // 浮动装饰
+  _shareDeco(ctx, W, H);
+}
 
-  // ===== 顶部标题区 =====
+// 1.1 浮动装饰形状（圆 + 点 + 十字）
+function _shareDeco(ctx, W, H) {
+  ctx.save();
+  // 大圆
+  [{x:60,y:180,r:40,a:0.08},{x:W-50,y:220,r:55,a:0.06},{x:90,y:H-200,r:70,a:0.05},
+   {x:W-80,y:H-160,r:50,a:0.07},{x:150,y:500,r:30,a:0.1},{x:W-120,y:450,r:35,a:0.08}
+  ].forEach(function(s){
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,'+s.a+')'; ctx.fill();
+  });
+  // 小圆点
+  [{x:120,y:100,r:4},{x:W-100,y:140,r:3},{x:80,y:400,r:5},{x:W-60,y:380,r:4},
+   {x:200,y:700,r:3},{x:W-150,y:750,r:4},{x:130,y:950,r:3},{x:W-110,y:920,r:5}
+  ].forEach(function(d){
+    ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.2)'; ctx.fill();
+  });
+  // 十字
+  ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1.5;
+  [{x:45,y:300,len:12},{x:W-45,y:340,len:10},{x:100,y:600,len:8},
+   {x:W-70,y:580,len:10},{x:70,y:820,len:12},{x:W-90,y:850,len:8}
+  ].forEach(function(c){
+    ctx.beginPath(); ctx.moveTo(c.x-c.len,c.y); ctx.lineTo(c.x+c.len,c.y);
+    ctx.moveTo(c.x,c.y-c.len); ctx.lineTo(c.x,c.y+c.len); ctx.stroke();
+  });
+  ctx.restore();
+}
+
+// 2. 标题区
+function _shareTitle(ctx, W) {
   ctx.textAlign = 'center';
-  // 小标签
   ctx.font = '500 18px -apple-system, PingFang SC, sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.fillText('L I F E  E X P E R I E N C E S', W/2, 70);
 
-  // 主标题带阴影
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.2)';
-  ctx.shadowBlur = 20;
-  ctx.shadowOffsetY = 4;
-  ctx.font = 'bold 48px -apple-system, PingFang SC, sans-serif';
-  ctx.fillStyle = '#fff';
-  ctx.fillText('人生体验卡', W/2, 125);
+  ctx.shadowColor='rgba(0,0,0,0.2)'; ctx.shadowBlur=20; ctx.shadowOffsetY=4;
+  ctx.font='bold 48px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle='#fff'; ctx.fillText('人生体验卡', W/2, 125);
   ctx.restore();
 
-  // 装饰线
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(W/2 - 80, 145);
-  ctx.lineTo(W/2 + 80, 145);
-  ctx.stroke();
-
-  // ===== 中央圆环进度区 =====
-  var cx = W/2, cy = 310, cr = 100;
-  // 外圈装饰虚线
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([8, 6]);
-  ctx.beginPath();
-  ctx.arc(cx, cy, cr + 18, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
-
-  // 内圈发光背景
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-  ctx.lineWidth = 12;
-  ctx.filter = 'blur(3px)';
-  ctx.beginPath();
-  ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
-
-  // 背景圆环
-  ctx.beginPath();
-  ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-  ctx.lineWidth = 10;
-  ctx.stroke();
-
-  // 进度圆环
-  var circ = 2 * Math.PI * cr;
-  var offset = circ * (1 - pct / 100);
-  ctx.beginPath();
-  ctx.arc(cx, cy, cr, -Math.PI/2, -Math.PI/2 + (pct/100) * Math.PI * 2);
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 10;
-  ctx.lineCap = 'round';
-  ctx.shadowColor = 'rgba(255,255,255,0.4)';
-  ctx.shadowBlur = 12;
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // 中心数字
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 56px -apple-system, sans-serif';
-  ctx.fillText(pct + '%', cx, cy + 10);
-  ctx.font = '22px -apple-system, PingFang SC, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  ctx.fillText(done + ' / ' + TOTAL, cx, cy + 42);
-
-  // ===== 个性标签 =====
-  var tagY = 460;
-  // 标签背景
-  ctx.save();
-  ctx.fillStyle = 'rgba(255,255,255,0.12)';
-  roundRectPath(ctx, W/2 - 130, tagY - 32, 260, 44, 22);
-  ctx.fill();
-  // 标签边框
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-  ctx.lineWidth = 1;
-  roundRectPath(ctx, W/2 - 130, tagY - 32, 260, 44, 22);
-  ctx.stroke();
-  ctx.restore();
-
-  ctx.font = '500 20px -apple-system, PingFang SC, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.textAlign = 'center';
-  ctx.fillText(tag, W/2, tagY);
-
-  // ===== 章节完成度 =====
-  var chartY = 540;
-  ctx.font = '500 20px -apple-system, PingFang SC, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.textAlign = 'left';
-  ctx.fillText('章节进度', 55, chartY);
-
-  // 分隔线
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(55, chartY + 12);
-  ctx.lineTo(W - 55, chartY + 12);
-  ctx.stroke();
-
-  var barStartY = chartY + 35;
-  var barHeight = 10;
-  var barMaxW = W - 190;
-  var rowH = 52;
-
-  chapterStats.forEach(function(s, i) {
-    var y = barStartY + i * rowH;
-    // 图标+标题
-    ctx.font = '18px -apple-system, PingFang SC, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.textAlign = 'left';
-    ctx.fillText(s.icon + ' ' + s.title, 55, y);
-
-    // 数值
-    ctx.font = '16px -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.textAlign = 'right';
-    ctx.fillText(s.count + '/' + s.total, W - 55, y);
-
-    // 背景条
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    roundRectPath(ctx, 55, y + 8, barMaxW, barHeight, 5);
-    ctx.fill();
-
-    // 填充条
-    if (s.count > 0) {
-      var bw = (s.count / s.total) * barMaxW;
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      roundRectPath(ctx, 55, y + 8, bw, barHeight, 5);
-      ctx.fill();
-      // 微光
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      roundRectPath(ctx, 55, y + 8, Math.min(bw, 30), barHeight, 5);
-      ctx.fill();
-    }
-  });
-
-  // ===== 中间统计区 =====
-  var midY = barStartY + chapterStats.length * rowH + 60;
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(55, midY - 20);
-  ctx.lineTo(W - 55, midY - 20);
-  ctx.stroke();
-
-  var stats = [
-    { label: '照片记录', value: '' + countPhotos() },
-    { label: '最近打卡', value: getRecentDate() },
-    { label: '完成章节', value: '' + countCompletedChapters() }
-  ];
-  var statW = (W - 110) / 3;
-  stats.forEach(function(st, i) {
-    var sx = 55 + i * statW + statW/2;
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 28px -apple-system, sans-serif';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(st.value, sx, midY + 18);
-    ctx.font = '16px -apple-system, PingFang SC, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.fillText(st.label, sx, midY + 44);
-  });
-
-  // ===== 底部区域 =====
-  var botY = H - 90;
-  // 装饰线
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(W/2 - 100, botY);
-  ctx.lineTo(W/2 + 100, botY);
-  ctx.stroke();
-
-  ctx.textAlign = 'center';
-  ctx.font = '20px -apple-system, PingFang SC, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.fillText('记录人生体验，珍惜每一个瞬间', W/2, botY + 28);
-
-  ctx.font = '16px -apple-system, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  var today = new Date();
-  var dateStr = today.getFullYear() + '.' + (today.getMonth()+1) + '.' + today.getDate();
-  ctx.fillText('Generated on ' + dateStr + '  ·  人生体验卡', W/2, botY + 52);
-
-  // ===== 转换为图片 =====
-  var dataUrl = canvas.toDataURL('image/png');
-  var preview = document.getElementById('shareCardPreview');
-  if (!preview) {
-    preview = document.createElement('img');
-    preview.id = 'shareCardPreview';
-    preview.className = 'share-card-preview';
-    document.getElementById('shareCardModal').querySelector('.modal').insertBefore(preview, document.querySelector('#shareCardModal .btn-row'));
-  }
-  preview.src = dataUrl;
-  document.getElementById('shareCardModal').classList.add('show');
+  ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-80,145); ctx.lineTo(W/2+80,145); ctx.stroke();
 }
 
-// 绘制浮动装饰几何
-function drawFloatingShapes(ctx, W, H) {
+// 3. 中央进度圆环
+function _shareCircle(ctx, W, pct, done) {
+  var cx = W/2, cy = 310, cr = 100;
+  // 外圈虚线
+  ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=2; ctx.setLineDash([8,6]);
+  ctx.beginPath(); ctx.arc(cx,cy,cr+18,0,Math.PI*2); ctx.stroke(); ctx.restore();
+  // 背景圆环
+  ctx.beginPath(); ctx.arc(cx,cy,cr,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=10; ctx.stroke();
+  // 进度圆弧（带发光）
+  ctx.beginPath();
+  ctx.arc(cx,cy,cr, -Math.PI/2, -Math.PI/2 + (pct/100)*Math.PI*2);
+  ctx.strokeStyle='#fff'; ctx.lineWidth=10; ctx.lineCap='round';
+  ctx.shadowColor='rgba(255,255,255,0.4)'; ctx.shadowBlur=12;
+  ctx.stroke(); ctx.shadowBlur=0;
+  // 中心数字
+  ctx.textAlign='center'; ctx.fillStyle='#fff';
+  ctx.font='bold 56px -apple-system, sans-serif'; ctx.fillText(pct+'%', cx, cy+10);
+  ctx.font='22px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.fillText(done+' / '+TOTAL, cx, cy+42);
+}
+
+// 4. 个性标签
+function _shareTag(ctx, W, tag) {
+  var tagY = 460;
   ctx.save();
-  var shapes = [
-    { x: 60, y: 180, r: 40, a: 0.08 },
-    { x: W-50, y: 220, r: 55, a: 0.06 },
-    { x: 90, y: H-200, r: 70, a: 0.05 },
-    { x: W-80, y: H-160, r: 50, a: 0.07 },
-    { x: 150, y: 500, r: 30, a: 0.1 },
-    { x: W-120, y: 450, r: 35, a: 0.08 }
-  ];
-  shapes.forEach(function(s) {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
-    ctx.fill();
-  });
-
-  // 小圆点装饰
-  var dots = [
-    { x: 120, y: 100, r: 4 },
-    { x: W-100, y: 140, r: 3 },
-    { x: 80, y: 400, r: 5 },
-    { x: W-60, y: 380, r: 4 },
-    { x: 200, y: 700, r: 3 },
-    { x: W-150, y: 750, r: 4 },
-    { x: 130, y: 950, r: 3 },
-    { x: W-110, y: 920, r: 5 }
-  ];
-  dots.forEach(function(d) {
-    ctx.beginPath();
-    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.fill();
-  });
-
-  // 十字装饰
-  var crosses = [
-    { x: 45, y: 300, len: 12 },
-    { x: W-45, y: 340, len: 10 },
-    { x: 100, y: 600, len: 8 },
-    { x: W-70, y: 580, len: 10 },
-    { x: 70, y: 820, len: 12 },
-    { x: W-90, y: 850, len: 8 }
-  ];
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1.5;
-  crosses.forEach(function(c) {
-    ctx.beginPath();
-    ctx.moveTo(c.x - c.len, c.y);
-    ctx.lineTo(c.x + c.len, c.y);
-    ctx.moveTo(c.x, c.y - c.len);
-    ctx.lineTo(c.x, c.y + c.len);
-    ctx.stroke();
-  });
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  roundRectPath(ctx, W/2-130, tagY-32, 260, 44, 22); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1;
+  roundRectPath(ctx, W/2-130, tagY-32, 260, 44, 22); ctx.stroke();
   ctx.restore();
+  ctx.font='500 20px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.95)'; ctx.textAlign='center';
+  ctx.fillText(tag, W/2, tagY);
+}
+
+// 5. 章节进度条（返回统计区起始 Y，方便后续函数使用）
+function _shareBars(ctx, W, chapterStats) {
+  var chartY = 540;
+  ctx.font='500 20px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.textAlign='left';
+  ctx.fillText('章节进度', 55, chartY);
+
+  ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(55,chartY+12); ctx.lineTo(W-55,chartY+12); ctx.stroke();
+
+  var barStartY = chartY + 35, barH = 10, barMaxW = W-190, rowH = 52;
+  chapterStats.forEach(function(s,i){
+    var y = barStartY + i*rowH;
+    ctx.font='18px -apple-system, PingFang SC, sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.textAlign='left';
+    ctx.fillText(s.icon+' '+s.title, 55, y);
+    ctx.font='16px -apple-system, sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.textAlign='right';
+    ctx.fillText(s.count+'/'+s.total, W-55, y);
+    // 背景条
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    roundRectPath(ctx, 55, y+8, barMaxW, barH, 5); ctx.fill();
+    // 填充条
+    if(s.count>0){
+      var bw = (s.count/s.total)*barMaxW;
+      ctx.fillStyle='rgba(255,255,255,0.85)';
+      roundRectPath(ctx, 55, y+8, bw, barH, 5); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.3)';
+      roundRectPath(ctx, 55, y+8, Math.min(bw,30), barH, 5); ctx.fill();
+    }
+  });
+  return barStartY + chapterStats.length * rowH + 60;
+}
+
+// 6. 统计数字区
+function _shareStats(ctx, W, midY) {
+  ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(55,midY-20); ctx.lineTo(W-55,midY-20); ctx.stroke();
+
+  var stats = [
+    {label:'照片记录', value:''+countPhotos()},
+    {label:'最近打卡', value:getRecentDate()},
+    {label:'完成章节', value:''+countCompletedChapters()}
+  ];
+  var statW = (W-110)/3;
+  stats.forEach(function(st,i){
+    var sx = 55 + i*statW + statW/2;
+    ctx.textAlign='center'; ctx.font='bold 28px -apple-system, sans-serif';
+    ctx.fillStyle='#fff'; ctx.fillText(st.value, sx, midY+18);
+    ctx.font='16px -apple-system, PingFang SC, sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.fillText(st.label, sx, midY+44);
+  });
+}
+
+// 7. 底部
+function _shareFooter(ctx, W, H) {
+  var botY = H - 90;
+  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W/2-100,botY); ctx.lineTo(W/2+100,botY); ctx.stroke();
+
+  ctx.textAlign='center'; ctx.font='20px -apple-system, PingFang SC, sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.fillText('记录人生体验，珍惜每一个瞬间', W/2, botY+28);
+
+  ctx.font='16px -apple-system, sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.45)';
+  var today=new Date();
+  var dateStr=today.getFullYear()+'.'+(today.getMonth()+1)+'.'+today.getDate();
+  ctx.fillText('Generated on '+dateStr+'  ·  人生体验卡', W/2, botY+52);
+}
+
+// 8. 显示卡片（复用或创建预览元素）
+function _shareShow(dataUrl) {
+  var preview = document.getElementById('shareCardPreview');
+  if(!preview){
+    preview = document.createElement('img');
+    preview.id='shareCardPreview'; preview.className='share-card-preview';
+    var modal = document.getElementById('shareCardModal').querySelector('.modal');
+    modal.insertBefore(preview, modal.querySelector('.btn-row'));
+  }
+  preview.src=dataUrl;
+  document.getElementById('shareCardModal').classList.add('show');
 }
 
 function countPhotos() {
