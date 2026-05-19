@@ -2140,21 +2140,96 @@
   }
   .phil-btn:active { transform: scale(0.96); }
 
+  /* ========== MUYU (木鱼) 进度圈左侧 ========== */
+  .muyu-by-progress {
+    position: absolute;
+    left: max(8px, calc(50% - 130px));
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .muyu-btn-svg {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: radial-gradient(circle at 35% 30%, rgba(255,220,140,0.5) 0%, transparent 50%),
+                linear-gradient(145deg, #d4a843 0%, #b8922a 40%, #8b6914 100%);
+    box-shadow: 0 3px 12px rgba(100,60,10,0.35), inset 0 2px 5px rgba(255,220,140,0.4), inset 0 -2px 5px rgba(60,30,5,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.08s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .muyu-btn-svg:active { transform: scale(0.82); }
+  .muyu-svg { width: 44px; height: 44px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
+  .muyu-label-svg {
+    font-size: 9px;
+    color: var(--primary);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    opacity: 0.8;
+  }
+  .muyu-click-count {
+    font-size: 10px;
+    color: var(--primary);
+    background: var(--card);
+    padding: 2px 8px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 101;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .muyu-click-count.show { opacity: 1; }
+  .muyu-ripple {
+    position: fixed;
+    border-radius: 50%;
+    border: 2px solid rgba(184,134,11,0.5);
+    pointer-events: none;
+    animation: muyuRipple 0.5s ease-out forwards;
+    z-index: 102;
+  }
+  @keyframes muyuRipple {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+
   /* ========== MOBILE: 木鱼 + 哲理弹窗 ========== */
   @media (max-width: 640px) {
-    .muyu-wrapper { padding: 8px 10px 2px; }
-    .muyu-btn-new {
-      width: 44px;
-      height: 44px;
+    .muyu-by-progress {
+      left: max(4px, calc(50% - 100px));
     }
-    .muyu-emoji { font-size: 18px; }
-    .muyu-label { font-size: 8px; }
+    .muyu-btn-svg {
+      width: 48px;
+      height: 48px;
+    }
+    .muyu-svg { width: 34px; height: 34px; }
+    .muyu-label-svg { font-size: 8px; }
     .muyu-click-count {
-      font-size: 10px;
-      padding: 2px 8px;
+      font-size: 9px;
+      padding: 1px 6px;
     }
     .phil-card { padding: 32px 20px 28px; border-radius: 22px; }
     .phil-quote { font-size: 15px; }
+  }
+  @media (max-width: 380px) {
+    .muyu-by-progress {
+      left: 2px;
+      top: auto;
+      bottom: 8px;
+      transform: none;
+    }
   }
 </style>
 </head>
@@ -2186,6 +2261,48 @@
       <span class="pct-label">已完成</span>
       <span class="pct-count">0 / 111</span>
     </div>
+  </div>
+  <!-- 木鱼按钮：进度圈左侧 -->
+  <div class="muyu-by-progress" id="muyuByProgress">
+    <button class="muyu-btn-svg" id="muyuBtn" onclick="clickMuyu(event)" title="敲木鱼积功德">
+      <svg class="muyu-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <!-- 渐变定义 -->
+        <defs>
+          <radialGradient id="muyuBody" cx="38%" cy="32%">
+            <stop offset="0%" stop-color="#f5e6a3"/>
+            <stop offset="50%" stop-color="#d4a843"/>
+            <stop offset="100%" stop-color="#8b6914"/>
+          </radialGradient>
+          <radialGradient id="muyuTop" cx="40%" cy="25%">
+            <stop offset="0%" stop-color="#fff5d4"/>
+            <stop offset="100%" stop-color="#c8960b"/>
+          </radialGradient>
+          <filter id="muyuShadow">
+            <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#5a3a00" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+        <!-- 木鱼主体：更圆的椭圆 -->
+        <ellipse cx="32" cy="36" rx="22" ry="18" fill="url(#muyuBody)" stroke="#6b4a10" stroke-width="1.2" filter="url(#muyuShadow)"/>
+        <!-- 木鱼顶部敲击点：更立体 -->
+        <circle cx="32" cy="18" r="5.5" fill="url(#muyuTop)" stroke="#6b4a10" stroke-width="0.8"/>
+        <circle cx="30" cy="16" r="1.5" fill="rgba(255,255,220,0.5)"/>
+        <!-- 嘴巴：微笑弧形 -->
+        <path d="M24 41 Q32 47 40 41" fill="none" stroke="#5a3000" stroke-width="1.2" stroke-linecap="round"/>
+        <!-- 眼睛：更生动 -->
+        <circle cx="26" cy="33" r="2.2" fill="#3a1a00"/>
+        <circle cx="26" cy="32.5" r="0.7" fill="#fff"/>
+        <circle cx="38" cy="33" r="2.2" fill="#3a1a00"/>
+        <circle cx="38" cy="32.5" r="0.7" fill="#fff"/>
+        <!-- 纹理线：更精致 -->
+        <path d="M20 30 Q32 24 44 30" fill="none" stroke="#6b4a10" stroke-width="0.6" opacity="0.4"/>
+        <path d="M18 36 Q32 31 46 36" fill="none" stroke="#6b4a10" stroke-width="0.6" opacity="0.3"/>
+        <path d="M19 41 Q32 37 45 41" fill="none" stroke="#6b4a10" stroke-width="0.5" opacity="0.2"/>
+        <!-- 木鱼底部阴影 -->
+        <ellipse cx="32" cy="54" rx="16" ry="3" fill="rgba(90,50,0,0.15)"/>
+      </svg>
+      <span class="muyu-label-svg">积功德</span>
+    </button>
+    <div class="muyu-click-count" id="muyuClickCount"></div>
   </div>
   <div class="header-stats" id="headerStats">
     <div class="header-stat-item">
@@ -2228,15 +2345,6 @@
   </div>
   <!-- 夜晚星星容器 -->
   <div class="night-stars" id="nightStars"></div>
-</div>
-
-<!-- 木鱼按钮：搜索框上方左侧 -->
-<div class="muyu-wrapper" id="muyuWrapper">
-  <button class="muyu-btn-new" id="muyuBtn" onclick="clickMuyu(event)" title="敲木鱼积功德">
-    <span class="muyu-emoji">🪘</span>
-    <span class="muyu-label">积功德</span>
-  </button>
-  <div class="muyu-click-count" id="muyuClickCount"></div>
 </div>
 
 <!-- SEARCH BOX -->
@@ -3401,11 +3509,32 @@ function updateProgress() {
 
   // 更新顶部统计栏
   var remain = TOTAL - done;
+  // 修复：统计章节完成数时，也要考虑自定义事件
   var completedChapters = 0;
-  CHAPTERS.forEach(function(ch, ci) {
-    var allDone = ch.events.every(function(_, ei) { return !!checkinData[ci + '-' + ei]; });
-    if (allDone) completedChapters++;
+  var chapterDoneCount = {}; // 每章已打卡数
+  var chapterTotalCount = {}; // 每章总事件数
+  // 初始化
+  for (var ci = 0; ci < CHAPTERS.length; ci++) {
+    chapterDoneCount[ci] = 0;
+    chapterTotalCount[ci] = CHAPTERS[ci].events.length;
+  }
+  // 统计自定义事件
+  customEvents.forEach(function(ce) {
+    if (!chapterTotalCount[ce.chapterIndex]) chapterTotalCount[ce.chapterIndex] = 0;
+    chapterTotalCount[ce.chapterIndex]++;
   });
+  // 统计已打卡
+  ALL_EVENTS.forEach(function(ev) {
+    if (checkinData[ev.id]) {
+      chapterDoneCount[ev.chapter]++;
+    }
+  });
+  // 计算完成的章节
+  for (var ci2 = 0; ci2 < CHAPTERS.length; ci2++) {
+    if (chapterTotalCount[ci2] > 0 && chapterDoneCount[ci2] >= chapterTotalCount[ci2]) {
+      completedChapters++;
+    }
+  }
 
   var statDone = document.getElementById('statDone');
   var statRemain = document.getElementById('statRemain');
@@ -5344,6 +5473,43 @@ function createShootingStar() {
 // ========== START ==========
 loadTheme();
 init();
+// 云朵随机位置（不要太碍眼）
+randomizeClouds();
+
+function randomizeClouds() {
+  var header = document.getElementById('mainHeader');
+  if (!header) return;
+  var clouds = document.querySelectorAll('.day-clouds .cloud');
+  if (clouds.length === 0) return;
+  var rect = header.getBoundingClientRect();
+  // 安全区：进度圈区域（中间）、标题区域（顶部）、木鱼区域（左侧）
+  var safeZones = [
+    { x: rect.width/2 - 90, y: rect.height/2 - 90, w: 180, h: 180 },
+    { x: rect.width/2 - 80, y: 0, w: 160, h: 70 },
+    { x: 0, y: rect.height/2 - 50, w: 90, h: 100 }
+  ];
+  clouds.forEach(function(cloudEl) {
+    var cw = 60, ch = 30;
+    var x, y, attempts = 0;
+    do {
+      x = Math.floor(Math.random() * Math.max(rect.width - cw, 1));
+      y = Math.floor(Math.random() * Math.max(rect.height - ch, 1));
+      attempts++;
+    } while (isInSafeZone(x, y, cw, ch, safeZones) && attempts < 80);
+    cloudEl.style.position = 'absolute';
+    cloudEl.style.left = x + 'px';
+    cloudEl.style.top = y + 'px';
+    cloudEl.style.zIndex = '1';
+  });
+}
+
+function isInSafeZone(x, y, w, h, zones) {
+  for (var i = 0; i < zones.length; i++) {
+    var z = zones[i];
+    if (x < z.x + z.w && x + w > z.x && y < z.y + z.h && y + h > z.y) return true;
+  }
+  return false;
+}
 </script>
 <div id="shootingStarsContainer" style="position:fixed;inset:0;pointer-events:none;z-index:3;"></div>
 </body>
