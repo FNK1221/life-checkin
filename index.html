@@ -125,6 +125,7 @@
     z-index: 100;
     box-shadow: 0 4px 20px rgba(160, 100, 60, 0.25);
     transition: background 0.6s ease, box-shadow 0.6s ease;
+    overflow: hidden;
   }
   .header[data-tab="timeline"] {
     background: linear-gradient(145deg, #0f1a2e 0%, #1a2744 50%, #0d1520 100%);
@@ -1114,9 +1115,10 @@
   /* ========== VIEW VISIBILITY (fix: tabs were broken) ========== */
   .hidden { display: none !important; }
   #mainList { display: block; }
-  #timelineView { display: none; }
-  #timelineView.show { display: block; position: relative; min-height: 60vh; }
-  #statsView.show { display: block; }
+  #timelineView { display: none !important; }
+  #timelineView.show { display: block !important; position: relative; min-height: 60vh; }
+  #statsView { display: none !important; }
+  #statsView.show { display: block !important; }
   
   .stats-hero {
     background: linear-gradient(145deg, #d4a574, #c47a5e, #b86248);
@@ -1924,7 +1926,7 @@
   }
 
   /* ========== DAY MODE CLOUDS ========== */
-  .day-clouds { display: block; }
+  .day-clouds { display: block; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
   html.dark-theme .day-clouds { display: none; }
   .cloud {
     position: absolute;
@@ -2009,7 +2011,7 @@
   }
 
   /* ========== NIGHT MODE STARS ========== */
-  .night-stars { display: none; }
+  .night-stars { display: none; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
   html.dark-theme .night-stars { display: block; }
   .star {
     position: absolute;
@@ -2128,9 +2130,8 @@
   /* ========== MUYU (木鱼) 进度圈左侧 ========== */
   .muyu-by-progress {
     position: absolute;
-    left: max(8px, calc(50% - 170px));
-    top: 50%;
-    transform: translateY(-50%);
+    left: max(6px, calc(50% - 155px));
+    top: 92px;
     z-index: 101;
     display: flex;
     flex-direction: column;
@@ -2214,6 +2215,7 @@
   @media (max-width: 640px) {
     .muyu-by-progress {
       left: max(4px, calc(50% - 100px));
+      top: 78px;
     }
     .muyu-btn-svg {
       width: 52px;
