@@ -2757,6 +2757,33 @@
       document.addEventListener(evt, handler, { once: true, passive: true });
     });
   }
+
+  // ===== 尝试播放载入音乐（在动画开始时调用）=====
+  function tryPlayLoadingMusic() {
+    if (!loadingAudio || audioUnlocked) return;
+    
+    console.log('[audio] 尝试播放载入音乐...');
+    loadingAudio.muted = false;
+    loadingAudio.volume = 1.0;
+    
+    // 尝试播放
+    var playPromise = loadingAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(function() {
+        audioUnlocked = true;
+        console.log('[audio] ✅ 音乐已成功播放');
+      }).catch(function(e) {
+        console.log('[audio] 播放失败（可能需要交互）:', e.message);
+        // 如果失败，等待用户交互
+        if (!audioUnlocked) {
+          unlockAudioOnInteraction();
+        }
+      });
+    }
+  }
+
+  // ===== 淡出载入音乐（在动画结束时调用）=====
+  function fadeOutLoadingMusic() {
     if (!loadingAudio) return;
     
     var audio = loadingAudio;
