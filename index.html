@@ -1847,23 +1847,23 @@
   /* ========== MOBILE: FAB ========== */
   @media (max-width: 640px) {
     .fab-btn { bottom: calc(76px + env(safe-area-inset-bottom)); right: 16px; width: 50px; height: 50px; font-size: 24px; }
-  /* ========== MOOD FISH (木鱼) ========== */
+  /* ========== MUYU (木鱼) BUTTON ========== */
   .muyu-btn {
-    position: fixed;
-    bottom: calc(80px + env(safe-area-inset-bottom));
-    left: 20px;
-    width: 64px;
-    height: 64px;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: none;
-    background: radial-gradient(circle at 35% 35%, #e8d5b0, #b8860b 50%, #8b6914 100%);
+    background: radial-gradient(circle at 35% 35%, #e8d5b0, #c8960b 50%, #8b6914 100%);
     box-shadow:
-      0 4px 15px rgba(139,105,20,0.35),
+      0 3px 12px rgba(139,105,20,0.35),
       inset 0 2px 6px rgba(255,255,200,0.35),
       inset 0 -2px 6px rgba(0,0,0,0.2);
-    font-size: 32px;
+    font-size: 0;
     cursor: pointer;
-    z-index: 99;
+    z-index: 101;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1871,15 +1871,16 @@
     -webkit-tap-highlight-color: transparent;
     /* 木鱼纹理 */
     background-image:
-      radial-gradient(circle at 50% 40%, rgba(255,255,200,0.25) 0%, transparent 60%),
+      radial-gradient(circle at 50% 40%, rgba(255,255,200,0.2) 0%, transparent 60%),
       radial-gradient(circle at 30% 70%, rgba(0,0,0,0.1) 0%, transparent 50%);
   }
-  .muyu-btn:active { transform: scale(0.88); }
+  .muyu-btn:active { transform: scale(0.85); }
+  /* 木鱼主体造型 */
   .muyu-btn .fish-body {
-    width: 44px;
-    height: 36px;
-    background: radial-gradient(ellipse at 50% 40%, #d4a845, #a07818 70%, #806020 100%);
-    border-radius: 48% 48% 52% 52% / 42% 42% 58% 58%;
+    width: 36px;
+    height: 30px;
+    background: radial-gradient(ellipse at 50% 40%, #d4a845, #a07818 70%, #6b4a10 100%);
+    border-radius: 50% 50% 52% 52% / 42% 42% 58% 58%;
     position: relative;
     box-shadow: inset 0 2px 4px rgba(255,255,200,0.3), inset 0 -1px 3px rgba(0,0,0,0.25);
   }
@@ -1887,7 +1888,7 @@
   .muyu-btn .fish-body::before {
     content: '';
     position: absolute;
-    bottom: 6px;
+    bottom: 5px;
     left: 50%;
     transform: translateX(-50%);
     width: 10px;
@@ -1895,14 +1896,26 @@
     background: #5a4010;
     border-radius: 0 0 50% 50%;
   }
+  /* 木鱼顶部按钮（敲击处）*/
+  .muyu-btn .fish-head {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 10px;
+    background: radial-gradient(circle at 50% 30%, #e8c870, #a07818 100%);
+    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
   /* 木鱼两侧纹路 */
   .muyu-btn .fish-body::after {
     content: '';
     position: absolute;
-    top: 8px;
+    top: 7px;
     left: 50%;
     transform: translateX(-50%);
-    width: 24px;
+    width: 20px;
     height: 2px;
     background: rgba(80,60,10,0.35);
     border-radius: 1px;
@@ -1914,23 +1927,23 @@
     border: 2px solid rgba(184,134,11,0.5);
     pointer-events: none;
     animation: muyuRipple 0.5s ease-out forwards;
-    z-index: 98;
+    z-index: 102;
   }
   @keyframes muyuRipple {
     0% { transform: scale(0.5); opacity: 1; }
     100% { transform: scale(2.5); opacity: 0; }
   }
   .muyu-click-count {
-    position: fixed;
-    bottom: calc(150px + env(safe-area-inset-bottom));
-    left: 16px;
+    position: absolute;
+    top: 14px;
+    left: 58px;
     font-size: 11px;
     color: var(--primary);
     background: var(--card);
     padding: 3px 10px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    z-index: 99;
+    z-index: 101;
     opacity: 0;
     transition: opacity 0.3s;
     pointer-events: none;
@@ -2032,16 +2045,23 @@
   /* ========== MOBILE: 木鱼 + 哲理弹窗 ========== */
   @media (max-width: 640px) {
     .muyu-btn {
-      bottom: calc(76px + env(safe-area-inset-bottom));
-      left: 14px;
-      width: 56px;
-      height: 56px;
-      font-size: 28px;
-    }
-    .muyu-btn .fish-body { width: 38px; height: 30px; }
-    .muyu-click-count {
-      bottom: calc(138px + env(safe-area-inset-bottom));
+      top: 10px;
       left: 10px;
+      width: 40px;
+      height: 40px;
+    }
+    .muyu-btn .fish-head {
+      width: 10px;
+      height: 8px;
+      top: -3px;
+    }
+    .muyu-btn .fish-body {
+      width: 30px;
+      height: 25px;
+    }
+    .muyu-click-count {
+      top: 10px;
+      left: 50px;
       font-size: 10px;
     }
     .phil-card { padding: 32px 20px 28px; border-radius: 22px; }
@@ -2060,6 +2080,11 @@
 
 <!-- HEADER -->
 <div class="header" id="mainHeader">
+  <button class="muyu-btn" id="muyuBtn" onclick="clickMuyu(event)" title="敲木鱼积功德">
+    <div class="fish-head"></div>
+    <div class="fish-body"></div>
+  </button>
+  <div class="muyu-click-count" id="muyuClickCount"></div>
   <h1>🌅 人生体验卡</h1>
   <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题">🌙</button>
   <div class="progress-circle-wrap">
@@ -2281,11 +2306,6 @@
   </div>
 </div>
 
-<!-- MUYU (木鱼) BUTTON -->
-<button class="muyu-btn" id="muyuBtn" onclick="clickMuyu()" title="敲木鱼积功德">
-  <div class="fish-body"></div>
-</button>
-<div class="muyu-click-count" id="muyuClickCount"></div>
 
 <!-- PHILOSOPHY POPUP -->
 <div class="phil-overlay" id="philOverlay">
@@ -3080,10 +3100,20 @@ function renderList() {
     chapterDiv.className = 'chapter' + (allDone ? '' : ' open');
     chapterDiv.id = 'chapter-' + ci;
 
+    // 统计默认事件
     var checkedCount = 0;
     ch.events.forEach(function(_, ei) {
       if (checkinData[ci + '-' + ei]) checkedCount++;
     });
+    // 统计自定义事件
+    var customInChapter = customEvents.filter(function(ce) { return ce.chapterIndex === ci; });
+    var customCount = customInChapter.length;
+    var customCheckedCount = 0;
+    customInChapter.forEach(function(ce) {
+      if (checkinData[ce.id]) customCheckedCount++;
+    });
+    var totalCount = ch.events.length + customCount;
+    var totalChecked = checkedCount + customCheckedCount;
 
     // 构建默认事件 HTML
     var defaultEventsHtml = ch.events.map(function(ev, ei) {
@@ -3125,7 +3155,7 @@ function renderList() {
           '<div class="chapter-sub">' + escapeHtml(ch.subtitle) + '</div>' +
         '</div>' +
         '<div class="chapter-right">' +
-          '<span class="chapter-count">' + checkedCount + '/' + ch.events.length + '</span>' +
+          '<span class="chapter-count">' + totalChecked + '/' + totalCount + '</span>' +
           '<span class="chapter-arrow">▼</span>' +
         '</div>' +
       '</div>' +
@@ -4401,12 +4431,12 @@ function pickDailyRecommend() {
 function getRecommendAtmosphere() {
   var m = new Date().getMonth() + 1;
   var hrs = new Date().getHours();
-  if (m >= 3 && m <= 5) return { label: '🌱 春日生长', hint: '春天，适合开始新的体验' };
-  if (m >= 6 && m <= 8) return { label: '☀️ 盛夏热情', hint: '夏天，去勇敢冒险吧' };
-  if (m >= 9 && m <= 11) return { label: '🍂 秋日沉淀', hint: '秋天，适合感恩与陪伴' };
-  if (hrs >= 6 && hrs < 12) return { label: '🌅 清晨寄语', hint: '早晨，新的一天开始了' };
-  if (hrs >= 12 && hrs < 18) return { label: '☀️ 午后时光', hint: '下午，给自己一个停顿' };
-  return { label: '🌙 冬夜沉思', hint: '夜晚，适合与自己对话' };
+  if (m >= 3 && m <= 5) return { label: '🌱 春日生长', hint: '种子在土里，风知道方向' };
+  if (m >= 6 && m <= 8) return { label: '☀️ 盛夏热情', hint: '阳光很烫，少年很亮' };
+  if (m >= 9 && m <= 11) return { label: '🍂 秋日沉淀', hint: '叶子黄了，心事也沉了' };
+  if (hrs >= 6 && hrs < 12) return { label: '🌅 清晨寄语', hint: '天刚亮，世界还很软' };
+  if (hrs >= 12 && hrs < 18) return { label: '☀️ 午后时光', hint: '阳光斜进来，时间变慢' };
+  return { label: '🌙 夜色温柔', hint: '星星亮了，你可以休息了' };
 }
 
 // ========== CHAPTER ACHIEVEMENT ==========
