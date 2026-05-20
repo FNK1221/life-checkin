@@ -3972,7 +3972,7 @@ function submitCheckin() {
     var videoFlag = !!(tempVideoData || (existing && !!existing.hasVideo && !tempRemoveVideo));
     checkinData[currentEventId] = {
       date: date,
-      photo: tempPhotoData,
+      photo: !!tempPhotoData,  // 只存布尔标志，实际照片存在 IndexedDB
       hasAudio: !!audioFlag,
       hasVideo: !!videoFlag,
       note: note,
@@ -3988,7 +3988,7 @@ function submitCheckin() {
   } else {
     checkinData[currentEventId] = {
       date: date,
-      photo: existing ? existing.photo : null,
+      photo: existing ? !!existing.photo : false,  // 只存布尔标志
       hasAudio: existing ? !!existing.hasAudio : false,
       hasVideo: existing ? !!existing.hasVideo : false,
       note: note,
@@ -4390,7 +4390,12 @@ function loadTimelineMedia() {
             img.className = 'tl-photo';
             img.dataset.eventId = ev.id;
             img.alt = ev.name;
-            img.src = media.photo; // base64 字符串直接使用
+            // 兼容 Blob 和 data URL 两种格式
+            if (media.photo instanceof Blob) {
+              img.src = URL.createObjectURL(media.photo);
+            } else {
+              img.src = media.photo;
+            }
             img.onclick = function() { viewPhoto(this.dataset.eventId); };
             
             photoContainer.innerHTML = '';
@@ -4520,7 +4525,12 @@ function renderTimelineBatch(container) {
             img.className = 'tl-photo';
             img.dataset.eventId = ev.id;
             img.alt = ev.name;
-            img.src = media.photo; // base64 字符串直接使用
+            // 兼容 Blob 和 data URL 两种格式
+            if (media.photo instanceof Blob) {
+              img.src = URL.createObjectURL(media.photo);
+            } else {
+              img.src = media.photo;
+            }
             img.onclick = function() { viewPhoto(this.dataset.eventId); };
             
             // 替换占位符
@@ -4634,10 +4644,20 @@ function updateTimelineYearIndicator(year) {
 }
 
 
+var _photoViewerURL = null; // 跟踪照片查看器对象 URL
+
 function viewPhoto(eventId) {
   var data = checkinData[eventId];
   if (data && data.photo) {
-    document.getElementById('photoViewerImg').src = data.photo;
+    // 释放之前的对象 URL
+    if (_photoViewerURL) { URL.revokeObjectURL(_photoViewerURL); _photoViewerURL = null; }
+    // 兼容 Blob 和 data URL 两种格式
+    if (data.photo instanceof Blob) {
+      _photoViewerURL = URL.createObjectURL(data.photo);
+      document.getElementById('photoViewerImg').src = _photoViewerURL;
+    } else {
+      document.getElementById('photoViewerImg').src = data.photo;
+    }
     document.getElementById('photoViewer').classList.add('show');
   }
 }
