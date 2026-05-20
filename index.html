@@ -1305,6 +1305,11 @@
     color: var(--danger);
     border-color: #f0d0cc;
   }
+  .data-btn.warning {
+    background: #fef9e7;
+    color: #f2994a;
+    border-color: #f5d8a0;
+  }
   
   /* ========== PHOTO VIEWER ========== */
   .photo-viewer {
@@ -2535,7 +2540,7 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">💬 心情备注（可选）</label>
+      <label class="form-label">💬 我想说（可选）</label>
       <input type="text" class="form-input" id="checkinNote" placeholder="写点什么吧…" maxlength="100">
     </div>
     <div class="btn-row">
@@ -2590,10 +2595,31 @@
       <button class="data-btn primary" onclick="exportData()">📤 导出数据（JSON 文件备份）</button>
       <button class="data-btn" onclick="document.getElementById('importInput').click()">📥 导入数据（恢复备份）</button>
       <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="data-btn warning" onclick="showCleanupPanel()">🗑️ 清理旧数据</button>
       <button class="data-btn danger" onclick="confirmResetApp()">🚨 重置整个应用（恢复初始状态）</button>
     </div>
     <div class="btn-row" style="margin-top:18px;">
       <button class="btn btn-cancel" onclick="closeDataPanel()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLEANUP MODAL -->
+<div class="modal-overlay" id="cleanupModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title">🗑️ 清理旧数据</div>
+    <div class="modal-subtitle">选择要删除的打卡记录</div>
+    <div style="margin:16px 0;">
+      <button class="data-btn warning" onclick="deleteOldRecords(30)" style="margin-bottom:8px;">📅 删除 30 天前的记录</button>
+      <button class="data-btn warning" onclick="deleteOldRecords(90)" style="margin-bottom:8px;">📅 删除 90 天前的记录</button>
+      <button class="data-btn warning" onclick="deleteOldRecords(180)" style="margin-bottom:16px;">📅 删除 180 天前的记录</button>
+    </div>
+    <div id="cleanupList" style="max-height:300px;overflow-y:auto;margin:12px 0;border:1px solid var(--border);border-radius:8px;padding:8px;">
+      <div style="text-align:center;color:var(--text-muted);padding:20px;">加载中...</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-cancel" onclick="closeCleanupPanel()">取消</button>
+      <button class="btn btn-danger" onclick="deleteSelectedRecords()">删除选中 (<span id="selectedCount">0</span>)</button>
     </div>
   </div>
 </div>
@@ -4792,15 +4818,30 @@ function updateStorageDisplay() {
     var lsKB = (info.localStorage / 1024).toFixed(1);
     var idbMB = (info.indexedDB / 1024 / 1024).toFixed(1);
     var quotaMB = info.quota ? (info.quota / 1024 / 1024).toFixed(0) : '未知';
+    var usagePercent = info.quota ? Math.min(100, info.indexedDB / info.quota * 100) : 0;
     var el = document.getElementById('storageInfo');
+
+    // 根据使用率选择颜色
+    var barColor = '--success';
+    var warningMsg = '';
+    if (usagePercent > 80) {
+      barColor = '--danger';
+      warningMsg = '<div style="margin-top:8px;padding:6px 10px;background:var(--danger-bg);color:var(--danger);border-radius:6px;font-size:12px;">⚠️ 存储空间即将耗尽，建议清理旧数据</div>';
+    } else if (usagePercent > 50) {
+      barColor = '--primary';
+      warningMsg = '<div style="margin-top:8px;padding:6px 10px;background:var(--accent);color:var(--primary);border-radius:6px;font-size:12px;">💡 已使用 ' + usagePercent.toFixed(0) + '%，可考虑清理旧数据</div>';
+    }
+
     if (el) {
       el.innerHTML = '<div style="font-size:13px;color:var(--text-muted);line-height:2;">' +
         '<div>localStorage 占用：<b>' + lsKB + ' KB</b></div>' +
         '<div>媒体存储占用：<b>' + idbMB + ' MB</b></div>' +
         '<div>可用存储空间：<b>' + quotaMB + ' MB</b></div>' +
         '<div style="margin-top:8px;height:6px;background:var(--accent);border-radius:3px;overflow:hidden;">' +
-          '<div style="height:100%;width:' + Math.min(100, info.indexedDB / info.quota * 100 || 0) + '%;background:var(--primary);border-radius:3px;"></div>' +
+          '<div style="height:100%;width:' + usagePercent + '%;background:var(' + barColor + ');border-radius:3px;transition:width 0.3s ease;"></div>' +
         '</div>' +
+        '<div style="margin-top:4px;font-size:11px;color:var(--text-muted);">已使用 ' + usagePercent.toFixed(1) + '%</div>' +
+        warningMsg +
       '</div>';
     }
   });
@@ -4923,7 +4964,164 @@ function resetApp() {
   }
 }
 
-// ========== CHECK-IN RITUAL ==========
+// ========== CLEANUP FUNCTIONS ==========
+var cleanupSelected = {};
+
+function showCleanupPanel() {
+  document.getElementById('cleanupModal').classList.add('show');
+  cleanupSelected = {};
+  updateSelectedCount();
+  loadCleanupList();
+}
+
+function closeCleanupPanel() {
+  document.getElementById('cleanupModal').classList.remove('show');
+}
+
+function updateSelectedCount() {
+  var count = Object.keys(cleanupSelected).length;
+  var el = document.getElementById('selectedCount');
+  if (el) el.textContent = count;
+}
+
+function loadCleanupList() {
+  var listEl = document.getElementById('cleanupList');
+  if (!listEl) return;
+
+  // 收集所有打卡记录
+  var records = [];
+  allEvents.forEach(function(ev) {
+    var data = checkinData[ev.id];
+    if (data && data.date) {
+      records.push({
+        id: ev.id,
+        name: ev.chapter + ' - ' + ev.name,
+        date: data.date,
+        hasMedia: !!(data.photo || data.hasPhoto || data.hasAudio || data.hasVideo)
+      });
+    }
+  });
+
+  // 按日期排序（旧的在前）
+  records.sort(function(a, b) {
+    return new Date(a.date) - new Date(b.date);
+  });
+
+  if (records.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">暂无打卡记录</div>';
+    return;
+  }
+
+  var html = '';
+  records.forEach(function(rec) {
+    var dateStr = rec.date;
+    try {
+      var d = new Date(rec.date);
+      dateStr = d.getFullYear() + '.' + (d.getMonth()+1) + '.' + d.getDate();
+    } catch(e) {}
+    var mediaIcon = rec.hasMedia ? ' 📎' : '';
+    html += '<div style="padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:8px;" ' +
+            'onclick="toggleCleanupItem(\'' + rec.id + '\')" ' +
+            'id="cleanup-item-' + rec.id + '">' +
+            '<input type="checkbox" ' + (cleanupSelected[rec.id] ? 'checked' : '') + '>' +
+            '<div style="flex:1;font-size:13px;">' +
+              '<div style="color:var(--text);">' + escapeHtml(rec.name) + mediaIcon + '</div>' +
+              '<div style="color:var(--text-muted);font-size:11px;">' + dateStr + '</div>' +
+            '</div>' +
+          '</div>';
+  });
+
+  listEl.innerHTML = html;
+}
+
+function toggleCleanupItem(id) {
+  if (cleanupSelected[id]) {
+    delete cleanupSelected[id];
+    var el = document.getElementById('cleanup-item-' + id);
+    if (el) el.style.background = 'transparent';
+  } else {
+    cleanupSelected[id] = true;
+    var el = document.getElementById('cleanup-item-' + id);
+    if (el) el.style.background = 'var(--accent)';
+  }
+  updateSelectedCount();
+}
+
+function deleteSelectedRecords() {
+  var ids = Object.keys(cleanupSelected);
+  if (ids.length === 0) {
+    showToast('⚠️ 请先选择要删除的记录');
+    return;
+  }
+
+  if (!confirm('确定要删除选中的 ' + ids.length + ' 条记录吗？\n\n此操作不可恢复！')) {
+    return;
+  }
+
+  ids.forEach(function(id) {
+    delete checkinData[id];
+    deleteMediaForEvent(id);
+  });
+
+  saveData();
+  rebuildAllEvents();
+  renderList();
+  updateProgress();
+  updateStorageDisplay();
+
+  showToast('🗑️ 已删除 ' + ids.length + ' 条记录');
+
+  // 重新加载列表
+  cleanupSelected = {};
+  loadCleanupList();
+  updateSelectedCount();
+}
+
+function deleteOldRecords(days) {
+  var cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+
+  var ids = [];
+  allEvents.forEach(function(ev) {
+    var data = checkinData[ev.id];
+    if (data && data.date) {
+      var recordDate = new Date(data.date);
+      if (recordDate < cutoffDate) {
+        ids.push(ev.id);
+      }
+    }
+  });
+
+  if (ids.length === 0) {
+    showToast('ℹ️ 没有 ' + days + ' 天前的记录');
+    return;
+  }
+
+  if (!confirm('确定要删除 ' + days + ' 天前的 ' + ids.length + ' 条记录吗？\n\n此操作不可恢复！')) {
+    return;
+  }
+
+  ids.forEach(function(id) {
+    delete checkinData[id];
+    deleteMediaForEvent(id);
+  });
+
+  saveData();
+  rebuildAllEvents();
+  renderList();
+  updateProgress();
+  updateStorageDisplay();
+
+  showToast('🗑️ 已删除 ' + ids.length + ' 条旧记录');
+
+  // 重新加载列表
+  cleanupSelected = {};
+  loadCleanupList();
+  updateSelectedCount();
+}
+
+// =========================================
+
 var RITUAL_QUOTES = [
   '✨ 每一个当下的选择，都是生命的礼物',
   '🌱 你在认真生活，这本身就很了不起',
