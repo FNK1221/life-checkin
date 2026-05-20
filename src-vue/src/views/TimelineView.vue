@@ -42,60 +42,66 @@
       </template>
     </div>
 
-    <!-- 章节列表 -->
-    <div class="chapter-list">
+    <!-- 章节列表（虚拟滚动优化） -->
+    <RecycleScroller
+      v-if="chaptersWithState.length > 0"
+      :items="chaptersWithState"
+      :item-size="120"
+      key-field="title"
+      class="chapter-list"
+      v-slot="{ item, index }"
+    >
       <div
-        v-for="(ch, ci) in chaptersWithState"
-        :key="ci"
+        :key="index"
         class="chapter"
-        :class="{ open: ch.isOpen }"
+        :class="{ open: item.isOpen }"
       >
-        <div class="chapter-header" @click="toggleChapter(ci)">
-          <span class="chapter-icon">{{ ch.icon }}</span>
+        <div class="chapter-header" @click="toggleChapter(index)">
+          <span class="chapter-icon">{{ item.icon }}</span>
           <div class="chapter-body">
-            <div class="chapter-title">{{ ch.title }}</div>
-            <div class="chapter-sub">{{ ch.subtitle }}</div>
+            <div class="chapter-title">{{ item.title }}</div>
+            <div class="chapter-sub">{{ item.subtitle }}</div>
           </div>
           <div class="chapter-right">
-            <span class="chapter-count">{{ ch.done }}/{{ ch.total }}</span>
+            <span class="chapter-count">{{ item.done }}/{{ item.total }}</span>
             <span class="chapter-arrow">▼</span>
           </div>
         </div>
 
         <!-- 事件列表（折叠状态隐藏） -->
-        <div v-if="ch.isOpen" class="chapter-items">
+        <div v-if="item.isOpen" class="chapter-items">
           <!-- 默认事件 -->
           <div
-            v-for="(ev, ei) in ch.events"
-            :key="ci + '-' + ei"
+            v-for="(ev, ei) in item.events"
+            :key="index + '-' + ei"
             class="event-item"
             :class="[
-              { checked: isDone(ci + '-' + ei) },
-              { 'hidden-event': isSearching && !matchSearch(ci + '-' + ei, ev) }
+              { checked: isDone(index + '-' + ei) },
+              { 'hidden-event': isSearching && !matchSearch(index + '-' + ei, ev) }
             ]"
-            @click="openCheckin({ id: ci + '-' + ei, name: ev, chapter: ci })"
+            @click="openCheckin({ id: index + '-' + ei, name: ev, chapter: index })"
           >
-            <div class="event-check">{{ isDone(ci + '-' + ei) ? '✓' : '' }}</div>
+            <div class="event-check">{{ isDone(index + '-' + ei) ? '✓' : '' }}</div>
             <div class="event-info">
               <div class="event-name">{{ ev }}</div>
-              <div v-if="isDone(ci + '-' + ei)" class="event-meta">
-                <span v-if="getCheckinData(ci + '-' + ei).date">📅 {{ getCheckinData(ci + '-' + ei).date }}</span>
-                <span v-if="getCheckinData(ci + '-' + ei).photo">📷 有照片</span>
-                <span v-if="getCheckinData(ci + '-' + ei).note">💬 {{ getCheckinData(ci + '-' + ei).note.slice(0, 15) }}{{ getCheckinData(ci + '-' + ei).note.length > 15 ? '…' : '' }}</span>
+              <div v-if="isDone(index + '-' + ei)" class="event-meta">
+                <span v-if="getCheckinData(index + '-' + ei).date">📅 {{ getCheckinData(index + '-' + ei).date }}</span>
+                <span v-if="getCheckinData(index + '-' + ei).photo">📷 有照片</span>
+                <span v-if="getCheckinData(index + '-' + ei).note">💬 {{ getCheckinData(index + '-' + ei).note.slice(0, 15) }}{{ getCheckinData(index + '-' + ei).note.length > 15 ? '…' : '' }}</span>
               </div>
             </div>
           </div>
 
           <!-- 自定义事件 -->
           <div
-            v-for="ce in customEventsInChapter(ci)"
+            v-for="ce in customEventsInChapter(index)"
             :key="ce.id"
             class="event-item custom-event"
             :class="[
               { checked: isDone(ce.id) },
               { 'hidden-event': isSearching && !matchSearch(ce.id, ce.name) }
             ]"
-            @click="openCheckin({ id: ce.id, name: ce.name, chapter: ci, custom: true })"
+            @click="openCheckin({ id: ce.id, name: ce.name, chapter: index, custom: true })"
           >
             <div class="event-check">{{ isDone(ce.id) ? '✓' : '' }}</div>
             <div class="event-info">
@@ -110,7 +116,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </RecycleScroller>
 
     <!-- 搜索无结果 -->
     <div v-if="isSearching && searchMatchedCount === 0" class="search-empty">
@@ -129,6 +135,8 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { RecycleScroller } from 'vue-virtual-scroller'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import CheckinModal from '../components/CheckinModal.vue'
 import { CHAPTERS, buildAllEvents } from '../utils/events.js'
 import {

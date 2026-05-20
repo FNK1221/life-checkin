@@ -27,16 +27,28 @@
 
       <!-- 手机端底部栏 -->
       <nav class="bottom-bar">
-        <button class="bottom-btn active" @click="$router.push('/')">
+        <button
+          class="bottom-btn"
+          :class="{ active: $route.path === '/' || $route.path.startsWith('/chapter') }"
+          @click="$router.push('/')"
+        >
           <span class="icon">🏠</span>
           <span>时光轴</span>
+        </button>
+        <button
+          class="bottom-btn"
+          :class="{ active: $route.path === '/stats' }"
+          @click="$router.push('/stats')"
+        >
+          <span class="icon">📊</span>
+          <span>统计</span>
         </button>
         <button class="bottom-btn" @click="showShareCard = true">
           <span class="icon">🎨</span>
           <span>分享</span>
         </button>
         <button class="bottom-btn" @click="showDataPanel = true">
-          <span class="icon">📊</span>
+          <span class="icon">📁</span>
           <span>数据</span>
         </button>
         <button class="bottom-btn" @click="toggleTheme">

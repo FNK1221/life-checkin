@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import TimelineView from '../views/TimelineView.vue'
+import StatsView from '../views/StatsView.vue'
 
 const routes = [
   {
@@ -12,6 +13,11 @@ const routes = [
     name: 'Chapter',
     component: TimelineView,
     props: true
+  },
+  {
+    path: '/stats',
+    name: 'Stats',
+    component: StatsView
   }
 ]
 
