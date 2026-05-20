@@ -86,7 +86,7 @@
               <div class="event-name">{{ ev }}</div>
               <div v-if="isDone(index + '-' + ei)" class="event-meta">
                 <span v-if="getCheckinData(index + '-' + ei).date">📅 {{ getCheckinData(index + '-' + ei).date }}</span>
-                <span v-if="getCheckinData(index + '-' + ei).photo">📷 有照片</span>
+                <span v-if="getCheckinData(index + '-' + ei).photo" class="meta-clickable" @click="openPhotoViewer(index + '-' + ei)">📷 有照片</span>
                 <span v-if="getCheckinData(index + '-' + ei).note">💬 {{ getCheckinData(index + '-' + ei).note.slice(0, 15) }}{{ getCheckinData(index + '-' + ei).note.length > 15 ? '…' : '' }}</span>
               </div>
             </div>
@@ -108,7 +108,7 @@
               <div class="event-name">{{ ce.name }} <span class="custom-badge">自定义</span></div>
               <div v-if="isDone(ce.id)" class="event-meta">
                 <span v-if="getCheckinData(ce.id).date">📅 {{ getCheckinData(ce.id).date }}</span>
-                <span v-if="getCheckinData(ce.id).photo">📷 有照片</span>
+                <span v-if="getCheckinData(ce.id).photo" class="meta-clickable" @click="openPhotoViewer(ce.id)">📷 有照片</span>
                 <span v-if="getCheckinData(ce.id).note">💬 {{ getCheckinData(ce.id).note.slice(0, 15) }}{{ getCheckinData(ce.id).note.length > 15 ? '…' : '' }}</span>
               </div>
             </div>
@@ -144,6 +144,13 @@
       :chapter-index="achievementChapterIndex"
       @close="onAchievementDone"
     />
+
+    <!-- 图片查看器 -->
+    <PhotoViewer
+      :visible="showPhotoViewer"
+      :event-id="photoEventId"
+      @close="onPhotoViewerClose"
+    />
   </div>
 </template>
 
@@ -152,6 +159,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { RecycleScroller } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import CheckinModal from '../components/CheckinModal.vue'
+import PhotoViewer from '../components/PhotoViewer.vue'
 import RitualOverlay from '../components/RitualOverlay.vue'
 import AchievementOverlay from '../components/AchievementOverlay.vue'
 import { CHAPTERS, buildAllEvents } from '../utils/events.js'
@@ -182,6 +190,11 @@ const achievementChapterIndex = ref(-1)
 // 每日推荐
 const dailyRecommend = ref(null)
 const dailyAtm = ref({ label: '', hint: '' })
+
+// 图片查看器
+const photoViewerRef = ref(null)
+const showPhotoViewer = ref(false)
+const photoEventId = ref('')
 
 // ========== 计算属性 ==========
 const doneCount = computed(() => {
@@ -309,6 +322,18 @@ function onRitualDone() {
 function onAchievementDone() {
   showAchievement.value = false
   achievementChapterIndex.value = -1
+}
+
+// 打开图片查看器
+function openPhotoViewer(eventId) {
+  photoEventId.value = eventId
+  showPhotoViewer.value = true
+}
+
+// 关闭图片查看器
+function onPhotoViewerClose() {
+  showPhotoViewer.value = false
+  photoEventId.value = ''
 }
 
 // 删除自定义事件

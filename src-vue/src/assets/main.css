@@ -1084,6 +1084,9 @@ body {
   box-shadow: 0 8px 40px rgba(0,0,0,0.4);
 }
 
+/* ========== META CLICKABLE ========== */
+.meta-clickable { cursor: pointer; color: var(--primary); }
+
 /* ========== RESPONSIVE ========== */
 
 /* 平板 / 小桌面 */
