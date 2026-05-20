@@ -3626,7 +3626,8 @@ function renderList() {
   var chapterStates = [];
   CHAPTERS.forEach(function(ch, ci) {
     var el = document.getElementById('chapter-' + ci);
-    chapterStates[ci] = el ? el.classList.contains('open') : !ch.events.every(function(_, ei) { return !!checkinData[ci + '-' + ei]; });
+    // 默认全部折叠，减少 DOM 数量防止卡顿；已展开的状态会被保留
+    chapterStates[ci] = el ? el.classList.contains('open') : false;
   });
 
   var container = document.getElementById('mainList');
