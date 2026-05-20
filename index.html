@@ -3167,56 +3167,9 @@
       // When t>=0.4: nothing to draw, just let particles finish
 
     } else if(frame < 421){
-      // Phase 5: ball shatter + starlight (0.1s = 6 frames at 60fps)
+      // Phase 5: simple fade out (0.1s = 6 frames at 60fps)
       var t = (frame - 415) / 6;
-      var ease = 1 - Math.pow(1 - Math.min(t,1), 3);
-
-      // Starlight effect: bright flash at center, then starburst
-      if (t < 0.5) {
-        // First 3 frames: starlight appears (flash + starburst lines)
-        var starAlpha = t * 2; // 0 to 1
-        ctx.save();
-        ctx.globalAlpha = starAlpha * 0.9;
-        ctx.fillStyle = "#fffbe6";
-        ctx.beginPath(); ctx.arc(cx(), cy(), 30 + starAlpha * 40, 0, Math.PI*2); ctx.fill();
-
-        // Starburst lines (8 directions)
-        ctx.globalAlpha = starAlpha * 0.7;
-        ctx.strokeStyle = "#fffbe6";
-        ctx.lineWidth = 2 * (1 - t * 2);
-        for (var si = 0; si < 8; si++) {
-          var angle = si * (Math.PI / 4);
-          var innerR = 20 + starAlpha * 10;
-          var outerR = 20 + starAlpha * 80;
-          ctx.beginPath();
-          ctx.moveTo(cx() + Math.cos(angle) * innerR, cy() + Math.sin(angle) * innerR);
-          ctx.lineTo(cx() + Math.cos(angle) * outerR, cy() + Math.sin(angle) * outerR);
-          ctx.stroke();
-        }
-        ctx.restore();
-      } else {
-        // Last 3 frames: starlight fades, small balls visible
-        var starAlpha = 1 - (t - 0.5) * 2; // 1 to 0
-        ctx.save();
-        ctx.globalAlpha = starAlpha * 0.5;
-        ctx.fillStyle = "#fffbe6";
-        ctx.beginPath(); ctx.arc(cx(), cy(), 20 + starAlpha * 20, 0, Math.PI*2); ctx.fill();
-
-        // Fading starburst
-        ctx.globalAlpha = starAlpha * 0.3;
-        ctx.strokeStyle = "#fffbe6";
-        ctx.lineWidth = 1;
-        for (var si = 0; si < 8; si++) {
-          var angle = si * (Math.PI / 4);
-          ctx.beginPath();
-          ctx.moveTo(cx() + Math.cos(angle) * 20, cy() + Math.sin(angle) * 20);
-          ctx.lineTo(cx() + Math.cos(angle) * (50 + starAlpha * 30), cy() + Math.sin(angle) * (50 + starAlpha * 30));
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-
-      // Continue drawing particles (small balls from shatter) - drawn below
+      // No starlight flash - just let particles finish naturally
 
     } else {
       // Animation complete: stop music immediately and finish loading
