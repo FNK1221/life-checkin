@@ -6,6 +6,7 @@
     <!-- 开场动画 -->
     <LoadingScreen @loading-complete="onLoadingComplete" />
 
+    <!-- 电脑端：左侧导航 -->
     <nav class="app-nav">
       <div class="nav-brand" @click="$router.push('/')">
         <span class="nav-icon">✦</span>
@@ -18,9 +19,32 @@
       </div>
     </nav>
 
-    <main class="app-main">
-      <router-view />
-    </main>
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <main class="app-main">
+        <router-view />
+      </main>
+
+      <!-- 手机端底部栏 -->
+      <nav class="bottom-bar">
+        <button class="bottom-btn active" @click="$router.push('/')">
+          <span class="icon">🏠</span>
+          <span>时光轴</span>
+        </button>
+        <button class="bottom-btn" @click="showShareCard = true">
+          <span class="icon">🎨</span>
+          <span>分享</span>
+        </button>
+        <button class="bottom-btn" @click="showDataPanel = true">
+          <span class="icon">📊</span>
+          <span>数据</span>
+        </button>
+        <button class="bottom-btn" @click="toggleTheme">
+          <span class="icon">🌓</span>
+          <span>主题</span>
+        </button>
+      </nav>
+    </div>
 
     <!-- 数据管理面板 -->
     <DataPanel

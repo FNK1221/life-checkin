@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading Animation Test</title>
+<style>
+  #loadingScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #1a0e0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #loadingCanvas { display: block; }
+  #loadingHint {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(252,232,216,0.4);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div id="loadingScreen">
+  <canvas id="loadingCanvas"></canvas>
+  <div id="loadingHint">正在孕育生命…</div>
+</div>
+
+<script>
+(function(){
+  var canvas = document.getElementById("loadingCanvas");
+  if(!canvas) { console.error('Canvas not found'); return; }
+  var ctx = canvas.getContext("2d");
+  var screen = document.getElementById("loadingScreen");
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  function W(){ return canvas.width; }
+  function H(){ return canvas.height; }
+  function cx(){ return canvas.width/2; }
+  function cy(){ return canvas.height/2; }
+
+  var particles = [];
+  function spawnP(x, y, count, colorFn, speed, life){
+    for(var i=0;i<count;i++){
+      var a = Math.random()*Math.PI*2;
+      var s = speed * (0.3+Math.random()*0.7);
+      var c = colorFn ? colorFn() : "rgba(255,220,140,0.8)";
+      particles.push({x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s,
+        life:life||60, maxLife:life||60, r:1+Math.random()*2.5,
+        color:c});
+    }
+  }
+  function tickP(){
+    for(var i=particles.length-1;i>=0;i--){
+      var p=particles[i];
+      p.x+=p.vx; p.y+=p.vy; p.life--;
+      if(p.life<=0){ particles.splice(i,1); }
+    }
+  }
+  function drawP(){
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      var a = p.life / p.maxLife;
+      ctx.globalAlpha = a * 0.8;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r*a, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function finishLoading(){
+    if(screen){
+      screen.style.display="none";
+    }
+    animDone = true;
+  }
+
+  var frame = 0, animDone = false;
+  var FPS = 60, SPD = 1000/FPS;
+
+  function loop(){
+    if(animDone) { finishLoading(); return; }
+    ctx.clearRect(0, 0, W(), H());
+
+    if(frame < 120){
+      var t = frame / 120;
+      var ease = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+      var maxDist = W() * 0.38;
+      var xLeft  = cx() - maxDist * (1 - ease);
+      var xRight = cx() + maxDist * (1 - ease);
+      var orbY = cy() + Math.sin(frame*0.04)*4;
+
+      if(frame % 2 === 0){
+        spawnP(xLeft, orbY, 1, function(){ return "rgba(220,230,255,"+(0.3+Math.random()*0.3)+")"; }, 0.3, 35);
+        spawnP(xRight, orbY, 1, function(){ return "rgba(255,230,160,"+(0.3+Math.random()*0.3)+")"; }, 0.3, 35);
+      }
+
+      var oL_o = ctx.createRadialGradient(xLeft, orbY, 0, xLeft, orbY, 50+t*20);
+      oL_o.addColorStop(0, "rgba(230,240,255,0.12)");
+      oL_o.addColorStop(1, "rgba(230,240,255,0)");
+      ctx.fillStyle = oL_o;
+      ctx.beginPath(); ctx.arc(xLeft, orbY, 50+t*20, 0, Math.PI*2); ctx.fill();
+      var oL_c = ctx.createRadialGradient(xLeft-4, orbY-4, 0, xLeft, orbY, 18);
+      oL_c.addColorStop(0, "rgba(255,255,255,0.95)");
+      oL_c.addColorStop(0.6, "rgba(210,225,255,0.8)");
+      oL_c.addColorStop(1, "rgba(180,200,240,0.4)");
+      ctx.fillStyle = oL_c;
+      ctx.beginPath(); ctx.arc(xLeft, orbY, 18, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.beginPath(); ctx.arc(xLeft, orbY, 7, 0, Math.PI*2); ctx.fill();
+
+      var oR_o = ctx.createRadialGradient(xRight, orbY, 0, xRight, orbY, 50+t*20);
+      oR_o.addColorStop(0, "rgba(255,230,150,0.13)");
+      oR_o.addColorStop(1, "rgba(255,230,150,0)");
+      ctx.fillStyle = oR_o;
+      ctx.beginPath(); ctx.arc(xRight, orbY, 50+t*20, 0, Math.PI*2); ctx.fill();
+      var oR_c = ctx.createRadialGradient(xRight+4, orbY-4, 0, xRight, orbY, 18);
+      oR_c.addColorStop(0, "rgba(255,255,230,0.95)");
+      oR_c.addColorStop(0.6, "rgba(255,220,130,0.8)");
+      oR_c.addColorStop(1, "rgba(255,200,100,0.4)");
+      ctx.fillStyle = oR_c;
+      ctx.beginPath(); ctx.arc(xRight, orbY, 18, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,200,0.85)";
+      ctx.beginPath(); ctx.arc(xRight, orbY, 7, 0, Math.PI*2); ctx.fill();
+    } else if(frame < 200){
+      var t = (frame - 120) / 80;
+      var ease = 1 - Math.pow(1 - t, 3);
+      var flash = Math.sin(t * Math.PI);
+
+      ctx.save();
+      ctx.globalAlpha = flash * 0.35;
+      ctx.fillStyle = "#fffbe6";
+      ctx.beginPath(); ctx.arc(cx(), cy(), W()*0.7*flash, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      var coreR = 8 + ease * 45;
+      var coreGlow = ctx.createRadialGradient(cx(), cy(), 0, cx(), cy(), coreR * 2.5);
+      coreGlow.addColorStop(0, "rgba(255,220,100,"+(0.3+flash*0.2)+")");
+      coreGlow.addColorStop(0.4, "rgba(255,180,60,0.1)");
+      coreGlow.addColorStop(1, "rgba(255,180,60,0)");
+      ctx.fillStyle = coreGlow;
+      ctx.beginPath(); ctx.arc(cx(), cy(), coreR*2.5, 0, Math.PI*2); ctx.fill();
+
+      var danGrad = ctx.createRadialGradient(cx()-coreR*0.2, cy()-coreR*0.2, 0, cx(), cy(), coreR);
+      danGrad.addColorStop(0, "rgba(255,250,220,0.98)");
+      danGrad.addColorStop(0.5, "rgba(255,200,80,0.95)");
+      danGrad.addColorStop(0.85, "rgba(220,150,40,0.9)");
+      danGrad.addColorStop(1, "rgba(180,120,30,0.8)");
+      ctx.fillStyle = danGrad;
+      ctx.beginPath(); ctx.arc(cx(), cy(), coreR, 0, Math.PI*2); ctx.fill();
+    } else {
+      var t = Math.min(1, (frame - 200) / 140);
+      var pulse = Math.sin(frame * 0.04) * 0.5 + 0.5;
+      var coreR = 50 + pulse * 5;
+
+      for(var L=0; L<3; L++){
+        var Lr = coreR * (1.3 + L*0.45 + Math.sin(frame*0.03+L)*0.1);
+        var Lg = ctx.createRadialGradient(cx(), cy(), coreR*0.8, cx(), cy(), Lr);
+        Lg.addColorStop(0, "rgba(255,200,80,"+(0.08 - L*0.02)+")");
+        Lg.addColorStop(1, "rgba(255,180,60,0)");
+        ctx.fillStyle = Lg;
+        ctx.beginPath(); ctx.arc(cx(), cy(), Lr, 0, Math.PI*2); ctx.fill();
+      }
+
+      ctx.save();
+      ctx.translate(cx(), cy());
+
+      var danGrad2 = ctx.createRadialGradient(-coreR*0.15, -coreR*0.15, 0, 0, 0, coreR);
+      danGrad2.addColorStop(0, "rgba(255,252,230,0.98)");
+      danGrad2.addColorStop(0.4, "rgba(255,210,90,0.95)");
+      danGrad2.addColorStop(0.75, "rgba(220,160,50,0.92)");
+      danGrad2.addColorStop(1, "rgba(180,120,30,0.88)");
+      ctx.fillStyle = danGrad2;
+      ctx.beginPath(); ctx.arc(0, 0, coreR, 0, Math.PI*2); ctx.fill();
+
+      ctx.restore();
+
+      if(frame % 4 === 0){
+        var fa = Math.random()*Math.PI*2;
+        var fd = coreR*1.2 + Math.random()*40;
+        spawnP(cx()+Math.cos(fa)*fd, cy()+Math.sin(fa)*fd, 1,
+          function(){ return "rgba(255,220,140,"+(0.3+Math.random()*0.3)+")"; }, 0.2, 50);
+      }
+    }
+
+    tickP();
+    drawP();
+
+    frame++;
+    if(frame > 500) { finishLoading(); return; }
+    setTimeout(loop, SPD);
+  }
+
+  setTimeout(loop, 100);
+})();
+</script>
+</body>
+</html>
