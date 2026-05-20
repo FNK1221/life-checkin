@@ -1,5 +1,11 @@
 <template>
   <div id="life-app">
+    <!-- 载入音乐 -->
+    <audio id="loadingAudio" src="/loading_music.mp3" autoplay muted></audio>
+
+    <!-- 开场动画 -->
+    <LoadingScreen @loading-complete="onLoadingComplete" />
+
     <nav class="app-nav">
       <div class="nav-brand" @click="$router.push('/')">
         <span class="nav-icon">✦</span>
@@ -34,9 +40,15 @@
 import { ref, onMounted } from 'vue'
 import DataPanel from './components/DataPanel.vue'
 import ShareCard from './components/ShareCard.vue'
+import LoadingScreen from './components/LoadingScreen.vue'
 
 const showDataPanel = ref(false)
 const showShareCard = ref(false)
+const loadingComplete = ref(false)
+
+function onLoadingComplete() {
+  loadingComplete.value = true
+}
 
 // ========== 主题切换（与原 index.html 保持一致）==========
 function toggleTheme() {
