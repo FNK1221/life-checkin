@@ -2802,30 +2802,6 @@
     }
   }
 
-  // ===== 淡出载入音乐（在动画结束时调用）=====
-  function fadeOutLoadingMusic() {
-    if (!loadingAudio) return;
-    
-    var audio = loadingAudio;
-    var fadeTime = 1000;  // 1秒淡出
-    var steps = 20;
-    var stepTime = fadeTime / steps;
-    var volumeStep = audio.volume / steps;
-    
-    var fadeInterval = setInterval(function() {
-      if (audio.volume > volumeStep) {
-        audio.volume -= volumeStep;
-      } else {
-        audio.volume = 0;
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = 1.0;  // 重置音量
-        clearInterval(fadeInterval);
-        console.log('[audio] 音乐已淡出并停止');
-      }
-    }, stepTime);
-  }
-  
   // 页面加载时初始化
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initLoadingAudio);
@@ -2921,7 +2897,7 @@
 
   // ===== 立即停止载入音乐（在星光消失时调用）=====
   function stopLoadingMusic() {
-    if (!loadingAudio) return;
+    if (!loadingAudio || loadingFinished) return;
     loadingAudio.pause();
     loadingAudio.currentTime = 0;
     loadingAudio.volume = 1.0;  // 重置音量，以便下次播放
@@ -3142,11 +3118,11 @@
 
         if(frame % 2 === 0){
           for(var i=0;i<5;i++){
-            var sa = Math.random()*Math.PI*2;
-            var sd = 20 + Math.random()*30;
-            spawnP(cx()+Math.cos(sa)*sd, cy()+Math.sin(sa)*sd, 1,
-              function(){ return "rgba("+(200+Math.random()*55)+","+(140+Math.random()*80)+","+(30+Math.random()*40)+",0.8)"; },
-              2+Math.random()*3, 35+Math.random()*25);
+            var a = Math.random()*Math.PI*2;
+            var d = 20 + Math.random()*30;
+            spawnP(cx()+Math.cos(a)*d, cy()+Math.sin(a)*d, 1,
+              function(){ return "rgba("+(200+Math.random()*20)+","+(140+Math.random()*40)+","+(30+Math.random()*20)+",0.6)"; },
+              1.5+Math.random()*2, 25+Math.random()*15);
           }
         }
 
