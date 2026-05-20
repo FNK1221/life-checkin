@@ -4022,18 +4022,17 @@ function handlePhoto(e) {
     showToast('⚠️ 照片不能超过 5MB');
     return;
   }
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    compressImage(ev.target.result, 600, 0.65).then(function(compressed) {
-      tempPhotoData = compressed;
-      showPhotoPreview(compressed);
-    });
-  };
-  reader.readAsDataURL(file);
+  // 直接传 File 对象给 compressImage，不再用 FileReader 转 data URL
+  compressImage(file, 600, 0.65).then(function(blob) {
+    tempPhotoData = blob;  // 现在 tempPhotoData 是 Blob
+    showPhotoPreview(blob);
+  }).catch(function() {
+    showToast('⚠️ 照片压缩失败');
+  });
 }
 
-function compressImage(dataUrl, maxW, quality) {
-  return new Promise(function(resolve) {
+function compressImage(file, maxW, quality) {
+  return new Promise(function(resolve, reject) {
     var img = new Image();
     img.onload = function() {
       var w = img.width, h = img.height;
@@ -4041,16 +4040,24 @@ function compressImage(dataUrl, maxW, quality) {
       var canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL('image/jpeg', quality));
+      canvas.toBlob(function(blob) {
+        resolve(blob);
+      }, 'image/jpeg', quality);
     };
-    img.src = dataUrl;
+    img.onerror = function() { reject(new Error('图片加载失败')); };
+    img.src = URL.createObjectURL(file);
   });
 }
 
-function showPhotoPreview(dataUrl) {
+var _photoObjectURL = null; // 跟踪当前照片对象 URL，关闭时释放
+
+function showPhotoPreview(blob) {
   var upload = document.getElementById('photoUpload');
   var preview = document.getElementById('photoPreview');
-  preview.src = dataUrl;
+  // 释放之前的 object URL
+  if (_photoObjectURL) { URL.revokeObjectURL(_photoObjectURL); _photoObjectURL = null; }
+  _photoObjectURL = URL.createObjectURL(blob);
+  preview.src = _photoObjectURL;
   upload.classList.add('has-photo');
 }
 
@@ -4061,6 +4068,8 @@ function clearPhotoPreview() {
   upload.classList.remove('has-photo');
   document.getElementById('photoInput').value = '';
   tempPhotoData = null;
+  // 释放对象 URL
+  if (_photoObjectURL) { URL.revokeObjectURL(_photoObjectURL); _photoObjectURL = null; }
 }
 
 function removePhoto(e) {
