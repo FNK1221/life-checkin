@@ -76,7 +76,9 @@
           <!-- 底部按钮 -->
           <div class="modal-footer">
             <button class="btn btn-cancel" @click="$emit('close')">取消</button>
-            <button class="btn btn-primary" @click="save">完成打卡</button>
+            <button class="btn btn-primary" @click="save" :disabled="saving">
+              {{ saving ? '保存中...' : '完成打卡' }}
+            </button>
           </div>
         </div>
       </div>
@@ -182,8 +184,11 @@ function onVideoChange(e) {
 }
 
 // ========== 保存 ==========
+const saving = ref(false)
+
 async function save() {
-  if (!props.event) return
+  if (!props.event || saving.value) return
+  saving.value = true
 
   const eventId = props.event.id
   const data = {
@@ -195,25 +200,33 @@ async function save() {
     timestamp: Date.now()
   }
 
-  // 保存打卡数据（localStorage）
-  await saveCheckin(eventId, data)
+  try {
+    // 保存打卡数据（localStorage）
+    await saveCheckin(eventId, data)
 
-  // 保存照片（IndexedDB）
-  if (photoFile.value) {
-    await saveMedia(eventId, 'photo', photoFile.value, 'photo_' + Date.now() + '.jpg')
+    // 保存照片（IndexedDB）
+    if (photoFile.value) {
+      await saveMedia(eventId, 'photo', photoFile.value, 'photo_' + Date.now() + '.jpg')
+    }
+
+    // 保存音频（IndexedDB）
+    if (audioFile.value) {
+      await saveMedia(eventId, 'audio', audioFile.value, audioFile.value.name)
+    }
+
+    // 保存视频（IndexedDB）
+    if (videoFile.value) {
+      await saveMedia(eventId, 'video', videoFile.value, videoFile.value.name)
+    }
+
+    // 返回事件信息，供父组件触发仪式/成就弹窗
+    emit('saved', {
+      eventId,
+      event: props.event
+    })
+  } finally {
+    saving.value = false
   }
-
-  // 保存音频（IndexedDB）
-  if (audioFile.value) {
-    await saveMedia(eventId, 'audio', audioFile.value, audioFile.value.name)
-  }
-
-  // 保存视频（IndexedDB）
-  if (videoFile.value) {
-    await saveMedia(eventId, 'video', videoFile.value, videoFile.value.name)
-  }
-
-  emit('saved')
 }
 
 // ========== 清理 Object URL ==========

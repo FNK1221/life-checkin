@@ -130,6 +130,20 @@
       @close="showModal = false"
       @saved="onCheckinSaved"
     />
+
+    <!-- 打卡仪式弹窗 -->
+    <RitualOverlay
+      :visible="showRitual"
+      :event="ritualEvent"
+      @close="onRitualDone"
+    />
+
+    <!-- 章节成就弹窗 -->
+    <AchievementOverlay
+      :visible="showAchievement"
+      :chapter-index="achievementChapterIndex"
+      @close="onAchievementDone"
+    />
   </div>
 </template>
 
@@ -138,6 +152,8 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { RecycleScroller } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import CheckinModal from '../components/CheckinModal.vue'
+import RitualOverlay from '../components/RitualOverlay.vue'
+import AchievementOverlay from '../components/AchievementOverlay.vue'
 import { CHAPTERS, buildAllEvents } from '../utils/events.js'
 import {
   loadCheckinData,
@@ -156,6 +172,12 @@ const currentEvent = ref(null)
 const searchTerm = ref('')
 const isSearching = ref(false)
 const searchMatchedCount = ref(0)
+
+// 仪式弹窗 & 成就弹窗
+const showRitual = ref(false)
+const ritualEvent = ref(null)
+const showAchievement = ref(false)
+const achievementChapterIndex = ref(-1)
 
 // 每日推荐
 const dailyRecommend = ref(null)
@@ -248,9 +270,45 @@ function openCheckin(event) {
 }
 
 // 打卡保存成功
-async function onCheckinSaved() {
+async function onCheckinSaved({ eventId, event }) {
   showModal.value = false
   await loadData() // 重新加载数据
+
+  // 触发打卡仪式
+  ritualEvent.value = event
+  showRitual.value = true
+}
+
+// 仪式弹窗结束
+function onRitualDone() {
+  showRitual.value = false
+  ritualEvent.value = null
+
+  // 检查本章是否全部完成 → 显示成就弹窗
+  if (ritualEvent.value && ritualEvent.value.chapter !== undefined) {
+    const ci = ritualEvent.value.chapter
+    const ch = CHAPTERS[ci]
+    if (!ch) return
+    // 统计本章完成数
+    let done = 0
+    ch.events.forEach((_, ei) => {
+      if (checkinData.value[ci + '-' + ei]) done++
+    })
+    const ces = customEvents.value.filter(ce => ce.chapterIndex === ci)
+    const customDone = ces.filter(ce => checkinData.value[ce.id]).length
+    const total = ch.events.length + ces.length
+
+    if (done + customDone >= total && total > 0) {
+      achievementChapterIndex.value = ci
+      showAchievement.value = true
+    }
+  }
+}
+
+// 成就弹窗结束
+function onAchievementDone() {
+  showAchievement.value = false
+  achievementChapterIndex.value = -1
 }
 
 // 删除自定义事件

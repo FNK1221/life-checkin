@@ -10,19 +10,16 @@
         </div>
       </div>
     </Transition>
-
-    <!-- 星星粒子容器 -->
-    <div v-for="star in stars" :key="star.id" class="achievement-star" :style="star.style"></div>
   </Teleport>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { CHAPTERS } from '../utils/events.js'
 
 const props = defineProps({
   visible: Boolean,
-  chapterIdx: Number
+  chapterIndex: Number
 })
 
 const emit = defineEmits(['close'])
@@ -30,34 +27,32 @@ const emit = defineEmits(['close'])
 const icon = ref('🎊')
 const effectName = ref('')
 const chapterTitle = ref('')
-const stars = ref([])
 
-// 每个章节完成时的专属特效表情
+// 每个章节完成时的专属特效
 const CHAPTER_ACHIEVEMENT_EFFECTS = {
   0: { emojis: ['🌸','🏵️','💮','🪷','🌺'], name:'花瓣飘落' },
   1: { emojis: ['📚','📖','🎓','✏️','📝'], name:'书香满屋' },
   2: { emojis: ['💼','🚀','📈','💡','🏆'], name:'星光闪耀' },
   3: { emojis: ['❤️','💕','💖','💗','🥰'], name:'爱心飞扬' },
   4: { emojis: ['🏠','🍳','🪴','🕯️','🧺'], name:'温馨家居' },
-  5: { emojis: ['🌍','✈️','🗺️','⛰️','🏝️'], name:'星辰大海' },
+  5: { emojis: ['🌍','✈️','🗺️','⛵️','🏝️'], name:'星辰大海' },
   6: { emojis: ['🎉','🎊','🪅','🎆','✨'], name:'烟花绽放' },
   7: { emojis: ['🕰️','💎','🌟','📜','🦉'], name:'智慧之光' }
 }
 
-function show(chapterIdx) {
-  const ch = CHAPTERS[chapterIdx]
+function show() {
+  const ch = CHAPTERS[props.chapterIndex]
   if (!ch) return
-  
-  const effect = CHAPTER_ACHIEVEMENT_EFFECTS[chapterIdx]
+
+  const effect = CHAPTER_ACHIEVEMENT_EFFECTS[props.chapterIndex]
   icon.value = ch.icon
   effectName.value = effect ? effect.name : '章节圆满完成！'
   chapterTitle.value = ch.title
-  
+
   // 根据章节使用不同特效
-  if (chapterIdx === 0) {
+  if (props.chapterIndex === 0) {
     spawnStars(18, ['🌸','🏵️','💮','🪷','🌺'])
-  } else if (chapterIdx === 6) {
-    // 烟花章节：双重特效
+  } else if (props.chapterIndex === 6) {
     spawnStars(12, effect ? effect.emojis : null)
     setTimeout(() => spawnStars(8, ['🎆','🎇','✨']), 400)
   } else {
@@ -65,7 +60,7 @@ function show(chapterIdx) {
   }
 }
 
-function close() {
+function onClose() {
   emit('close')
 }
 
@@ -73,7 +68,7 @@ function spawnStars(count, emojis) {
   const items = emojis || ['⭐','🌟','✨','💫','⚡','🔆']
   const centerX = window.innerWidth / 2
   const centerY = window.innerHeight / 2
-  
+
   for (let i = 0; i < count; i++) {
     setTimeout(() => {
       const el = document.createElement('div')
@@ -91,12 +86,10 @@ function spawnStars(count, emojis) {
   }
 }
 
-// 暴露 show 方法给父组件调用
-defineExpose({ show })
-
-function onClose() {
-  emit('close')
-}
+// 监听 visible 变化，显示时触发特效
+watch(() => props.visible, (val) => {
+  if (val) show()
+})
 </script>
 
 <style scoped>

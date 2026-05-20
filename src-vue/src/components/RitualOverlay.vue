@@ -10,18 +10,15 @@
         </div>
       </div>
     </Transition>
-
-    <!-- 花瓣容器 -->
-    <div v-for="p in petals" :key="p.id" class="petal" :style="p.style"></div>
   </Teleport>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 
 const props = defineProps({
   visible: Boolean,
-  eventName: String
+  event: Object
 })
 
 const emit = defineEmits(['close'])
@@ -30,38 +27,34 @@ const RITUAL_QUOTES = [
   '✨ 每一个当下的选择，都是生命的礼物',
   '🌱 你在认真生活，这本身就很了不起',
   '💫 这一刻，宇宙也为你鼓掌',
-  '🎋 把瞬间变成永恒，你做到了',
+  '📋 把瞬间变成永恒，你做到了',
   '🌸 人生没有白走的路，每一步都算数',
   '🪷 轻如花瓣，却重若人生',
-  '🎋 记录，是对生命最深情的告白',
+  '📋 记录，是对生命最深情的告白',
   '🍃 一片叶子有一片叶子的命运，你记录了你的',
   '🌸 花开一瞬，你记住了一生',
-  '🎋 风会带走声音，但带不走你的记录',
+  '📋 风会带走声音，但带不走你的记录',
   '✨ 今天的你，值得被明天记住',
   '🪷 清净的心，记录不清净的繁华',
-  '🎋 生命的厚度，在于你记住了多少',
+  '📋 生命的厚度，在于你记住了多少',
   '🌙 夜深了，但这一刻永远亮着',
   '🍂 落叶知秋，你知自己',
   '💮 不必完美，只需真实',
-  '🎋 一枝一叶总关情',
+  '📋 一枝一叶总关情',
   '🌾 人生如穗，低头时最饱满',
   '🪨 坚硬的石头也会记住水滴',
-  '🎋 风铃响起时，你在心里又活了一次'
+  '📋 风铃响起时，你在心里又活了一次'
 ]
 
-const RITUAL_ICONS = ['🌸','🎋','🪷','✨','💫','🎐','🪶','🌾']
+const RITUAL_ICONS = ['🌸','📋','🪷','✨','💫','📐','🪶','🌾']
 
 const quote = ref('')
 const icon = ref('')
-
-const petals = ref([])
-let petalId = 0
 
 function spawnPetals(count) {
   const petalEmojis = ['🌸','🏵️','💮','🪷','🌺','✿']
   for (let i = 0; i < count; i++) {
     setTimeout(() => {
-      const id = petalId++
       const el = document.createElement('div')
       el.className = 'petal'
       el.textContent = petalEmojis[Math.floor(Math.random() * petalEmojis.length)]
@@ -88,12 +81,9 @@ function onClose() {
 }
 
 // 监听 visible 变化
-import { watch } from 'vue'
 watch(() => props.visible, (val) => {
   if (val) onOpen()
 })
-
-defineExpose({ onOpen })
 </script>
 
 <style scoped>
