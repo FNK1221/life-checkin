@@ -1,0 +1,77 @@
+/* main.css - 全局样式和 CSS 变量 */
+/* 从原 index.html 迁移 */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg: #fdf8f4;
+  --card: #ffffff;
+  --card-alt: #fefaf6;
+  --primary: #c47a5e;
+  --primary-light: #d4957a;
+  --primary-dark: #a8624a;
+  --accent: #fce8d8;
+  --accent2: #f5d8c5;
+  --text: #3e2d23;
+  --text-light: #8b6f5e;
+  --text-muted: #b5a090;
+  --border: #f0ddd0;
+  --success: #7cb89a;
+  --danger: #d4837a;
+  --danger-bg: #fdf0ef;
+  --shadow: 0 2px 16px rgba(180,140,100,0.10);
+  --shadow-hover: 0 4px 20px rgba(180,140,100,0.18);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --transition-theme: background 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ========== THEME TRANSITION ========== */
+html.theme-transitioning,
+html.theme-transitioning * {
+  transition: background 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* ========== DARK THEME ========== */
+html.dark-theme {
+  --bg: #1a1410;
+  --card: #2a211b;
+  --card-alt: #332820;
+  --primary: #d4957a;
+  --primary-light: #e0a88c;
+  --primary-dark: #c47a5e;
+  --accent: #3e2d23;
+  --accent2: #4a3528;
+  --text: #f0ddd0;
+  --text-light: #d4b89a;
+  --text-muted: #8b6f5e;
+  --border: #4a3528;
+  --success: #7cb89a;
+  --danger: #d4837a;
+  --danger-bg: #3e2020;
+  --shadow: 0 2px 16px rgba(0,0,0,0.3);
+  --shadow-hover: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+html.dark-theme body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+#app {
+  min-height: 100vh;
+}
