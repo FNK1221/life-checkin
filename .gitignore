@@ -1,0 +1,10 @@
+# Test files
+test_*.png
+test_*.js
+
+# Node modules
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
