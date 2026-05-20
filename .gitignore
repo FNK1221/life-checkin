@@ -1,6 +1,7 @@
 # Test files
 test_*.png
 test_*.js
+test_*.html
 
 # Node modules
 node_modules/
