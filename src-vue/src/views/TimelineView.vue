@@ -151,6 +151,21 @@
       :event-id="photoEventId"
       @close="onPhotoViewerClose"
     />
+
+    <!-- 自定义事件弹窗 -->
+    <CustomEventModal
+      :visible="showCustomModal"
+      @close="showCustomModal = false"
+      @saved="onCustomEventSaved"
+    />
+
+    <!-- FAB 按钮（手机端添加自定义事件） -->
+    <button v-if="$route.path !== '/stats'" class="fab-btn" @click="showCustomModal = true">＋</button>
+
+    <!-- Toast 通知 -->
+    <Transition name="toast">
+      <div v-if="toastMsg" class="toast-popup">{{ toastMsg }}</div>
+    </Transition>
   </div>
 </template>
 
@@ -160,6 +175,7 @@ import { RecycleScroller } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import CheckinModal from '../components/CheckinModal.vue'
 import PhotoViewer from '../components/PhotoViewer.vue'
+import CustomEventModal from '../components/CustomEventModal.vue'
 import RitualOverlay from '../components/RitualOverlay.vue'
 import AchievementOverlay from '../components/AchievementOverlay.vue'
 import { CHAPTERS, buildAllEvents } from '../utils/events.js'
@@ -190,6 +206,13 @@ const achievementChapterIndex = ref(-1)
 // 每日推荐
 const dailyRecommend = ref(null)
 const dailyAtm = ref({ label: '', hint: '' })
+
+// 自定义事件弹窗
+const showCustomModal = ref(false)
+
+// Toast 通知
+const toastMsg = ref('')
+let toastTimer = null
 
 // 图片查看器
 const photoViewerRef = ref(null)
@@ -336,6 +359,22 @@ function onPhotoViewerClose() {
   photoEventId.value = ''
 }
 
+// 自定义事件保存成功
+function onCustomEventSaved() {
+  showCustomModal.value = false
+  showToast('✅ 自定义体验已添加')
+  loadData()
+}
+
+// Toast 通知
+function showToast(msg) {
+  if (toastTimer) clearTimeout(toastTimer)
+  toastMsg.value = msg
+  toastTimer = setTimeout(() => {
+    toastMsg.value = ''
+  }, 2200)
+}
+
 // 删除自定义事件
 function deleteCustomEvent(eventId, event) {
   if (event) { event.stopPropagation(); event.preventDefault() }
@@ -426,32 +465,6 @@ function initDailyRecommend() {
     dailyRecommend.value = recEv
     dailyAtm.value = getRecommendAtmosphere()
   }
-}
-
-// ========== Toast（简化版）==========
-function showToast(msg) {
-  // 创建一个临时 toast 元素
-  const toast = document.createElement('div')
-  toast.className = 'toast-msg'
-  toast.textContent = msg
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.7);
-    color: #fff;
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-    z-index: 10000;
-    animation: toastIn 0.3s ease;
-  `
-  document.body.appendChild(toast)
-  setTimeout(() => {
-    toast.style.animation = 'toastOut 0.3s ease'
-    setTimeout(() => toast.remove(), 300)
-  }, 2000)
 }
 
 // ========== 生命周期 ==========
