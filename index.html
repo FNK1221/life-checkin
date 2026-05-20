@@ -2902,7 +2902,10 @@
     ctx.globalAlpha = 1;
   }
 
+  var loadingFinished = false;
   function finishLoading(){
+    if (loadingFinished) return; // 防止重复调用
+    loadingFinished = true;
     // 清除安全定时器（防止动画结束后15秒再次触发）
     if (safetyTimer) clearTimeout(safetyTimer);
     // 隐藏跳过按钮
@@ -3167,9 +3170,9 @@
       // When t>=0.4: nothing to draw, just let particles finish
 
     } else if(frame < 421){
-      // Phase 5: simple fade out (0.1s = 6 frames at 60fps)
+      // Phase 5: 0.1s 粒子自然消散，无额外动画
       var t = (frame - 415) / 6;
-      // No starlight flash - just let particles finish naturally
+      // 粒子继续由 tickP() 和 drawP() 处理，此处不新增绘制
 
     } else {
       // Animation complete: stop music immediately and finish loading
