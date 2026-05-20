@@ -3165,10 +3165,10 @@
     drawP();
 
     frame++;
-    setTimeout(loop, SPD);
+    requestAnimationFrame(loop);
   }
 
-  setTimeout(loop, 100);
+  requestAnimationFrame(loop);
 })();
 
 
