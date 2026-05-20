@@ -2294,6 +2294,10 @@
       <span class="pct-label">已完成</span>
       <span class="pct-count">0 / 111</span>
     </div>
+    <div class="header-actions" style="display:flex;gap:8px;margin-top:12px;">
+      <button class="header-btn" onclick="collapseAllChapters()" style="padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);cursor:pointer;font-size:13px;">全部折叠</button>
+      <button class="header-btn" onclick="expandAllChapters()" style="padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);cursor:pointer;font-size:13px;">全部展开</button>
+    </div>
   </div>
   <!-- 木鱼按钮：进度圈左侧 -->
   <div class="muyu-by-progress" id="muyuByProgress">
@@ -3762,6 +3766,21 @@ function escapeHtml(str) {
 function toggleChapter(ci) {
   var el = document.getElementById('chapter-' + ci);
   el.classList.toggle('open');
+}
+
+// ========== 全部折叠 / 全部展开 ==========
+function collapseAllChapters() {
+  for (var ci = 0; ci < CHAPTERS.length; ci++) {
+    var el = document.getElementById('chapter-' + ci);
+    if (el) el.classList.remove('open');
+  }
+}
+
+function expandAllChapters() {
+  for (var ci = 0; ci < CHAPTERS.length; ci++) {
+    var el = document.getElementById('chapter-' + ci);
+    if (el) el.classList.add('open');
+  }
 }
 
 // ========== SEARCH ==========
