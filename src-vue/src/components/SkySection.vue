@@ -3,7 +3,7 @@
     <!-- 天空背景 -->
     <div class="sky-background"></div>
 
-    <!-- 白天：太阳 + 云朵 + 小鸟 -->
+    <!-- 白天 -->
     <template v-if="!isDark">
       <!-- 太阳（可点击切换夜晚） -->
       <button class="sun-moon-toggle sun" @click="toggleTheme" title="切换夜晚">
@@ -11,17 +11,27 @@
         <div class="sun-core"></div>
       </button>
 
-      <!-- 小鸟（点击显示名言） -->
-      <button class="sky-bird" @click="showQuote" title="点击听听它的话">
-        <svg viewBox="0 0 40 32" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 16 Q12 8, 20 12 Q26 8, 30 14 Q32 16, 30 18 Q24 20, 18 18 Q12 22, 8 16Z" fill="#5A4A3A"/>
-          <circle cx="26" cy="14" r="2" fill="#FFF"/>
-          <circle cx="26.5" cy="13.5" r="0.8" fill="#333"/>
-          <path d="M30 14 L36 12 L34 16Z" fill="#E8A030"/>
-          <path d="M16 18 Q14 24, 18 26 Q20 24, 18 18Z" fill="#7A6A5A"/>
-          <path d="M22 18 Q24 24, 20 26 Q18 24, 20 18Z" fill="#7A6A5A"/>
-          <path d="M12 14 Q8 10, 10 8 Q12 10, 14 12Z" fill="#5A4A3A"/>
-        </svg>
+      <!-- 飞行的小鸟（翅膀会动，来回飞） -->
+      <button class="sky-bird-wrap" @click="showQuote" title="点击听听它的话">
+        <div class="bird-flight">
+          <svg viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg" class="bird-svg">
+            <!-- 身体 -->
+            <ellipse cx="24" cy="18" rx="14" ry="9" fill="#5A4A3A"/>
+            <!-- 头部 -->
+            <circle cx="36" cy="14" r="7" fill="#5A4A3A"/>
+            <!-- 眼睛 -->
+            <circle cx="38" cy="12" r="2.2" fill="#FFF"/>
+            <circle cx="38.8" cy="11.5" r="1" fill="#333"/>
+            <!-- 嘴巴 -->
+            <path d="M41 14 L47 12 L44 16Z" fill="#E8A030"/>
+            <!-- 尾巴 -->
+            <path d="M8 16 L2 12 L4 20Z" fill="#7A6A5A"/>
+            <!-- 左翅膀 -->
+            <path class="bird-wing-left" d="M18 14 Q10 6, 8 14 Q12 18, 18 16Z" fill="#7A6A5A"/>
+            <!-- 右翅膀 -->
+            <path class="bird-wing-right" d="M26 14 Q34 6, 36 14 Q32 18, 26 16Z" fill="#7A6A5A"/>
+          </svg>
+        </div>
         <div class="bird-speech-hint">?</div>
       </button>
 
@@ -51,7 +61,7 @@
       </div>
     </template>
 
-    <!-- 夜晚：月亮 + 星星 + 流星 + 显眼星星 -->
+    <!-- 夜晚 -->
     <template v-if="isDark">
       <!-- 月亮（可点击切换白天） -->
       <button class="sun-moon-toggle moon" @click="toggleTheme" title="切换白天">
@@ -90,20 +100,22 @@
       </div>
     </template>
 
-    <!-- 进度显示（圆形水滴状） -->
-    <div class="progress-bubble">
-      <div class="progress-ring-outer">
-        <div class="progress-ring-inner">
-          <div class="progress-number">{{ progressPercent }}<span class="percent-sign">%</span></div>
-          <div class="progress-label">{{ doneCount }} / {{ totalCount }}</div>
+    <!-- 标题 + 进度区域 -->
+    <div class="sky-center">
+      <div class="sky-title">人生体验卡</div>
+      <div class="progress-bubble">
+        <div class="progress-ring-outer">
+          <div class="progress-ring-inner">
+            <div class="progress-number">{{ progressPercent }}<span class="percent-sign">%</span></div>
+            <div class="progress-label">{{ doneCount }} / {{ totalCount }}</div>
+          </div>
         </div>
+        <div class="bubble-drop drop-1"></div>
+        <div class="bubble-drop drop-2"></div>
       </div>
-      <!-- 小水滴装饰 -->
-      <div class="bubble-drop drop-1"></div>
-      <div class="bubble-drop drop-2"></div>
     </div>
 
-    <!-- 名言弹窗（虚化背景高级效果） -->
+    <!-- 名言弹窗 -->
     <Transition name="quote">
       <div v-if="showQuoteModal" class="quote-overlay" @click.self="closeQuote">
         <div class="quote-blur-bg"></div>
@@ -179,12 +191,10 @@ function closeQuote() {
   showQuoteModal.value = false
 }
 
-// 检测主题
 function updateTheme() {
   isDark.value = document.documentElement.classList.contains('dark-theme')
 }
 
-// 切换主题
 function toggleTheme() {
   const html = document.documentElement
   const dark = html.classList.contains('dark-theme')
@@ -200,7 +210,6 @@ function toggleTheme() {
     localStorage.setItem('lifeCheckinTheme', 'dark')
   }
 
-  // 重新生成星星/流星
   setTimeout(() => {
     updateTheme()
     generateStars()
@@ -209,7 +218,6 @@ function toggleTheme() {
   }, 100)
 }
 
-// 生成星星
 function generateStars() {
   if (!isDark.value) { stars.value = []; return }
   const count = 20 + Math.floor(Math.random() * 10)
@@ -236,7 +244,6 @@ function generateStars() {
   stars.value = newStars
 }
 
-// 流星调度
 function scheduleMeteor() {
   if (!isDark.value) return
   const delay = 8000 + Math.random() * 12000
@@ -265,7 +272,6 @@ function createMeteor() {
   setTimeout(() => { meteors.value = meteors.value.filter(m => m.id !== id) }, 1200)
 }
 
-// 监听主题变化
 const observer = new MutationObserver(() => {
   updateTheme()
   generateStars()
@@ -293,41 +299,61 @@ onBeforeUnmount(() => {
 .sky-section {
   position: relative;
   width: 100%;
-  height: 260px;
+  height: 280px;
   overflow: hidden;
   border-radius: 0 0 24px 24px;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 
 /* ========== 天空背景 ========== */
 .sky-background {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #6BB3E0 0%, #A8D8EA 50%, #D4F0F7 100%);
+  background: linear-gradient(180deg, #5BA3D5 0%, #8BC8E8 40%, #C8E8F5 100%);
   transition: background 0.6s ease;
 }
 
 .dark-mode .sky-background {
-  background: linear-gradient(180deg, #070720 0%, #12123A 50%, #1E1E4A 100%);
+  background: linear-gradient(180deg, #0A0A2E 0%, #151540 40%, #20205A 100%);
 }
 
-/* ========== 太阳/月亮切换按钮 ========== */
+/* ========== 太阳/月亮切换按钮（重新设计） ========== */
 .sun-moon-toggle {
   position: absolute;
   top: 16px;
   right: 20px;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border: none;
-  background: none;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
   z-index: 20;
   padding: 0;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 50%;
+  box-shadow:
+    0 2px 12px rgba(0,0,0,0.1),
+    inset 0 1px 1px rgba(255,255,255,0.3),
+    0 0 0 1px rgba(255,255,255,0.1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dark-mode .sun-moon-toggle {
+  background: rgba(255,255,255,0.08);
+  box-shadow:
+    0 2px 12px rgba(0,0,0,0.2),
+    inset 0 1px 1px rgba(255,255,255,0.1),
+    0 0 0 1px rgba(255,255,255,0.05);
 }
 
 .sun-moon-toggle:hover {
-  transform: scale(1.15) rotate(10deg);
+  transform: scale(1.12);
+  background: rgba(255,255,255,0.25);
+}
+
+.dark-mode .sun-moon-toggle:hover {
+  background: rgba(255,255,255,0.15);
 }
 
 .sun-moon-toggle:active {
@@ -339,14 +365,14 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 28px;
-  height: 28px;
-  margin: -14px 0 0 -14px;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #FFF9E6, #FFD54F 40%, #FF8F00 100%);
   box-shadow:
-    0 0 20px rgba(255, 213, 79, 0.5),
-    0 0 40px rgba(255, 213, 79, 0.2),
+    0 0 16px rgba(255, 213, 79, 0.5),
+    0 0 32px rgba(255, 213, 79, 0.2),
     inset 0 -2px 4px rgba(255, 143, 0, 0.3);
   animation: sunPulse 3s ease-in-out infinite;
 }
@@ -355,27 +381,27 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 44px;
-  height: 44px;
-  margin: -22px 0 0 -22px;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
   border-radius: 50%;
   background: conic-gradient(
     from 0deg,
-    transparent 0deg, rgba(255, 213, 79, 0.15) 10deg, transparent 20deg,
-    transparent 45deg, rgba(255, 213, 79, 0.15) 55deg, transparent 65deg,
-    transparent 90deg, rgba(255, 213, 79, 0.15) 100deg, transparent 110deg,
-    transparent 135deg, rgba(255, 213, 79, 0.15) 145deg, transparent 155deg,
-    transparent 180deg, rgba(255, 213, 79, 0.15) 190deg, transparent 200deg,
-    transparent 225deg, rgba(255, 213, 79, 0.15) 235deg, transparent 245deg,
-    transparent 270deg, rgba(255, 213, 79, 0.15) 280deg, transparent 290deg,
-    transparent 315deg, rgba(255, 213, 79, 0.15) 325deg, transparent 335deg
+    transparent 0deg, rgba(255, 213, 79, 0.12) 10deg, transparent 20deg,
+    transparent 45deg, rgba(255, 213, 79, 0.12) 55deg, transparent 65deg,
+    transparent 90deg, rgba(255, 213, 79, 0.12) 100deg, transparent 110deg,
+    transparent 135deg, rgba(255, 213, 79, 0.12) 145deg, transparent 155deg,
+    transparent 180deg, rgba(255, 213, 79, 0.12) 190deg, transparent 200deg,
+    transparent 225deg, rgba(255, 213, 79, 0.12) 235deg, transparent 245deg,
+    transparent 270deg, rgba(255, 213, 79, 0.12) 280deg, transparent 290deg,
+    transparent 315deg, rgba(255, 213, 79, 0.12) 325deg, transparent 335deg
   );
   animation: sunRotate 20s linear infinite;
 }
 
 @keyframes sunPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 213, 79, 0.5), 0 0 40px rgba(255, 213, 79, 0.2), inset 0 -2px 4px rgba(255, 143, 0, 0.3); }
-  50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 213, 79, 0.6), 0 0 60px rgba(255, 213, 79, 0.3), inset 0 -2px 4px rgba(255, 143, 0, 0.3); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(255, 213, 79, 0.5), 0 0 32px rgba(255, 213, 79, 0.2), inset 0 -2px 4px rgba(255, 143, 0, 0.3); }
+  50% { transform: scale(1.06); box-shadow: 0 0 24px rgba(255, 213, 79, 0.6), 0 0 48px rgba(255, 213, 79, 0.3), inset 0 -2px 4px rgba(255, 143, 0, 0.3); }
 }
 
 @keyframes sunRotate {
@@ -388,14 +414,14 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 30px;
-  height: 30px;
-  margin: -15px 0 0 -15px;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #FFFEF0, #F5F0D8 50%, #E0D8B8 100%);
   box-shadow:
-    0 0 20px rgba(255, 254, 240, 0.3),
-    0 0 40px rgba(255, 254, 240, 0.1),
+    0 0 16px rgba(255, 254, 240, 0.3),
+    0 0 32px rgba(255, 254, 240, 0.1),
     inset -3px -2px 6px rgba(180, 170, 140, 0.3);
 }
 
@@ -406,17 +432,17 @@ onBeforeUnmount(() => {
   box-shadow: inset 1px 1px 2px rgba(160, 150, 120, 0.3);
 }
 
-.moon .moon-crater.c1 { width: 6px; height: 6px; top: 14px; right: 12px; }
-.moon .moon-crater.c2 { width: 4px; height: 4px; top: 24px; left: 14px; }
-.moon .moon-crater.c3 { width: 5px; height: 5px; top: 20px; right: 16px; }
+.moon .moon-crater.c1 { width: 5px; height: 5px; top: 12px; right: 10px; }
+.moon .moon-crater.c2 { width: 3px; height: 3px; top: 20px; left: 12px; }
+.moon .moon-crater.c3 { width: 4px; height: 4px; top: 17px; right: 14px; }
 
 .moon .moon-glow {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 50px;
-  height: 50px;
-  margin: -25px 0 0 -25px;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 254, 240, 0.08), transparent 70%);
   animation: moonGlow 4s ease-in-out infinite;
@@ -485,6 +511,272 @@ onBeforeUnmount(() => {
   50% { transform: translate(-7px, -3px); }
 }
 
+/* ========== 标题 + 进度中心区域 ========== */
+.sky-center {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.sky-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.15);
+  letter-spacing: 2px;
+}
+
+.dark-mode .sky-title {
+  color: rgba(255,255,255,0.85);
+}
+
+/* ========== 进度水滴 ========== */
+.progress-bubble {
+  position: relative;
+}
+
+.progress-ring-outer {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+  animation: bubbleFloat 4s ease-in-out infinite;
+}
+
+.dark-mode .progress-ring-outer {
+  background: rgba(26, 26, 46, 0.35);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.progress-ring-inner {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode .progress-ring-inner {
+  background: rgba(30, 30, 50, 0.45);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05);
+}
+
+.progress-number {
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.percent-sign {
+  font-size: 13px;
+  font-weight: 500;
+  margin-left: 1px;
+}
+
+.progress-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 3px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* 小水滴装饰 */
+.bubble-drop {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(6px);
+}
+
+.drop-1 {
+  width: 12px;
+  height: 12px;
+  top: -4px;
+  right: 2px;
+  animation: dropFloat1 3s ease-in-out infinite;
+}
+
+.drop-2 {
+  width: 8px;
+  height: 8px;
+  bottom: 6px;
+  left: -2px;
+  animation: dropFloat2 3.5s ease-in-out infinite;
+}
+
+@keyframes bubbleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes dropFloat1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(3px, -4px); }
+}
+
+@keyframes dropFloat2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-2px, 3px); }
+}
+
+/* ========== 飞行的小鸟（翅膀会动 + 来回飞） ========== */
+.sky-bird-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  z-index: 15;
+  padding: 0;
+  pointer-events: none;
+}
+
+.bird-flight {
+  position: absolute;
+  width: 40px;
+  height: 30px;
+  animation: birdFlyPath 14s ease-in-out infinite;
+  pointer-events: auto;
+}
+
+.bird-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+/* 翅膀拍动动画 */
+.bird-wing-left {
+  transform-origin: 18px 16px;
+  animation: wingFlapLeft 0.35s ease-in-out infinite alternate;
+}
+
+.bird-wing-right {
+  transform-origin: 26px 16px;
+  animation: wingFlapRight 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes wingFlapLeft {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-22deg); }
+}
+
+@keyframes wingFlapRight {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(22deg); }
+}
+
+/* 飞行路径：从左到右，上下起伏，到达右边后转身飞回 */
+@keyframes birdFlyPath {
+  0% {
+    left: -5%;
+    top: 25%;
+    transform: scaleX(1) translateY(0) rotate(0deg);
+  }
+  15% {
+    left: 15%;
+    top: 18%;
+    transform: scaleX(1) translateY(-8px) rotate(-3deg);
+  }
+  30% {
+    left: 35%;
+    top: 30%;
+    transform: scaleX(1) translateY(6px) rotate(2deg);
+  }
+  45% {
+    left: 55%;
+    top: 20%;
+    transform: scaleX(1) translateY(-5px) rotate(-2deg);
+  }
+  48% {
+    left: 60%;
+    top: 22%;
+    transform: scaleX(1) translateY(0) rotate(0deg);
+  }
+  50% {
+    left: 65%;
+    top: 25%;
+    transform: scaleX(-1) translateY(0) rotate(0deg);
+  }
+  65% {
+    left: 45%;
+    top: 18%;
+    transform: scaleX(-1) translateY(-8px) rotate(3deg);
+  }
+  80% {
+    left: 25%;
+    top: 32%;
+    transform: scaleX(-1) translateY(6px) rotate(-2deg);
+  }
+  95% {
+    left: 5%;
+    top: 22%;
+    transform: scaleX(-1) translateY(-4px) rotate(2deg);
+  }
+  98% {
+    left: 0%;
+    top: 24%;
+    transform: scaleX(-1) translateY(0) rotate(0deg);
+  }
+  100% {
+    left: -5%;
+    top: 25%;
+    transform: scaleX(1) translateY(0) rotate(0deg);
+  }
+}
+
+.bird-speech-hint {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  color: var(--primary, #c47a5e);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  animation: birdHintPulse 2s ease-in-out infinite;
+}
+
+@keyframes birdHintPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}
+
 /* ========== 夜晚星星 ========== */
 .night-stars {
   position: absolute;
@@ -526,213 +818,13 @@ onBeforeUnmount(() => {
   100% { opacity: 0; transform: translate(-150px, 80px) rotate(-30deg) scale(0.3); }
 }
 
-/* ========== 进度水滴 ========== */
-.progress-bubble {
-  position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-}
-
-.progress-ring-outer {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.15);
-  animation: bubbleFloat 4s ease-in-out infinite;
-}
-
-.dark-mode .progress-ring-outer {
-  background: rgba(26, 26, 46, 0.35);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 2px rgba(255, 255, 255, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.progress-ring-inner {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2);
-}
-
-.dark-mode .progress-ring-inner {
-  background: rgba(30, 30, 50, 0.45);
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05);
-}
-
-.progress-number {
-  font-size: 28px;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-
-.percent-sign {
-  font-size: 14px;
-  font-weight: 500;
-  margin-left: 1px;
-}
-
-.progress-label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.75);
-  margin-top: 4px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-/* 小水滴装饰 */
-.bubble-drop {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(6px);
-}
-
-.drop-1 {
-  width: 14px;
-  height: 14px;
-  top: -6px;
-  right: 4px;
-  animation: dropFloat1 3s ease-in-out infinite;
-}
-
-.drop-2 {
-  width: 10px;
-  height: 10px;
-  bottom: 8px;
-  left: -4px;
-  animation: dropFloat2 3.5s ease-in-out infinite;
-}
-
-@keyframes bubbleFloat {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-6px); }
-}
-
-@keyframes dropFloat1 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(3px, -4px); }
-}
-
-@keyframes dropFloat2 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-2px, 3px); }
-}
-
-/* ========== 响应式 ========== */
-@media (max-width: 640px) {
-  .sky-section {
-    height: 220px;
-    border-radius: 0 0 20px 20px;
-  }
-
-  .sun-moon-toggle {
-    width: 40px;
-    height: 40px;
-    top: 12px;
-    right: 14px;
-  }
-
-  .sun .sun-core { width: 22px; height: 22px; margin: -11px 0 0 -11px; }
-  .sun .sun-rays { width: 36px; height: 36px; margin: -18px 0 0 -18px; }
-  .moon .moon-body { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
-
-  .progress-ring-outer { width: 90px; height: 90px; }
-  .progress-ring-inner { width: 74px; height: 74px; }
-  .progress-number { font-size: 22px; }
-  .percent-sign { font-size: 11px; }
-  .progress-label { font-size: 10px; }
-
-  .cloud-1 { top: 14px; left: 58px; width: 42px; height: 20px; }
-  .cloud-2 { top: 10px; right: 50px; width: 56px; height: 24px; }
-  .cloud-3 { bottom: 32px; left: 8px; width: 36px; height: 16px; }
-  .cloud-4 { bottom: 36px; right: 8px; width: 48px; height: 21px; }
-}
-
-/* ========== 白天小鸟 ========== */
-.sky-bird {
-  position: absolute;
-  top: 60px;
-  left: 20%;
-  width: 44px;
-  height: 36px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  z-index: 15;
-  padding: 0;
-  animation: birdFly 12s ease-in-out infinite;
-  transition: transform 0.3s;
-}
-
-.sky-bird:hover {
-  transform: scale(1.2);
-}
-
-.sky-bird svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-}
-
-.bird-speech-hint {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.9);
-  color: var(--primary, #c47a5e);
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-  animation: birdHintPulse 2s ease-in-out infinite;
-}
-
-@keyframes birdFly {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  20% { transform: translate(30px, -8px) rotate(2deg); }
-  40% { transform: translate(60px, 4px) rotate(-1deg); }
-  60% { transform: translate(40px, -4px) rotate(1deg); }
-  80% { transform: translate(10px, 6px) rotate(-2deg); }
-}
-
-@keyframes birdHintPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.15); opacity: 0.8; }
-}
-
 /* ========== 夜晚显眼星星 ========== */
 .sky-wish-star {
   position: absolute;
-  top: 50px;
-  left: 25%;
-  width: 40px;
-  height: 40px;
+  top: 55px;
+  left: 22%;
+  width: 36px;
+  height: 36px;
   border: none;
   background: none;
   cursor: pointer;
@@ -750,9 +842,9 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 10px;
-  height: 10px;
-  margin: -5px 0 0 -5px;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
   border-radius: 50%;
   background: radial-gradient(circle, #FFFEF0, #FFD700);
   box-shadow: 0 0 12px rgba(255, 215, 0, 0.6), 0 0 24px rgba(255, 215, 0, 0.3);
@@ -762,9 +854,9 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 30px;
-  height: 30px;
-  margin: -15px 0 0 -15px;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 215, 0, 0.15), transparent 70%);
   animation: wishStarGlow 2s ease-in-out infinite;
@@ -774,9 +866,9 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
   background: conic-gradient(
     from 0deg,
     transparent 0deg, rgba(255, 215, 0, 0.2) 15deg, transparent 30deg,
@@ -958,29 +1050,34 @@ onBeforeUnmount(() => {
 /* ========== 响应式 ========== */
 @media (max-width: 640px) {
   .sky-section {
-    height: 220px;
+    height: 240px;
     border-radius: 0 0 20px 20px;
   }
 
+  .sky-title {
+    font-size: 13px;
+    letter-spacing: 1.5px;
+  }
+
   .sun-moon-toggle {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     top: 12px;
     right: 14px;
   }
 
-  .sun .sun-core { width: 22px; height: 22px; margin: -11px 0 0 -11px; }
-  .sun .sun-rays { width: 36px; height: 36px; margin: -18px 0 0 -18px; }
-  .moon .moon-body { width: 24px; height: 24px; margin: -12px 0 0 -12px; }
+  .sun .sun-core { width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+  .sun .sun-rays { width: 28px; height: 28px; margin: -14px 0 0 -14px; }
+  .moon .moon-body { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
 
-  .sky-bird { width: 36px; height: 30px; top: 50px; }
-  .sky-wish-star { width: 34px; height: 34px; top: 42px; }
-
-  .progress-ring-outer { width: 90px; height: 90px; }
-  .progress-ring-inner { width: 74px; height: 74px; }
+  .progress-ring-outer { width: 86px; height: 86px; }
+  .progress-ring-inner { width: 70px; height: 70px; }
   .progress-number { font-size: 22px; }
   .percent-sign { font-size: 11px; }
-  .progress-label { font-size: 10px; }
+  .progress-label { font-size: 9px; }
+
+  .bird-flight { width: 34px; height: 26px; }
+  .sky-wish-star { width: 32px; height: 32px; top: 48px; }
 
   .quote-card { padding: 36px 24px 32px; border-radius: 24px; }
   .quote-text { font-size: 15px; }
@@ -992,7 +1089,7 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 380px) {
-  .sky-section { height: 200px; }
+  .sky-section { height: 220px; }
   .cloud-1 { left: 50px; width: 36px; height: 17px; }
   .cloud-2 { right: 40px; width: 46px; height: 20px; }
   .cloud-3, .cloud-4 { display: none; }

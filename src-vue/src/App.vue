@@ -6,22 +6,25 @@
     <!-- 开场动画 -->
     <LoadingScreen @loading-complete="onLoadingComplete" />
 
-    <!-- 天空区域（含进度） -->
+    <!-- 天空区域（含标题、进度、主题切换） -->
     <SkySection
       :done-count="doneCount"
       :total-count="totalCount"
     />
 
-    <!-- 电脑端：左侧导航 -->
+    <!-- 电脑端：左侧导航（仅保留设置入口） -->
     <nav class="app-nav">
       <div class="nav-brand" @click="$router.push('/')">
         <span class="nav-icon">✦</span>
         <span class="nav-title">人生体验卡</span>
       </div>
       <div class="nav-actions">
-        <button class="nav-btn" @click="showShareCard = true">🎨 分享</button>
-        <button class="nav-btn" @click="showDataPanel = true">📊 数据</button>
-        <button class="nav-btn" @click="toggleTheme">🌓</button>
+        <button class="nav-btn nav-btn-settings" @click="showDataPanel = true" title="设置">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
       </div>
     </nav>
 
@@ -69,25 +72,17 @@
       :visible="showDataPanel"
       @close="showDataPanel = false"
     />
-
-    <!-- 分享卡片 -->
-    <ShareCard
-      :visible="showShareCard"
-      @close="showShareCard = false"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import DataPanel from './components/DataPanel.vue'
-import ShareCard from './components/ShareCard.vue'
 import LoadingScreen from './components/LoadingScreen.vue'
 import SkySection from './components/SkySection.vue'
 import { loadCheckinData, loadCustomEvents } from './utils/storage.js'
 
 const showDataPanel = ref(false)
-const showShareCard = ref(false)
 const loadingComplete = ref(false)
 const checkinData = ref({})
 const customEvents = ref([])
@@ -117,24 +112,6 @@ async function loadProgressData() {
   customEvents.value = loadCustomEvents()
 }
 
-// ========== 主题切换（与原 index.html 保持一致）==========
-function toggleTheme() {
-  const html = document.documentElement
-  const isDark = html.classList.contains('dark-theme')
-
-  // 添加过渡类
-  html.classList.add('theme-transitioning')
-  setTimeout(() => html.classList.remove('theme-transitioning'), 500)
-
-  if (isDark) {
-    html.classList.remove('dark-theme')
-    localStorage.setItem('lifeCheckinTheme', 'light')
-  } else {
-    html.classList.add('dark-theme')
-    localStorage.setItem('lifeCheckinTheme', 'dark')
-  }
-}
-
 // 加载保存的主题
 onMounted(() => {
   const saved = localStorage.getItem('lifeCheckinTheme')
@@ -162,7 +139,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: var(--card);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(12px);
@@ -182,12 +159,12 @@ html.dark-theme .app-nav {
 }
 
 .nav-icon {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--primary);
 }
 
 .nav-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
@@ -198,19 +175,27 @@ html.dark-theme .app-nav {
 }
 
 .nav-btn {
-  padding: 6px 14px;
+  padding: 8px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--card);
   color: var(--text);
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-btn:hover {
   background: var(--accent);
   border-color: var(--primary);
+  color: var(--primary);
+}
+
+.nav-btn-settings svg {
+  display: block;
 }
 
 .app-main {
