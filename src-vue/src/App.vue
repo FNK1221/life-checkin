@@ -32,8 +32,8 @@
           :class="{ active: $route.path === '/' || $route.path.startsWith('/chapter') }"
           @click="$router.push('/')"
         >
-          <span class="icon">🏠</span>
-          <span>时光轴</span>
+          <span class="icon">📋</span>
+          <span>打卡</span>
         </button>
         <button
           class="bottom-btn"
@@ -43,17 +43,17 @@
           <span class="icon">📊</span>
           <span>统计</span>
         </button>
-        <button class="bottom-btn" @click="showShareCard = true">
-          <span class="icon">🎨</span>
-          <span>分享</span>
+        <button
+          class="bottom-btn"
+          :class="{ active: $route.path === '/memory' }"
+          @click="$router.push('/memory')"
+        >
+          <span class="icon">⏳</span>
+          <span>时光轴</span>
         </button>
         <button class="bottom-btn" @click="showDataPanel = true">
-          <span class="icon">📁</span>
-          <span>数据</span>
-        </button>
-        <button class="bottom-btn" @click="toggleTheme">
-          <span class="icon">🌓</span>
-          <span>主题</span>
+          <span class="icon">⚙️</span>
+          <span>设置</span>
         </button>
       </nav>
     </div>

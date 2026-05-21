@@ -42,17 +42,11 @@
       </template>
     </div>
 
-    <!-- 章节列表（虚拟滚动优化） -->
-    <RecycleScroller
-      v-if="chaptersWithState.length > 0"
-      :items="chaptersWithState"
-      :item-size="120"
-      key-field="title"
-      class="chapter-list"
-      v-slot="{ item, index }"
-    >
+    <!-- 章节列表 -->
+    <div v-if="chaptersWithState.length > 0" class="chapter-list">
       <div
-        :key="index"
+        v-for="(item, index) in chaptersWithState"
+        :key="item.title + index"
         class="chapter"
         :class="{ open: item.isOpen }"
       >
@@ -116,7 +110,7 @@
           </div>
         </div>
       </div>
-    </RecycleScroller>
+    </div>
 
     <!-- 搜索无结果 -->
     <div v-if="isSearching && searchMatchedCount === 0" class="search-empty">
@@ -171,8 +165,6 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { RecycleScroller } from 'vue-virtual-scroller'
-import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import CheckinModal from '../components/CheckinModal.vue'
 import PhotoViewer from '../components/PhotoViewer.vue'
 import CustomEventModal from '../components/CustomEventModal.vue'
