@@ -120,15 +120,17 @@
     ></div>
   </Teleport>
 
-  <!-- 哲学弹窗 -->
+  <!-- 哲学弹窗（高级虚化效果） -->
   <Transition name="phil">
     <div v-if="showPhilosophy" class="phil-overlay" @click.self="closePhilosophy">
+      <div class="phil-blur-bg"></div>
       <div class="phil-card">
+        <div class="phil-glow"></div>
         <div class="phil-icon">{{ currentQuote.icon }}</div>
         <div class="phil-category">{{ currentQuote.cat }}</div>
         <div class="phil-quote" v-html="currentQuote.q.replace(/\n/g, '<br>')"></div>
         <div class="phil-source">—— {{ currentQuote.src }}</div>
-        <button class="phil-btn" @click="closePhilosophy">感恩当下 ✨</button>
+        <button class="phil-btn" @click="closePhilosophy">感恩当下</button>
       </div>
     </div>
   </Transition>
@@ -146,28 +148,38 @@ const ripples = ref([])
 const showPhilosophy = ref(false)
 const currentQuote = ref({ icon: '🪷', cat: '人生哲理', q: '每一次敲击，都是与自己的对话。', src: '禅语' })
 
-// 名言库（与原始版本一致）
+// 名言库（使用通用字符避免字体显示异常）
 const MUYU_QUOTES = [
-  { cat: '人生哲理', icon: '🪷', q: '每一次敲击，都是与自己的对话。\n木鱼声声，唯心自明。', src: '禅语' },
-  { cat: '人生哲理', icon: '🍃', q: '人生如茶，苦后回甘。\n此刻的平静，便是圆满。', src: '茶禅一味' },
-  { cat: '人生哲理', icon: '🪨', q: '山不辞土，故能成其高；\n海不辞水，故能成其深。', src: '《管子》' },
-  { cat: '人生哲理', icon: '🌊', q: '人生海海，山山而川。\n不必慌张，每一步都算数。', src: '人生哲思' },
-  { cat: '人生哲理', icon: '🕯️', q: '静坐常思己过，\n闲谈莫论人非。', src: '《菜根谭》' },
-  { cat: '人生哲理', icon: '🌿', q: '一花一世界，一叶一菩提。\n平凡处，最是动人。', src: '禅语' },
-  { cat: '关心父母', icon: '🏠', q: '父母在，人生尚有来处；\n父母去，人生只剩归途。\n今天，给他们打个电话吧。', src: '作家毕淑敏' },
-  { cat: '关心父母', icon: '☎️', q: '你养我小，我养你老。\n时间不等人，爱要趁现在说出口。', src: '人间真实' },
-  { cat: '关心父母', icon: '🫖', q: '世间最美好的事，\n不过是：你已长大，他们还未老。', src: '温情语录' },
-  { cat: '爱自己', icon: '💗', q: '你不必是一朵玫瑰，\n做一棵小草也很好。\n万物皆有它的季节。', src: '自我疗愈' },
-  { cat: '爱自己', icon: '🌙', q: '允许自己偶尔不想努力，\n允许自己有段时间只是发呆。\n你不是机器，你是人。', src: '温柔自语' },
-  { cat: '爱自己', icon: '🫂', q: '先照顾好自己，\n才能温柔对待这个世界。', src: '心理学的邀请' },
-  { cat: '加油打气', icon: '🌟', q: '你正在走的这条路，\n也许泥泞，但每一步都算数。\n别急，花会开的。', src: '给正在努力的你' },
-  { cat: '加油打气', icon: '🚀', q: '所有的光鲜亮丽，\n背后都是无人问津的坚持。\n你已经很棒了。', src: '致奋斗中的你' },
-  { cat: '加油打气', icon: '🌈', q: '生活原本沉闷，\n但跑起来就有风。\n今天的风，特别好。', src: '人生打气筒' },
-  { cat: '加油打气', icon: '🔥', q: '你现在做的事，\n也许暂时看不到光，\n但请相信：功不唐捐。', src: '《醒世恒言》' },
-  { cat: '人生哲理', icon: '📖', q: '读过的书、走过的路、\n爱过的人，就是你的人生。\n不必和别人比，你的节奏刚刚好。', src: '生活家' },
-  { cat: '爱自己', icon: '🎐', q: '学会说"不"，\n是你送给自己的最好的礼物。', src: '边界感' },
-  { cat: '关心父母', icon: '🧓', q: '父母的白发，是你不在的日子里，\n时光偷偷写下的笔记。\n多回家看看吧。', src: '人间清醒' },
-  { cat: '加油打气', icon: '⛰️', q: '山再高，往上攀，总能登顶；\n路再远，走下去，定能到达。', src: '《人民日报》' }
+  { cat: '人生哲理', icon: '◆', q: '每一次敲击，都是与自己的对话。\n木鱼声声，唯心自明。', src: '禅语' },
+  { cat: '人生哲理', icon: '◆', q: '人生如茶，苦后回甘。\n此刻的平静，便是圆满。', src: '茶禅一味' },
+  { cat: '人生哲理', icon: '◆', q: '山不辞土，故能成其高；\n海不辞水，故能成其深。', src: '《管子》' },
+  { cat: '人生哲理', icon: '◆', q: '人生海海，山山而川。\n不必慌张，每一步都算数。', src: '人生哲思' },
+  { cat: '人生哲理', icon: '◆', q: '静坐常思己过，\n闲谈莫论人非。', src: '《菜根谭》' },
+  { cat: '人生哲理', icon: '◆', q: '一花一世界，一叶一菩提。\n平凡处，最是动人。', src: '禅语' },
+  { cat: '关心父母', icon: '◆', q: '父母在，人生尚有来处；\n父母去，人生只剩归途。\n今天，给他们打个电话吧。', src: '作家毕淑敏' },
+  { cat: '关心父母', icon: '◆', q: '你养我小，我养你老。\n时间不等人，爱要趁现在说出口。', src: '人间真实' },
+  { cat: '关心父母', icon: '◆', q: '世间最美好的事，\n不过是：你已长大，他们还未老。', src: '温情语录' },
+  { cat: '爱自己', icon: '◆', q: '你不必是一朵玫瑰，\n做一棵小草也很好。\n万物皆有它的季节。', src: '自我疗愈' },
+  { cat: '爱自己', icon: '◆', q: '允许自己偶尔不想努力，\n允许自己有段时间只是发呆。\n你不是机器，你是人。', src: '温柔自语' },
+  { cat: '爱自己', icon: '◆', q: '先照顾好自己，\n才能温柔对待这个世界。', src: '心理学的邀请' },
+  { cat: '加油打气', icon: '◆', q: '你正在走的这条路，\n也许泥泞，但每一步都算数。\n别急，花会开的。', src: '给正在努力的你' },
+  { cat: '加油打气', icon: '◆', q: '所有的光鲜亮丽，\n背后都是无人问津的坚持。\n你已经很棒了。', src: '致奋斗中的你' },
+  { cat: '加油打气', icon: '◆', q: '生活原本沉闷，\n但跑起来就有风。\n今天的风，特别好。', src: '人生打气筒' },
+  { cat: '加油打气', icon: '◆', q: '你现在做的事，\n也许暂时看不到光，\n但请相信：功不唐捐。', src: '《醒世恒言》' },
+  { cat: '人生哲理', icon: '◆', q: '读过的书、走过的路、\n爱过的人，就是你的人生。\n不必和别人比，你的节奏刚刚好。', src: '生活家' },
+  { cat: '爱自己', icon: '◆', q: '学会说"不"，\n是你送给自己的最好的礼物。', src: '边界感' },
+  { cat: '关心父母', icon: '◆', q: '父母的白发，是你不在的日子里，\n时光偷偷写下的笔记。\n多回家看看吧。', src: '人间清醒' },
+  { cat: '加油打气', icon: '◆', q: '山再高，往上攀，总能登顶；\n路再远，走下去，定能到达。', src: '《人民日报》' },
+  { cat: '修德品行', icon: '◆', q: '人为善，福虽未至，祸已远离；\n人为恶，祸虽未至，福已远离。', src: '《了凡四训》' },
+  { cat: '修德品行', icon: '◆', q: '静坐常思己过，闲谈莫论人非。\n能受苦方为志士，肯吃亏不是痴人。', src: '《格言联璧》' },
+  { cat: '修德品行', icon: '◆', q: '吾日三省吾身：\n为人谋而不忠乎？\n与朋友交而不信乎？传不习乎？', src: '《论语》' },
+  { cat: '修德品行', icon: '◆', q: '勿以恶小而为之，勿以善小而不为。\n惟贤惟德，能服于人。', src: '刘备' },
+  { cat: '修德品行', icon: '◆', q: '上善若水，水善利万物而不争。\n处众人之所恶，故几于道。', src: '《道德经》' },
+  { cat: '关心父母', icon: '◆', q: '树欲静而风不止，子欲养而亲不待。\n别等失去后才懂得珍惜。', src: '《孔子家语》' },
+  { cat: '关心父母', icon: '◆', q: '谁言寸草心，报得三春晖。\n父母之恩，此生难报，唯有常伴左右。', src: '孟郊' },
+  { cat: '爱自己', icon: '◆', q: '身体发肤，受之父母，不敢毁伤。\n好好吃饭，好好睡觉，是对自己最大的负责。', src: '《孝经》' },
+  { cat: '爱自己', icon: '◆', q: '你若盛开，清风自来。\n不必讨好世界，先成为自己的光。', src: '致自己' },
+  { cat: '加油打气', icon: '◆', q: '天行健，君子以自强不息；\n地势坤，君子以厚德载物。', src: '《易经》' }
 ]
 
 let petalId = 0
@@ -397,103 +409,148 @@ onBeforeUnmount(() => {
     100% { transform: scale(2.5); opacity: 0; }
   }
 
-  /* ========== PHILOSOPHY POPUP ========== */
+  /* ========== PHILOSOPHY POPUP（高级虚化效果） ========== */
   .phil-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(30, 20, 15, 0.65);
     z-index: 5000;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(6px);
     padding: 20px;
   }
 
+  /* 虚化背景层 */
+  .phil-blur-bg {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 12, 20, 0.45);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    animation: philFadeIn 0.4s ease;
+  }
+
+  @keyframes philFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
   .phil-card {
-    background: linear-gradient(160deg, var(--card) 0%, var(--card-alt) 100%);
-    border-radius: 26px;
-    padding: 40px 28px 32px;
-    max-width: 380px;
+    position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.95) 0%, rgba(250,248,245,0.95) 100%);
+    border-radius: 28px;
+    padding: 44px 32px 36px;
+    max-width: 400px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 1px rgba(196,122,94,0.1);
-    position: relative;
+    box-shadow:
+      0 24px 80px rgba(0,0,0,0.18),
+      0 0 0 1px rgba(255,255,255,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.8);
     overflow: hidden;
-    animation: philPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: philPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 1;
   }
+
+  html.dark-theme .phil-card {
+    background: linear-gradient(160deg, rgba(35,33,48,0.95) 0%, rgba(28,26,40,0.95) 100%);
+    box-shadow:
+      0 24px 80px rgba(0,0,0,0.35),
+      0 0 0 1px rgba(255,255,255,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
   @keyframes philPop {
-    from { transform: scale(0.6) translateY(30px); opacity: 0; }
-    60%  { transform: scale(1.03) translateY(-3px); }
+    from { transform: scale(0.7) translateY(40px); opacity: 0; }
+    60%  { transform: scale(1.02) translateY(-4px); }
     to   { transform: scale(1) translateY(0); opacity: 1; }
   }
 
-  .phil-card::before {
-    content: '';
+  /* 卡片光晕装饰 */
+  .phil-glow {
     position: absolute;
-    top: -30px;
-    right: -30px;
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, rgba(196,122,94,0.08), transparent 70%);
+    top: -60px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(196,122,94,0.12), transparent 70%);
     pointer-events: none;
+    animation: philGlowPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes philGlowPulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
   }
 
   .phil-icon {
-    font-size: 42px;
-    margin-bottom: 18px;
-    animation: philIconIn 0.6s ease 0.2s both;
+    font-size: 36px;
+    margin-bottom: 16px;
+    color: var(--primary);
+    animation: philIconIn 0.6s ease 0.15s both;
+    line-height: 1;
   }
+
   @keyframes philIconIn {
-    from { transform: scale(0) rotate(-20deg); opacity: 0; }
-    70%  { transform: scale(1.2) rotate(5deg); }
+    from { transform: scale(0) rotate(-15deg); opacity: 0; }
+    70%  { transform: scale(1.15); }
     to   { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .phil-category {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--primary);
+    background: rgba(196,122,94,0.1);
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
 
   .phil-quote {
     font-size: 17px;
     font-weight: 600;
     color: var(--text);
-    line-height: 1.8;
-    margin-bottom: 16px;
+    line-height: 1.9;
+    margin-bottom: 20px;
     letter-spacing: 0.3px;
   }
 
   .phil-source {
     font-size: 12px;
     color: var(--text-muted);
-    margin-bottom: 24px;
+    margin-bottom: 28px;
     font-style: italic;
-  }
-
-  .phil-category {
-    display: inline-block;
-    font-size: 10px;
-    color: var(--primary);
-    background: var(--accent);
-    padding: 3px 12px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    opacity: 0.8;
   }
 
   .phil-btn {
-    padding: 11px 36px;
-    background: linear-gradient(145deg, var(--primary-light), var(--primary-dark));
+    padding: 12px 40px;
+    background: linear-gradient(145deg, var(--primary-light, #d4957a), var(--primary-dark, #a35e42));
     color: #fff;
     border: none;
-    border-radius: 14px;
+    border-radius: 16px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
-    box-shadow: 0 4px 14px rgba(196,122,94,0.3);
-    transition: transform 0.1s;
+    box-shadow: 0 4px 16px rgba(196,122,94,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
+    letter-spacing: 0.5px;
   }
+
+  .phil-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(196,122,94,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
   .phil-btn:active {
-    transform: scale(0.96);
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 2px 10px rgba(196,122,94,0.3);
   }
 
   /* 弹窗过渡 */

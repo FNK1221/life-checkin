@@ -1,18 +1,7 @@
 <template>
   <div class="timeline-view">
-    <!-- 头部进度 -->
-    <header class="timeline-header">
-      <div class="progress-section">
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
-        </div>
-        <div class="progress-text">
-          <span>已完成 <b>{{ doneCount }}</b> / {{ totalCount }} 个体验</span>
-          <span class="progress-percent">{{ progressPercent }}%</span>
-        </div>
-      </div>
-
     <!-- 搜索框 -->
+    <header class="timeline-header">
       <div class="search-wrap" style="margin-top:12px;">
         <input
           v-model="searchTerm"
@@ -58,29 +47,7 @@
 
         <!-- 事件列表（折叠状态隐藏） -->
         <div v-if="item.isOpen" class="chapter-items">
-          <!-- 默认事件 -->
-          <div
-            v-for="(ev, ei) in item.events"
-            :key="index + '-' + ei"
-            class="event-item"
-            :class="[
-              { checked: isDone(index + '-' + ei) },
-              { 'hidden-event': isSearching && !matchSearch(index + '-' + ei, ev) }
-            ]"
-            @click="openCheckin({ id: index + '-' + ei, name: ev, chapter: index })"
-          >
-            <div class="event-check">{{ isDone(index + '-' + ei) ? '✓' : '' }}</div>
-            <div class="event-info">
-              <div class="event-name">{{ ev }}</div>
-              <div v-if="isDone(index + '-' + ei)" class="event-meta">
-                <span v-if="getCheckinData(index + '-' + ei).date">📅 {{ getCheckinData(index + '-' + ei).date }}</span>
-                <span v-if="getCheckinData(index + '-' + ei).photo" class="meta-clickable" @click="openPhotoViewer(index + '-' + ei)">📷 有照片</span>
-                <span v-if="getCheckinData(index + '-' + ei).note">💬 {{ getCheckinData(index + '-' + ei).note.slice(0, 15) }}{{ getCheckinData(index + '-' + ei).note.length > 15 ? '…' : '' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 自定义事件 -->
+          <!-- 自定义事件（放在最上面） -->
           <div
             v-for="ce in customEventsInChapter(index)"
             :key="ce.id"
@@ -89,7 +56,7 @@
               { checked: isDone(ce.id) },
               { 'hidden-event': isSearching && !matchSearch(ce.id, ce.name) }
             ]"
-            @click="openCheckin({ id: ce.id, name: ce.name, chapter: index, custom: true })"
+            @click="handleEventClick({ id: ce.id, name: ce.name, chapter: index, custom: true })"
           >
             <div class="event-check">{{ isDone(ce.id) ? '✓' : '' }}</div>
             <div class="event-info">
@@ -101,6 +68,28 @@
               </div>
             </div>
             <button class="custom-delete-btn" @click.stop="deleteCustomEvent(ce.id, $event)">✕</button>
+          </div>
+
+          <!-- 默认事件 -->
+          <div
+            v-for="(ev, ei) in item.events"
+            :key="index + '-' + ei"
+            class="event-item"
+            :class="[
+              { checked: isDone(index + '-' + ei) },
+              { 'hidden-event': isSearching && !matchSearch(index + '-' + ei, ev) }
+            ]"
+            @click="handleEventClick({ id: index + '-' + ei, name: ev, chapter: index })"
+          >
+            <div class="event-check">{{ isDone(index + '-' + ei) ? '✓' : '' }}</div>
+            <div class="event-info">
+              <div class="event-name">{{ ev }}</div>
+              <div v-if="isDone(index + '-' + ei)" class="event-meta">
+                <span v-if="getCheckinData(index + '-' + ei).date">📅 {{ getCheckinData(index + '-' + ei).date }}</span>
+                <span v-if="getCheckinData(index + '-' + ei).photo" class="meta-clickable" @click="openPhotoViewer(index + '-' + ei)">📷 有照片</span>
+                <span v-if="getCheckinData(index + '-' + ei).note">💬 {{ getCheckinData(index + '-' + ei).note.slice(0, 15) }}{{ getCheckinData(index + '-' + ei).note.length > 15 ? '…' : '' }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -297,6 +286,16 @@ function getCheckinData(eventId) {
 function toggleChapter(ci) {
   if (!chapters.value[ci]) return
   chapters.value[ci].isOpen = !chapters.value[ci].isOpen
+}
+
+// 处理事件点击（已打卡的不重复打卡）
+function handleEventClick(event) {
+  if (isDone(event.id)) {
+    showToast('✓ 已完成打卡，可在「时光轴」中查看回忆')
+    return
+  }
+  currentEvent.value = event
+  showModal.value = true
 }
 
 // 打开打卡弹窗
