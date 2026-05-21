@@ -1,7 +1,7 @@
 <template>
   <div id="life-app">
-    <!-- 载入音乐 -->
-    <audio id="loadingAudio" src="/loading_music.mp3" autoplay muted></audio>
+    <!-- 载入音乐（非静音，由 LoadingScreen 触发播放） -->
+    <audio id="loadingAudio" src="/loading_music.mp3" preload="auto"></audio>
 
     <!-- 开场动画 -->
     <LoadingScreen @loading-complete="onLoadingComplete" />

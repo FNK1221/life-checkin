@@ -26,6 +26,7 @@ const emit = defineEmits(['loading-complete'])
 
 const show = ref(true)
 const currentText = ref('正在孕育生命…')
+const canPlayMusic = ref(false)  // 用户是否已交互（可播放音乐）
 
 const texts = [
   '正在孕育生命…',
@@ -48,16 +49,37 @@ onMounted(() => {
     }
   }, 800)
 
-  // 3.5秒后自动结束
+  // 3.5秒后自动结束（无论音乐是否播放）
   finishTimer = setTimeout(() => {
     finish()
   }, 3800)
+
+  // 点击屏幕任意处：尝试播放音乐，然后结束加载
+  const onScreenClick = () => {
+    playMusic()
+    finish()
+  }
+  document.addEventListener('click', onScreenClick, { once: true })
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', onScreenClick)
+  })
 })
 
 onBeforeUnmount(() => {
   clearInterval(textTimer)
   clearTimeout(finishTimer)
 })
+
+function playMusic() {
+  const audio = document.getElementById('loadingAudio')
+  if (!audio) return
+  audio.muted = false
+  audio.volume = 0.6
+  const p = audio.play()
+  if (p && typeof p.then === 'function') {
+    p.catch(() => {})
+  }
+}
 
 function finish() {
   clearInterval(textTimer)
