@@ -108,7 +108,11 @@
 
     <!-- 标题 + 进度区域 -->
     <div class="sky-center">
-      <div class="sky-title">人生体验卡</div>
+      <div class="sky-title-wrap">
+        <span class="sky-title-deco left">◇</span>
+        <div class="sky-title">人生体验卡</div>
+        <span class="sky-title-deco right">◇</span>
+      </div>
       <div class="progress-ring-advanced">
         <svg class="progress-svg" viewBox="0 0 120 120">
           <defs>
@@ -560,7 +564,7 @@ onBeforeUnmount(() => {
   50% { transform: translate(-7px, -3px); }
 }
 
-/* ========== 标题 + 进度中心区域 ========== */
+/* ========= 标题 + 进度中心区域 ========= */
 .sky-center {
   position: absolute;
   bottom: 28px;
@@ -570,19 +574,65 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.sky-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: titleFadeIn 1.2s ease both;
+}
+
+.sky-title-deco {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  animation: decoPulse 3s ease-in-out infinite alternate;
+}
+
+.sky-title-deco.left {
+  animation-delay: 0s;
+}
+
+.sky-title-deco.right {
+  animation-delay: 1.5s;
 }
 
 .sky-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 1px 6px rgba(0,0,0,0.15);
-  letter-spacing: 2px;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, #ffffff 0%, #ffe8c8 40%, #ffffff 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: titleShimmer 4s ease-in-out infinite;
+  text-shadow: none;
+  position: relative;
 }
 
 .dark-mode .sky-title {
-  color: rgba(255,255,255,0.85);
+  background: linear-gradient(135deg, #e8d5ff 0%, #ffffff 50%, #d5e8ff 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes titleShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes titleFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes decoPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.2); }
 }
 
 /* ========== 高级环形进度条 ========== */
@@ -1149,9 +1199,17 @@ onBeforeUnmount(() => {
     border-radius: 0 0 20px 20px;
   }
 
+  .sky-title-wrap {
+    gap: 6px;
+  }
+
+  .sky-title-deco {
+    font-size: 8px;
+  }
+
   .sky-title {
     font-size: 13px;
-    letter-spacing: 1.5px;
+    letter-spacing: 4px;
   }
 
   .sun-moon-toggle {

@@ -56,10 +56,6 @@
           <span class="icon">⏳</span>
           <span>时光轴</span>
         </button>
-        <button class="bottom-btn" @click="showDataPanel = true">
-          <span class="icon">⚙️</span>
-          <span>设置</span>
-        </button>
       </nav>
     </div>
 

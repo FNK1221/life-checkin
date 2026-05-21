@@ -1,19 +1,5 @@
 <template>
   <div class="timeline-view">
-    <!-- 搜索框 -->
-    <header class="timeline-header">
-      <div class="search-wrap" style="margin-top:12px;">
-        <input
-          v-model="searchTerm"
-          type="text"
-          class="search-input"
-          placeholder="搜索体验..."
-          @input="onSearchInput"
-        />
-        <button v-if="searchTerm" class="search-clear" @click="clearSearch">✕</button>
-      </div>
-    </header>
-
     <!-- 每日推荐卡片 -->
     <div v-if="dailyRecommend && !searchTerm" class="daily-recommend">
       <div class="daily-label">{{ dailyAtm.label }}</div>
@@ -24,6 +10,22 @@
         <button class="daily-btn" @click="openCheckin(dailyRecommend)">去打卡 ✨</button>
       </template>
     </div>
+
+    <!-- 搜索框（放在去打卡下面，始终可见） -->
+    <div class="search-wrap-outer">
+      <div class="search-wrap">
+        <input
+          v-model="searchTerm"
+          type="text"
+          class="search-input"
+          placeholder="搜索体验..."
+          @input="onSearchInput"
+        />
+        <button v-if="searchTerm" class="search-clear" @click="clearSearch">✕</button>
+      </div>
+    </div>
+
+    <!-- 章节列表 -->
 
     <!-- 章节列表 -->
     <div v-if="chaptersWithState.length > 0" class="chapter-list">
@@ -765,6 +767,23 @@ onMounted(() => {
   padding: 40px 20px;
   color: var(--text-muted, #8C8C9A);
   font-size: 14px;
+}
+
+/* 搜索框外层（在去打卡下面） */
+.search-wrap-outer {
+  padding: 0 0 16px 0;
+  animation: searchFadeIn 0.4s ease both;
+}
+
+.search-wrap {
+  position: relative;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+@keyframes searchFadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ========== 每日推荐 ========== */
