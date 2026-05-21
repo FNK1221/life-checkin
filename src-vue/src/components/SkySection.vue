@@ -11,25 +11,31 @@
         <div class="sun-core"></div>
       </button>
 
-      <!-- 飞行的小鸟（翅膀会动，来回飞） -->
+      <!-- 飞行的燕子（翅膀会动，来回飞） -->
       <button class="sky-bird-wrap" @click="showQuote" title="点击听听它的话">
         <div class="bird-flight">
-          <svg viewBox="0 0 48 36" xmlns="http://www.w3.org/2000/svg" class="bird-svg">
-            <!-- 身体 -->
-            <ellipse cx="24" cy="18" rx="14" ry="9" fill="#5A4A3A"/>
-            <!-- 头部 -->
-            <circle cx="36" cy="14" r="7" fill="#5A4A3A"/>
+          <svg viewBox="0 0 64 40" xmlns="http://www.w3.org/2000/svg" class="bird-svg">
+            <!-- 燕子身体 -->
+            <ellipse cx="32" cy="22" rx="10" ry="5" fill="#2C3E50"/>
+            <!-- 燕子头部 -->
+            <circle cx="40" cy="18" r="5" fill="#2C3E50"/>
             <!-- 眼睛 -->
-            <circle cx="38" cy="12" r="2.2" fill="#FFF"/>
-            <circle cx="38.8" cy="11.5" r="1" fill="#333"/>
-            <!-- 嘴巴 -->
-            <path d="M41 14 L47 12 L44 16Z" fill="#E8A030"/>
-            <!-- 尾巴 -->
-            <path d="M8 16 L2 12 L4 20Z" fill="#7A6A5A"/>
-            <!-- 左翅膀 -->
-            <path class="bird-wing-left" d="M18 14 Q10 6, 8 14 Q12 18, 18 16Z" fill="#7A6A5A"/>
-            <!-- 右翅膀 -->
-            <path class="bird-wing-right" d="M26 14 Q34 6, 36 14 Q32 18, 26 16Z" fill="#7A6A5A"/>
+            <circle cx="42" cy="16.5" r="1.6" fill="#FFF"/>
+            <circle cx="42.4" cy="16.2" r="0.8" fill="#1A1A2E"/>
+            <!-- 尖嘴 -->
+            <path d="M44 18 L50 16.5 L48 19.5Z" fill="#34495E"/>
+            <!-- 左翼 -->
+            <path class="bird-wing-left" d="M28 18 Q18 8, 8 14 Q14 20, 26 20Z" fill="#34495E"/>
+            <path class="bird-wing-left-inner" d="M26 18 Q20 12, 14 16 Q18 19, 24 19Z" fill="#2C3E50" opacity="0.6"/>
+            <!-- 右翼 -->
+            <path class="bird-wing-right" d="M34 18 Q44 8, 54 14 Q48 20, 36 20Z" fill="#34495E"/>
+            <path class="bird-wing-right-inner" d="M36 18 Q42 12, 48 16 Q44 19, 38 19Z" fill="#2C3E50" opacity="0.6"/>
+            <!-- 剪刀尾 -->
+            <path class="bird-tail-left" d="M20 22 L4 14 L8 24Z" fill="#2C3E50"/>
+            <path class="bird-tail-right" d="M20 22 L4 30 L8 20Z" fill="#2C3E50"/>
+            <!-- 尾羽高光 -->
+            <path d="M20 22 L10 17 L12 21Z" fill="#5D6D7E" opacity="0.4"/>
+            <path d="M20 22 L10 27 L12 23Z" fill="#5D6D7E" opacity="0.4"/>
           </svg>
         </div>
         <div class="bird-speech-hint">?</div>
@@ -103,15 +109,49 @@
     <!-- 标题 + 进度区域 -->
     <div class="sky-center">
       <div class="sky-title">人生体验卡</div>
-      <div class="progress-bubble">
-        <div class="progress-ring-outer">
-          <div class="progress-ring-inner">
-            <div class="progress-number">{{ progressPercent }}<span class="percent-sign">%</span></div>
-            <div class="progress-label">{{ doneCount }} / {{ totalCount }}</div>
-          </div>
+      <div class="progress-ring-advanced">
+        <svg class="progress-svg" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFD54F" />
+              <stop offset="50%" stop-color="#FF8F00" />
+              <stop offset="100%" stop-color="#FF6B35" />
+            </linearGradient>
+            <linearGradient id="progressGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#64B5F6" />
+              <stop offset="50%" stop-color="#7C4DFF" />
+              <stop offset="100%" stop-color="#E040FB" />
+            </linearGradient>
+            <filter id="progressGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <!-- 背景轨道 -->
+          <circle class="progress-track" cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="6"/>
+          <!-- 进度弧 -->
+          <circle
+            class="progress-arc"
+            cx="60" cy="60" r="50" fill="none"
+            stroke="url(#progressGrad)"
+            stroke-width="6"
+            stroke-linecap="round"
+            :stroke-dasharray="circumference"
+            :stroke-dashoffset="progressOffset"
+            transform="rotate(-90 60 60)"
+            filter="url(#progressGlow)"
+          />
+        </svg>
+        <div class="progress-inner-glass">
+          <div class="progress-number">{{ progressPercent }}<span class="percent-sign">%</span></div>
+          <div class="progress-label">{{ doneCount }} / {{ totalCount }}</div>
         </div>
-        <div class="bubble-drop drop-1"></div>
-        <div class="bubble-drop drop-2"></div>
+        <!-- 旋转光点装饰 -->
+        <div class="progress-sparkle s1"></div>
+        <div class="progress-sparkle s2"></div>
       </div>
     </div>
 
@@ -280,6 +320,15 @@ const observer = new MutationObserver(() => {
 const progressPercent = computed(() => {
   if (props.totalCount === 0) return 0
   return Math.round(props.doneCount / props.totalCount * 100)
+})
+
+// SVG 环形进度条计算
+const radius = 50
+const circumference = 2 * Math.PI * radius
+const progressOffset = computed(() => {
+  if (props.totalCount === 0) return circumference
+  const percent = props.doneCount / props.totalCount
+  return circumference - (percent * circumference)
 })
 
 onMounted(() => {
@@ -536,56 +585,65 @@ onBeforeUnmount(() => {
   color: rgba(255,255,255,0.85);
 }
 
-/* ========== 进度水滴 ========== */
-.progress-bubble {
+/* ========== 高级环形进度条 ========== */
+.progress-ring-advanced {
   position: relative;
+  width: 110px;
+  height: 110px;
+  animation: ringFloat 4s ease-in-out infinite;
 }
 
-.progress-ring-outer {
-  width: 100px;
-  height: 100px;
+.progress-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-track {
+  transition: stroke 0.4s ease;
+}
+
+.progress-arc {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dark-mode .progress-arc {
+  stroke: url(#progressGradDark);
+}
+
+.progress-inner-glass {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.15);
-  animation: bubbleFloat 4s ease-in-out infinite;
-}
-
-.dark-mode .progress-ring-outer {
-  background: rgba(26, 26, 46, 0.35);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 2px rgba(255, 255, 255, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.progress-ring-inner {
-  width: 82px;
-  height: 82px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.dark-mode .progress-ring-inner {
-  background: rgba(30, 30, 50, 0.45);
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05);
+.dark-mode .progress-inner-glass {
+  background: rgba(30, 30, 50, 0.4);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .progress-number {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   color: #fff;
   line-height: 1;
@@ -593,56 +651,58 @@ onBeforeUnmount(() => {
 }
 
 .percent-sign {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   margin-left: 1px;
 }
 
 .progress-label {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.75);
-  margin-top: 3px;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 2px;
   font-weight: 500;
   letter-spacing: 0.5px;
 }
 
-/* 小水滴装饰 */
-.bubble-drop {
+/* 旋转光点装饰 */
+.progress-sparkle {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(6px);
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
 }
 
-.drop-1 {
-  width: 12px;
-  height: 12px;
-  top: -4px;
-  right: 2px;
-  animation: dropFloat1 3s ease-in-out infinite;
+.progress-sparkle.s1 {
+  width: 4px;
+  height: 4px;
+  top: 8px;
+  left: 50%;
+  margin-left: -2px;
+  animation: sparkleOrbit 6s linear infinite;
 }
 
-.drop-2 {
-  width: 8px;
-  height: 8px;
-  bottom: 6px;
-  left: -2px;
-  animation: dropFloat2 3.5s ease-in-out infinite;
+.progress-sparkle.s2 {
+  width: 3px;
+  height: 3px;
+  bottom: 12px;
+  right: 18px;
+  animation: sparklePulse 2.5s ease-in-out infinite;
 }
 
-@keyframes bubbleFloat {
+@keyframes ringFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  50% { transform: translateY(-4px); }
 }
 
-@keyframes dropFloat1 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(3px, -4px); }
+@keyframes sparkleOrbit {
+  0% { transform: rotate(0deg) translateX(55px) rotate(0deg); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg) translateX(55px) rotate(-360deg); opacity: 0.6; }
 }
 
-@keyframes dropFloat2 {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-2px, 3px); }
+@keyframes sparklePulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
 }
 
 /* ========== 飞行的小鸟（翅膀会动 + 来回飞） ========== */
@@ -676,23 +736,58 @@ onBeforeUnmount(() => {
 
 /* 翅膀拍动动画 */
 .bird-wing-left {
-  transform-origin: 18px 16px;
-  animation: wingFlapLeft 0.35s ease-in-out infinite alternate;
+  transform-origin: 28px 18px;
+  animation: wingFlapLeft 0.28s ease-in-out infinite alternate;
+}
+.bird-wing-left-inner {
+  transform-origin: 26px 18px;
+  animation: wingFlapLeftInner 0.28s ease-in-out infinite alternate;
 }
 
 .bird-wing-right {
-  transform-origin: 26px 16px;
-  animation: wingFlapRight 0.35s ease-in-out infinite alternate;
+  transform-origin: 34px 18px;
+  animation: wingFlapRight 0.28s ease-in-out infinite alternate;
+}
+.bird-wing-right-inner {
+  transform-origin: 36px 18px;
+  animation: wingFlapRightInner 0.28s ease-in-out infinite alternate;
+}
+
+/* 尾巴轻微摆动 */
+.bird-tail-left {
+  transform-origin: 20px 22px;
+  animation: tailWagLeft 0.6s ease-in-out infinite alternate;
+}
+.bird-tail-right {
+  transform-origin: 20px 22px;
+  animation: tailWagRight 0.6s ease-in-out infinite alternate;
 }
 
 @keyframes wingFlapLeft {
   0% { transform: rotate(0deg); }
-  100% { transform: rotate(-22deg); }
+  100% { transform: rotate(-28deg); }
+}
+@keyframes wingFlapLeftInner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-20deg); }
 }
 
 @keyframes wingFlapRight {
   0% { transform: rotate(0deg); }
-  100% { transform: rotate(22deg); }
+  100% { transform: rotate(28deg); }
+}
+@keyframes wingFlapRightInner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(20deg); }
+}
+
+@keyframes tailWagLeft {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-6deg); }
+}
+@keyframes tailWagRight {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(6deg); }
 }
 
 /* 飞行路径：从左到右，上下起伏，到达右边后转身飞回 */
@@ -1070,11 +1165,17 @@ onBeforeUnmount(() => {
   .sun .sun-rays { width: 28px; height: 28px; margin: -14px 0 0 -14px; }
   .moon .moon-body { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
 
-  .progress-ring-outer { width: 86px; height: 86px; }
-  .progress-ring-inner { width: 70px; height: 70px; }
-  .progress-number { font-size: 22px; }
-  .percent-sign { font-size: 11px; }
-  .progress-label { font-size: 9px; }
+  .progress-ring-advanced { width: 94px; height: 94px; }
+  .progress-inner-glass { width: 72px; height: 72px; }
+  .progress-number { font-size: 20px; }
+  .percent-sign { font-size: 10px; }
+  .progress-label { font-size: 8px; }
+  .progress-sparkle.s1 { animation: sparkleOrbit 6s linear infinite; }
+  @keyframes sparkleOrbit {
+    0% { transform: rotate(0deg) translateX(47px) rotate(0deg); opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { transform: rotate(360deg) translateX(47px) rotate(-360deg); opacity: 0.6; }
+  }
 
   .bird-flight { width: 34px; height: 26px; }
   .sky-wish-star { width: 32px; height: 32px; top: 48px; }

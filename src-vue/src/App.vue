@@ -14,10 +14,6 @@
 
     <!-- 电脑端：左侧导航（仅保留设置入口） -->
     <nav class="app-nav">
-      <div class="nav-brand" @click="$router.push('/')">
-        <span class="nav-icon">✦</span>
-        <span class="nav-title">人生体验卡</span>
-      </div>
       <div class="nav-actions">
         <button class="nav-btn nav-btn-settings" @click="showDataPanel = true" title="设置">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -138,7 +134,7 @@ onMounted(() => {
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 10px 20px;
   background: var(--card);
   border-bottom: 1px solid var(--border);
@@ -148,25 +144,6 @@ onMounted(() => {
 
 html.dark-theme .app-nav {
   background: rgba(26,26,46,0.85);
-}
-
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.nav-icon {
-  font-size: 18px;
-  color: var(--primary);
-}
-
-.nav-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
 }
 
 .nav-actions {
