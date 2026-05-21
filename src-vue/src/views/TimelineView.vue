@@ -12,13 +12,7 @@
         </div>
       </div>
 
-      <!-- 全部折叠/展开按钮 -->
-      <div class="header-actions" style="display:flex;gap:8px;margin-top:12px;">
-        <button class="header-btn" @click="collapseAll">全部折叠</button>
-        <button class="header-btn" @click="expandAll">全部展开</button>
-      </div>
-
-      <!-- 搜索框 -->
+    <!-- 搜索框 -->
       <div class="search-wrap" style="margin-top:12px;">
         <input
           v-model="searchTerm"
@@ -164,7 +158,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import CheckinModal from '../components/CheckinModal.vue'
 import PhotoViewer from '../components/PhotoViewer.vue'
 import CustomEventModal from '../components/CustomEventModal.vue'
@@ -180,7 +174,8 @@ import {
 } from '../utils/storage.js'
 
 // ========== 响应式数据 ==========
-const chapters = ref(JSON.parse(JSON.stringify(CHAPTERS))) // 深拷贝，添加 isOpen 状态
+const chapters = ref(JSON.parse(JSON.stringify(CHAPTERS)).map(ch => ({ ...ch, isOpen: false })))
+const chaptersInitialized = ref(false)
 const checkinData = ref({})
 const customEvents = ref([])
 const showModal = ref(false)
@@ -207,7 +202,6 @@ const toastMsg = ref('')
 let toastTimer = null
 
 // 图片查看器
-const photoViewerRef = ref(null)
 const showPhotoViewer = ref(false)
 const photoEventId = ref('')
 
@@ -247,23 +241,47 @@ const chaptersWithState = computed(() => {
       ...ch,
       done: done + customDone,
       total: ch.events.length + ces.length,
-      isOpen: ch.isOpen !== undefined ? ch.isOpen : false // 默认折叠
+      isOpen: ch.isOpen !== undefined ? ch.isOpen : false
     }
   })
 })
 
 // ========== 方法 ==========
 
-// 加载数据
+// 加载数据 - 保留用户的折叠选择
 async function loadData() {
   checkinData.value = await loadCheckinData()
   customEvents.value = loadCustomEvents()
-  // 重新构建 allEvents（在 events.js 中，但这里我们只需要更新本地状态）
-  // 更新章节的 isOpen 状态（默认全部折叠）
-  chapters.value = JSON.parse(JSON.stringify(CHAPTERS)).map(ch => ({
-    ...ch,
-    isOpen: false // 默认折叠
-  }))
+
+  // 只在新加载时设置 isOpen，后续不再重置
+  if (!chaptersInitialized.value) {
+    chapters.value = JSON.parse(JSON.stringify(CHAPTERS)).map(ch => ({
+      ...ch,
+      isOpen: false // 默认折叠
+    }))
+    chaptersInitialized.value = true
+  }
+  // 如果 CHAPTERS 有变化（比如新增章节），同步但不重置已有章节的 isOpen
+  else {
+    const existingTitles = chapters.value.map(c => c.title)
+    const newChapters = JSON.parse(JSON.stringify(CHAPTERS)).map((ch, ci) => {
+      const existingIdx = existingTitles.indexOf(ch.title)
+      if (existingIdx !== -1) {
+        // 保留已有章节的 isOpen 状态
+        return {
+          ...ch,
+          isOpen: chapters.value[existingIdx].isOpen
+        }
+      } else {
+        // 新章节，默认折叠
+        return {
+          ...ch,
+          isOpen: false
+        }
+      }
+    })
+    chapters.value = newChapters
+  }
 }
 
 // 打卡状态判断
@@ -281,26 +299,16 @@ function toggleChapter(ci) {
   chapters.value[ci].isOpen = !chapters.value[ci].isOpen
 }
 
-// 全部折叠
-function collapseAll() {
-  chapters.value.forEach(ch => { ch.isOpen = false })
-}
-
-// 全部展开
-function expandAll() {
-  chapters.value.forEach(ch => { ch.isOpen = true })
-}
-
 // 打开打卡弹窗
 function openCheckin(event) {
   currentEvent.value = event
   showModal.value = true
 }
 
-// 打卡保存成功
+// 打卡保存成功 - 不再展开所有章节
 async function onCheckinSaved({ eventId, event }) {
   showModal.value = false
-  await loadData() // 重新加载数据
+  await loadData() // 重新加载数据，但不重置折叠状态
 
   // 触发打卡仪式
   ritualEvent.value = event
@@ -395,10 +403,7 @@ function onSearchInput() {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     isSearching.value = !!searchTerm.value.trim()
-    // 展开所有章节（方便查看搜索结果）
-    if (isSearching.value) {
-      chapters.value.forEach(ch => { ch.isOpen = true })
-    }
+    // 不再自动展开所有章节 - 用户手动控制折叠/展开
     searchMatchedCount.value = 0
     // 计算匹配数量
     if (isSearching.value) {
@@ -813,26 +818,15 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* ========== 头部按钮 ========== */
-.header-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
+/* ========== Toast 动画 ========== */
+.toast-enter-active { animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+.toast-leave-active { animation: toastOut 0.3s ease-in forwards; }
 
-.header-btn {
-  padding: 4px 12px;
-  border: 1px solid var(--border, #E8ECF0);
-  border-radius: 6px;
-  background: var(--card, #fff);
-  color: var(--text, #1A1A2E);
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s;
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.9); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
-
-.header-btn:hover {
-  background: var(--accent, #f5f7fa);
-  border-color: var(--primary, #4A90D9);
-}
-</style>
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  to { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.9); }
+}</style>

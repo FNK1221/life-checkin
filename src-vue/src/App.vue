@@ -6,6 +6,12 @@
     <!-- 开场动画 -->
     <LoadingScreen @loading-complete="onLoadingComplete" />
 
+    <!-- 天空区域（含进度） -->
+    <SkySection
+      :done-count="doneCount"
+      :total-count="totalCount"
+    />
+
     <!-- 电脑端：左侧导航 -->
     <nav class="app-nav">
       <div class="nav-brand" @click="$router.push('/')">
@@ -73,17 +79,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import DataPanel from './components/DataPanel.vue'
 import ShareCard from './components/ShareCard.vue'
 import LoadingScreen from './components/LoadingScreen.vue'
+import SkySection from './components/SkySection.vue'
+import { loadCheckinData, loadCustomEvents } from './utils/storage.js'
 
 const showDataPanel = ref(false)
 const showShareCard = ref(false)
 const loadingComplete = ref(false)
+const checkinData = ref({})
+const customEvents = ref([])
+
+// 进度计算（传给 SkySection）
+const doneCount = computed(() => {
+  let c = 0
+  Object.values(checkinData.value).forEach(d => { if (d && d.date) c++ })
+  return c
+})
+const totalCount = computed(() => {
+  let c = 0
+  const { CHAPTERS } = require('./utils/events.js')
+  CHAPTERS.forEach(ch => c += ch.events.length)
+  c += customEvents.value.length
+  return c
+})
 
 function onLoadingComplete() {
   loadingComplete.value = true
+  loadProgressData()
+}
+
+// 加载进度数据
+async function loadProgressData() {
+  checkinData.value = await loadCheckinData()
+  customEvents.value = loadCustomEvents()
 }
 
 // ========== 主题切换（与原 index.html 保持一致）==========
@@ -117,6 +148,9 @@ onMounted(() => {
       document.documentElement.classList.add('dark-theme')
     }
   }
+
+  // 初次加载进度
+  loadProgressData()
 })
 </script>
 
